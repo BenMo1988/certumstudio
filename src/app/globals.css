@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+/*
+ * Certum Studio design tokens.
+ * Rustig en zakelijk: veel wit, neutrale grijzen, petrolblauw als enige accent.
+ */
+@theme {
+  --color-canvas: #ffffff;
+  --color-surface: #f6f7f7;
+  --color-ink: #1a2326;
+  --color-muted: #5b6b70;
+  --color-line: #e2e6e7;
+
+  --color-petrol-50: #eef6f7;
+  --color-petrol-100: #d5e8eb;
+  --color-petrol-600: #0f5c6b;
+  --color-petrol-700: #0b4a57;
+  --color-petrol-800: #083a44;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+}
