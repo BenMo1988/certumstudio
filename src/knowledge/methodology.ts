@@ -37,4 +37,5 @@ export const METHODOLOGY_STEPS = [
   },
 ] as const;
 
-export type MethodologyStepId = (typeof METHODOLOGY_STEPS)[number]["id"];
+export type MethodologyStep = (typeof METHODOLOGY_STEPS)[number];
+export type MethodologyStepId = MethodologyStep["id"];

@@ -16,7 +16,7 @@ export default async function TrainingsPage() {
         title="Mijn trainingen"
         description="Alle trainingsprojecten in Certum Studio."
         action={
-          <Button href="/training/new">
+          <Button href="/trainings/new">
             <Icon name="plus" className="size-4" />
             Nieuwe training
           </Button>

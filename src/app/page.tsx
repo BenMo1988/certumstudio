@@ -16,7 +16,7 @@ export default async function DashboardPage() {
 
       <section className="mt-12 grid gap-4 sm:grid-cols-3" aria-label="Acties">
         <ActionCard
-          href="/training/new"
+          href="/trainings/new"
           icon="plus"
           title="Nieuwe training"
           description="Start vanuit een onderwerp, praktijkvraag of casus."

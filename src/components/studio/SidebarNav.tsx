@@ -5,18 +5,25 @@ import { usePathname } from "next/navigation";
 import { Icon } from "./Icon";
 import { NAV_ITEMS } from "./navigation";
 
-function isActive(pathname: string, href: string) {
-  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+function matches(pathname: string, href: string) {
+  return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+}
+
+/** Het meest specifieke item wint: /trainings/new markeert "Nieuwe training", niet ook "Mijn trainingen". */
+function activeHref(pathname: string) {
+  return NAV_ITEMS.map((item) => item.href)
+    .filter((href) => matches(pathname, href))
+    .sort((a, b) => b.length - a.length)[0];
 }
 
 export function SidebarNav() {
-  const pathname = usePathname();
+  const current = activeHref(usePathname());
 
   return (
     <nav aria-label="Hoofdnavigatie">
       <ul className="flex gap-1 overflow-x-auto md:flex-col md:overflow-visible">
         {NAV_ITEMS.map((item) => {
-          const active = isActive(pathname, item.href);
+          const active = item.href === current;
           return (
             <li key={item.href} className="shrink-0">
               <Link

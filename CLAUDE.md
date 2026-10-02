@@ -58,8 +58,9 @@ daarna de training opbouwen. Types staan in `src/modules/training-agent/types.ts
 src/
   app/                 Routes en pagina's (alleen routing en compositie, geen domeinlogica)
   components/
-    studio/            Studio-interface: StudioLayout, SidebarNav, PageHeader, ActionCard,
-                       StatusBadge, TrainingList, Button, Icon (inline SVG, geen icon-library)
+    studio/            Studio-interface: StudioLayout, SidebarNav, PageHeader, ActionCard, ChoiceCard,
+                       StatusBadge, TrainingList, TrainingSection, ContentBlocks, NewTrainingForm,
+                       Button, Icon (inline SVG, geen icon-library)
   lib/                 Kleine generieke helpers (bijv. datumopmaak)
   modules/             Domein, per onderdeel
     trainings/         Trainingsprojecten
@@ -75,6 +76,13 @@ Regels:
   services via een interface. Een pagina of component praat nooit rechtstreeks met een AI-SDK of database.
 - **Data via module-functies.** Pagina's halen data op via functies als `listTrainings()` (async), nooit
   rechtstreeks uit voorbeelddata. Voorbeelddata staat in `sample-data.ts` en wordt later vervangen door opslag.
+- **Inhoud als blokken.** Een methodiekonderdeel bevat `blocks: ContentBlock[]`, geen losse string.
+  De onderdelen krijgen later elk eigen gestructureerde inhoud (keuzeopties, bronnen, toetsvragen). Die voeg je toe als
+  nieuw bloktype in `modules/trainings/types.ts`, met een weergave in `ContentBlocks`. Voeg pas een bloktype toe als
+  het echt nodig is.
+- **Methodiek nooit hardcoden.** Namen, volgorde en beschrijvingen van de stappen komen altijd uit `METHODOLOGY_STEPS`.
+- **Geen tijdelijke opslag.** Geen localStorage, JSON-bestanden of server actions als tussenoplossing: de echte
+  persistente opslag wordt later gekozen.
 - AI-provider (bijv. Anthropic), database, externe leeromgeving, API's en MCP-tools komen later in `services/`.
   Zo blijft de provider of opslag te vervangen zonder de UI aan te passen.
 - API-sleutels en secrets alleen server-side (`.env.local`, nooit committen, nooit in client components).
@@ -92,8 +100,18 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 ## Status
 
 - Stap 1, de technische fundering: klaar.
-- Stap 2, de eerste studio-interface: klaar. Routes: `/` (dashboard), `/training/new`, `/cases/new` en `/trainings`.
-  De knoppen en keuzekaarten doen nog niets.
+- Stap 2, de eerste studio-interface: klaar.
+- Stap 3, de Training Workspace: klaar.
+
+Routes:
+- `/`: dashboard.
+- `/trainings`: overzicht van trainingen.
+- `/trainings/new`: kies een soort input; het passende invoerveld verschijnt op dezelfde pagina.
+- `/trainings/[id]`: Training Workspace met de zes methodiekonderdelen.
+- `/cases/new`: casus invoeren.
+
+Gebruik voor trainingen altijd `/trainings/...` (meervoud). Formulieren en de knoppen "Bewerken", "Verder naar analyse"
+en "Casus analyseren" slaan nog niets op en voeren nog niets uit.
 
 Er is nog geen AI-agent, database, authenticatie of externe koppeling.
 
