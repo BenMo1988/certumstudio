@@ -1,6 +1,6 @@
 import type { MethodologyStepId } from "@/knowledge";
 
-export type TrainingStatus = "concept" | "in-ontwikkeling" | "gereed";
+export type TrainingStatus = "concept" | "review" | "gereed";
 
 /** Een trainingsproject in Certum Studio. */
 export interface Training {

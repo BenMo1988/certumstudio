@@ -58,7 +58,9 @@ daarna de training opbouwen. Types staan in `src/modules/training-agent/types.ts
 src/
   app/                 Routes en pagina's (alleen routing en compositie, geen domeinlogica)
   components/
-    studio/            UI-componenten van de studio-interface
+    studio/            Studio-interface: StudioLayout, SidebarNav, PageHeader, ActionCard,
+                       StatusBadge, TrainingList, Button, Icon (inline SVG, geen icon-library)
+  lib/                 Kleine generieke helpers (bijv. datumopmaak)
   modules/             Domein, per onderdeel
     trainings/         Trainingsprojecten
     cases/             Praktijkcasussen
@@ -71,6 +73,8 @@ Regels:
 
 - **Scheid UI, domein en externe koppelingen.** Componenten en pagina's roepen modules aan. Modules gebruiken
   services via een interface. Een pagina of component praat nooit rechtstreeks met een AI-SDK of database.
+- **Data via module-functies.** Pagina's halen data op via functies als `listTrainings()` (async), nooit
+  rechtstreeks uit voorbeelddata. Voorbeelddata staat in `sample-data.ts` en wordt later vervangen door opslag.
 - AI-provider (bijv. Anthropic), database, externe leeromgeving, API's en MCP-tools komen later in `services/`.
   Zo blijft de provider of opslag te vervangen zonder de UI aan te passen.
 - API-sleutels en secrets alleen server-side (`.env.local`, nooit committen, nooit in client components).
@@ -87,10 +91,14 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 
 ## Status
 
-Stap 1, de technische fundering, is klaar. Er is nog geen AI-agent, database, authenticatie of externe koppeling.
+- Stap 1, de technische fundering: klaar.
+- Stap 2, de eerste studio-interface: klaar. Routes: `/` (dashboard), `/training/new`, `/cases/new` en `/trainings`.
+  De knoppen en keuzekaarten doen nog niets.
+
+Er is nog geen AI-agent, database, authenticatie of externe koppeling.
 
 ## Commando's
 
-- `npm run dev`: lokaal starten (http://localhost:3000)
+- `npm run dev`: lokaal starten (http://localhost:3000; staat BC Online daar al, dan wijkt Next uit naar 3001)
 - `npm run build`: productiebuild
 - `npm run lint`: ESLint

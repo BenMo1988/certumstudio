@@ -1,32 +1,49 @@
-import { METHODOLOGY_STEPS } from "@/knowledge";
+import Link from "next/link";
+import { ActionCard } from "@/components/studio/ActionCard";
+import { PageHeader } from "@/components/studio/PageHeader";
+import { TrainingList } from "@/components/studio/TrainingList";
+import { listTrainings } from "@/modules/trainings";
 
-export default function Home() {
+export default async function DashboardPage() {
+  const recent = await listTrainings({ limit: 3 });
+
   return (
-    <div className="mx-auto max-w-5xl px-6 py-16">
-      <p className="text-sm font-medium text-petrol-600">Interne werkomgeving</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink">
-        Certum Studio
-      </h1>
-      <p className="mt-4 max-w-2xl leading-relaxed text-muted">
-        Hier ontwikkel je professionele trainingen en praktijksimulaties volgens
-        de methodiek van Bureau Certum.
-      </p>
+    <>
+      <PageHeader
+        title="Certum Studio"
+        description="Van praktijk naar professionele ontwikkeling."
+      />
 
-      <section className="mt-14">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted">
-          Methodiek
-        </h2>
-        <ol className="mt-4 grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-3 lg:grid-cols-6">
-          {METHODOLOGY_STEPS.map((step, index) => (
-            <li key={step.id} className="bg-canvas p-4">
-              <span className="text-xs tabular-nums text-petrol-600">
-                {index + 1}
-              </span>
-              <p className="mt-1 font-medium text-ink">{step.label}</p>
-            </li>
-          ))}
-        </ol>
+      <section className="mt-12 grid gap-4 sm:grid-cols-3" aria-label="Acties">
+        <ActionCard
+          href="/training/new"
+          icon="plus"
+          title="Nieuwe training"
+          description="Start vanuit een onderwerp, praktijkvraag of casus."
+        />
+        <ActionCard
+          href="/cases/new"
+          icon="case"
+          title="Casus invoeren"
+          description="Leg een geanonimiseerde praktijksituatie vast."
+        />
+        <ActionCard
+          href="/trainings"
+          icon="trainings"
+          title="Mijn trainingen"
+          description="Open en beheer je trainingsprojecten."
+        />
       </section>
-    </div>
+
+      <section className="mt-16">
+        <div className="mb-4 flex items-baseline justify-between">
+          <h2 className="text-lg font-semibold tracking-tight text-ink">Recente projecten</h2>
+          <Link href="/trainings" className="text-sm font-medium text-petrol-600 hover:text-petrol-800">
+            Alles bekijken
+          </Link>
+        </div>
+        <TrainingList trainings={recent} />
+      </section>
+    </>
   );
 }
