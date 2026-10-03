@@ -167,6 +167,13 @@ casusflow naast deze instroom.
 Gebruik voor trainingen altijd `/trainings/...` (meervoud). "Gebruik deze trainingsrichting" bevestigt alleen de keuze en bouwt nog geen training. "Bewerken" in de
 Workspace doet nog niets. Er wordt nergens iets opgeslagen.
 
+## Evals
+
+Kwaliteitsbasis voor Certum Analyse staat in `evals/training-analysis/` (zie de README daar). Er staat alleen
+synthetische data in en het is geen productiecode. Elke run wordt vastgelegd met promptVersion, model en effort.
+Doe na een wijziging in prompt, model of effort de relevante evals opnieuw en leg de runs vast, voordat de wijziging
+als verbetering geldt. Er is nog geen geautomatiseerde scorer of runner.
+
 ## Toekomstige mogelijkheden (nog niet bouwen)
 
 - **Casusbibliotheek**: een aparte feature om geanonimiseerde casussen te bewaren, te doorzoeken en te hergebruiken

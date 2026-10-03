@@ -1,0 +1,85 @@
+# Certum Analysis Evals
+
+Kwaliteitsbasis voor **Certum Analyse**: de stap waarin een onderwerp, praktijkvraag of casus wordt geanalyseerd
+voordat een mens een trainingsrichting kiest.
+
+> Dit is geen productiecode. Deze map bevat uitsluitend synthetische testdata en menselijke beoordelingen.
+> Er is (nog) geen geautomatiseerde scorer of test-runner.
+
+## Waarom we analyses evalueren
+
+De analyse bepaalt waar een training over gaat. Een gemist dilemma, een verzonnen feit of een gemiste
+privacybevinding werkt door in alles wat daarna komt. Wijzigingen in prompt, model of effort kunnen de kwaliteit
+verbeteren of juist ongemerkt verslechteren. Met een vaste set evals vergelijken we configuraties op dezelfde
+input en beslissen we op basis van bewijs, niet van indruk.
+
+## Waar we wel en niet op beoordelen
+
+We beoordelen **niet** op exacte bewoording. Twee analyses kunnen anders geformuleerd zijn en allebei goed zijn.
+
+We beoordelen op:
+
+| Criterium | Vraag |
+| --- | --- |
+| Professionele kern | Is het centrale professionele dilemma herkend, en niet versmald tot iets generieks? |
+| Trouw aan de input | Blijft de analyse bij wat er staat, zonder feiten, diagnoses of context te verzinnen? |
+| Leerdoel | Is het leerdoel handelingsgericht, passend bij het dilemma en haalbaar in een simulatie? |
+| Geschiktheid | Is het oordeel (geschikt / aanpassen / ongeschikt) terecht en goed toegelicht? |
+| Privacy | Is het privacyniveau (geen / aandachtspunt / blokkeren) juist, zonder over- of ondersignalering? |
+| Trainingsrichtingen | Zijn de 1–3 richtingen professioneel echt verschillend en elk bruikbaar? |
+| Terughoudendheid met aannames | Worden aannames als aanname gepresenteerd, niet als feit? |
+| Ontbrekende informatie | Is wat ontbreekt relevant voor trainingsontwikkeling, en niet breder dan nodig? |
+
+### Kaders niet ongefundeerd als feit
+
+Methodische, juridische en normatieve kaders (bijvoorbeeld een meldplicht, een specifieke methodiek of een
+beroepscode) mogen **niet ongefundeerd als feit** worden geïntroduceerd. Een analyse mag zo'n kader hooguit noemen
+als mogelijk relevant aandachtspunt, zolang er geen bronvalidatie is. Een analyse die een kader stellig toepast
+dat niet uit de input volgt, krijgt daarvoor een aandachtspunt.
+
+## Uitsluitend fictieve, synthetische data
+
+Iedere eval is volledig fictief. Gebruik nooit echte casuïstiek, ook niet geanonimiseerd. Geen namen, adressen,
+geboortedata, contactgegevens, dossiernummers, namen van echte organisaties of unieke combinaties van kenmerken
+die naar een echte situatie kunnen verwijzen.
+
+## Traceerbaarheid
+
+Iedere run is herleidbaar naar de AI-configuratie waarmee hij is gemaakt:
+
+- **promptVersion**: `TRAINING_ANALYSIS_PROMPT_VERSION` in `src/knowledge/prompts/training-analysis.ts`
+- **model** en **effort**: `CLAUDE_ANALYSIS_DEFAULTS` in `src/services/analysis/config.ts`
+
+Deze drie waarden staan ook in de metadata-logregel (`certum.analysis`) van iedere echte analyse. Een run zonder
+deze drie waarden telt niet mee in een vergelijking.
+
+## Structuur
+
+```
+evals/training-analysis/
+  README.md
+  cases/
+    CA-001-ouderconflict-escalatie/
+      case.md                                   input + verwachtingen (verandert niet per run)
+      runs/
+        2026-10-03_training-analysis-v1_claude-opus-5-5_medium.md
+```
+
+- `case.md` bevat de exacte input en de verwachtingen. Wijzig de input van een bestaande eval niet; maak bij
+  twijfel een nieuwe eval aan.
+- Elke run krijgt een eigen bestand: `<datum>_<promptVersion>_<model>_<effort>.md`, met metadata, de volledige
+  output en de menselijke beoordeling.
+
+## Beoordelingen
+
+| Status | Betekenis |
+| --- | --- |
+| `PASS` | Voldoet aan alle verwachtingen. |
+| `PASS_WITH_NOTES` | Bruikbaar en voldoet aan de kern, met aandachtspunten voor prompt of configuratie. |
+| `FAIL` | Mist de kern, verzint feiten, beoordeelt privacy of geschiktheid onjuist, of schrijft al een training uit. |
+
+## Overzicht
+
+| Eval | Inputsoort | Onderwerp | Laatste run | Status |
+| --- | --- | --- | --- | --- |
+| [CA-001](cases/CA-001-ouderconflict-escalatie/case.md) | casus | Escalerend ouderconflict, kind binnen gehoorsafstand | 2026-10-03 · v1 · opus-5-5 · medium | `PASS_WITH_NOTES` |
