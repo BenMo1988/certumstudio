@@ -29,15 +29,17 @@ import { AnalysisError, type AnalysisErrorKind } from "@/services/analysis/error
 import {
   TRAINING_BLUEPRINT_V2_VERSION,
   TrainingBlueprintV2Schema,
+  ambiguityFor,
   checkBlueprintV2Invariants,
   type TrainingBlueprintV2,
 } from "@/modules/training-blueprint/v2";
 import type { ReadyOutcome, SourceSegment } from "@/modules/training-agent/v2";
-import { AnalysisOutcomeV21Schema, toV2Outcome } from "@/modules/training-agent/v2-1";
+import { AnalysisOutcomeV21Schema, toV2Outcome, type ReadyOutcomeV21 } from "@/modules/training-agent/v2-1";
 import type {
   BlockPlanService,
   TrainingBlueprintService,
   TrainingBlueprintServiceV2,
+  TrainingBlueprintServiceV21,
 } from "@/services/blueprint/services";
 
 /** Waarom een Blueprint of Block Plan niet mag ontstaan. Bevat geen inhoud. */
@@ -46,6 +48,7 @@ export type BlueprintFlowRejection =
   | "invalid_analysis"
   | "not_ready"
   | "unknown_direction"
+  | "incompatible_analysis"
   | "invalid_blueprint"
   | "provider_error"
   | "blueprint_not_approved"
@@ -88,21 +91,32 @@ export type BlueprintLogEntry =
 
 const defaultLog = (entry: BlueprintLogEntry) => console.info(JSON.stringify(entry));
 
-/** Wat een contractversie aan de flow levert: versie-id en de domeincontrole tegen de analyse. */
+/**
+ * Wat een contractversie aan de flow levert: versie-id, de domeincontrole tegen de analyse en of het routebeleid van
+ * de analyse trusted is. Bij `trustRoutePolicy` is alleen een Analysis V2.1-uitkomst toegestaan (geen stille gok bij
+ * een V2-analyse zonder routebeleid) en moet de ambiguïteit van de Blueprint daaruit volgen.
+ */
 interface BlueprintContract<B> {
   version: string;
   check: (blueprint: B, context: { analysis: ReadyOutcome; segments: SourceSegment[] }) => string[];
+  trustRoutePolicy: boolean;
 }
 
 const V1_CONTRACT: BlueprintContract<TrainingBlueprint> = {
   version: TRAINING_BLUEPRINT_VERSION,
   check: checkBlueprintInvariants,
+  trustRoutePolicy: false,
 };
 
 const V2_CONTRACT: BlueprintContract<TrainingBlueprintV2> = {
   version: TRAINING_BLUEPRINT_V2_VERSION,
   check: checkBlueprintV2Invariants,
+  trustRoutePolicy: false,
 };
+
+const V21_CONTRACT: BlueprintContract<TrainingBlueprintV2> = { ...V2_CONTRACT, trustRoutePolicy: true };
+
+type ServiceRequest<A> = { input: AgentInput; analysis: A; segments: SourceSegment[]; selectedDirectionId: string };
 
 /**
  * Blueprint Generation (Blueprint Contract V1, baseline; niet meer aangesloten op de UI). Zie runBlueprintFlowV2.
@@ -134,15 +148,34 @@ export async function runBlueprintFlowV2(
   return runGatedBlueprintFlow(V2_CONTRACT, input, acknowledgement, analysisCandidate, selectedDirectionId, deps);
 }
 
+/**
+ * Blueprint Generation met trusted routebeleid (actief): Blueprint Contract V2 en prompt training-blueprint/v2.1.
+ * Dezelfde poorten, plus: alleen een Analysis V2.1-uitkomst met routebeleid. Een V2-analyse zonder routebeleid geeft
+ * `incompatible_analysis`; de flow bepaalt de ambiguïteit nooit zelf. De ambiguïteit van de Blueprint moet volgen uit
+ * het routebeleid van de gekozen richting (`ambiguityFor`).
+ */
+export async function runBlueprintFlowV21(
+  input: AgentInput,
+  acknowledgement: PreflightAcknowledgement | null,
+  analysisCandidate: unknown,
+  selectedDirectionId: string,
+  deps: { getService: () => TrainingBlueprintServiceV21; log?: (entry: BlueprintLogEntry) => void },
+): Promise<BlueprintFlowResultV2> {
+  return runGatedBlueprintFlow(V21_CONTRACT, input, acknowledgement, analysisCandidate, selectedDirectionId, deps);
+}
+
 /** De gedeelde poorten voor iedere contractversie. De provider wordt pas na alle poorten aangemaakt. */
-async function runGatedBlueprintFlow<B extends { ambiguity: TrainingBlueprint["ambiguity"]; sourceNeeds: unknown[] }>(
+async function runGatedBlueprintFlow<
+  B extends { ambiguity: TrainingBlueprint["ambiguity"]; sourceNeeds: unknown[] },
+  A extends ReadyOutcome | ReadyOutcomeV21,
+>(
   contract: BlueprintContract<B>,
   input: AgentInput,
   acknowledgement: PreflightAcknowledgement | null,
   analysisCandidate: unknown,
   selectedDirectionId: string,
   deps: {
-    getService: () => { generate: (request: { input: AgentInput; analysis: ReadyOutcome; segments: SourceSegment[]; selectedDirectionId: string }) => Promise<B> };
+    getService: () => { generate: (request: ServiceRequest<A>) => Promise<B> };
     log?: (entry: BlueprintLogEntry) => void;
   },
 ): Promise<BlueprintFlowResult<B>> {
@@ -165,10 +198,12 @@ async function runGatedBlueprintFlow<B extends { ambiguity: TrainingBlueprint["a
   const syntheticDataAttested = evaluateDataPolicy(ACTIVE_DATA_POLICY, ackForThisText?.syntheticDataAttested === true).allowed;
   if (!preflightPassed || !syntheticDataAttested) return reject("input_gate");
 
-  // Een V2.1-analyse (actief) of een V2-analyse; V2.1 is V2 plus routePolicy, dat de Blueprint (nog) niet leest.
+  // Een V2.1-analyse of (alleen zonder trusted routebeleid) een V2-analyse; V2.1 is V2 plus routePolicy.
   const v21 = AnalysisOutcomeV21Schema.safeParse(analysisCandidate);
   const parsed = v21.success ? v21 : AnalysisOutcomeSchema.safeParse(analysisCandidate);
   if (!parsed.success) return reject("invalid_analysis");
+  // Geen stille gok: een V2-analyse zonder routebeleid wordt bij trusted routebeleid niet geïnterpreteerd.
+  if (contract.trustRoutePolicy && !v21.success) return reject("incompatible_analysis");
   // De poort en de Blueprint werken met de V2-weergave (zonder routePolicy); dezelfde V2-invarianten gelden.
   const analysis = v21.success ? toV2Outcome(v21.data) : parsed.data;
   const segments = segmentInput(input.text);
@@ -181,13 +216,20 @@ async function runGatedBlueprintFlow<B extends { ambiguity: TrainingBlueprint["a
   // Pas hier, na alle poorten, wordt de provider aangemaakt. Een providerfout blijft een fout: geen terugval naar mock.
   let blueprint: B;
   try {
-    blueprint = await deps.getService().generate({ input, analysis, segments, selectedDirectionId });
+    // Bij trusted routebeleid krijgt de provider de V2.1-uitkomst (met routePolicy), anders de V2-weergave.
+    const serviceAnalysis = (contract.trustRoutePolicy && v21.success ? v21.data : analysis) as A;
+    blueprint = await deps.getService().generate({ input, analysis: serviceAnalysis, segments, selectedDirectionId });
   } catch (error) {
     if (error instanceof AnalysisError && error.kind === "invalid-output") return reject("invalid_blueprint", error.kind);
     return reject("provider_error", error instanceof AnalysisError ? error.kind : "unknown");
   }
   // Ook na een provider die zelf controleert: de flow is de poort voor iedere implementatie.
   if (contract.check(blueprint, { analysis, segments }).length > 0) return reject("invalid_blueprint");
+  // Eén doorlopende waarheid: de ambiguïteit van de Blueprint volgt uit het routebeleid van de Analysis-richting.
+  if (contract.trustRoutePolicy && v21.success && v21.data.outcome === "ready") {
+    const direction = v21.data.trainingDirections.find((d) => d.id === selectedDirectionId);
+    if (!direction || blueprint.ambiguity !== ambiguityFor(direction.routePolicy)) return reject("invalid_blueprint");
+  }
 
   log({
     event: "certum.blueprint",

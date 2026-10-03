@@ -226,6 +226,17 @@ Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
   - **Aannames vullen onbekenden in en halen geen trusted context uit de situatie.** Focus vernauwt de leeropdracht,
     context blijft. Invariant `aanname-sluit-context-uit` (bewust smal); de prompt en evals dragen de rest.
   - Vaste velden (versie, doelgroep, richting, leerdoel, dilemma, sourceRefs) blijven server-side samengesteld.
+- **Trusted routebeleid (actief, prompt `training-blueprint/v2.1`, contract blijft `blueprint-contract/v2`):** de
+  Blueprint kiest de ambiguïteit niet meer. `ambiguityFor` (`modules/training-blueprint/v2/schema.ts`, de enige mapping)
+  leidt haar af uit het `routePolicy` van de gekozen Analysis V2.1-richting: `open_choice` →
+  `multiple_defensible_actions`, `prescribed_action` → `single_best_action`. Daarna leidt `composeTrainingBlueprintV2`
+  het routebeleid van keuzemoment en Actie weer af. Eén doorlopende waarheid: Analysis routePolicy → ambiguity →
+  decisionPoint/Actie routePolicy.
+  - `BlueprintV21DesignSchema` = het V2-ontwerpschema `.omit({ ambiguity })`; `composeTrainingBlueprintV21` zet de
+    trusted ambiguïteit. De provider-input bevat het routebeleid (`buildBlueprintGenerationInputV21`).
+  - `runBlueprintFlowV21` accepteert alleen een Analysis V2.1-uitkomst. Een V2-analyse zonder routebeleid geeft
+    `incompatible_analysis` (geen stille gok). De flow controleert ook dat de ambiguïteit uit het routebeleid volgt.
+  - V1 en V2 (`runBlueprintFlow`, `runBlueprintFlowV2`) blijven als baseline-codepaden bestaan.
 - Het Block Plan is nog mock-only. Het leest alleen titel, leerdoel, ambiguïteit en prestatiesoort
   (`BlockPlanBlueprintSource`) en werkt daardoor met V1 en V2. Er is geen BC Online-adapter, API, database, MCP of
   export.

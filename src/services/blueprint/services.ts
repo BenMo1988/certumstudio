@@ -4,6 +4,7 @@ import type { BcOnlineBlockPlan } from "@/modules/block-plan/schema";
 import type { BlockPlanBlueprintSource } from "@/modules/block-plan/validation";
 import type { TrainingBlueprint } from "@/modules/training-blueprint/schema";
 import type { TrainingBlueprintV2 } from "@/modules/training-blueprint/v2/schema";
+import type { ReadyOutcomeV21 } from "@/modules/training-agent/v2-1";
 
 /** Wat een Blueprint-generator krijgt: alleen een `ready`-analyse met een gekozen, bestaande richting. */
 export interface BlueprintRequest {
@@ -25,6 +26,16 @@ export interface TrainingBlueprintService {
 /** Zelfde contract voor Blueprint Contract V2 (blueprint-contract/v2). */
 export interface TrainingBlueprintServiceV2 {
   generate(request: BlueprintRequest): Promise<TrainingBlueprintV2>;
+}
+
+/** V2.1-request: een Analysis V2.1-uitkomst, zodat het routebeleid van de gekozen richting trusted meegaat. */
+export interface BlueprintRequestV21 extends Omit<BlueprintRequest, "analysis"> {
+  analysis: ReadyOutcomeV21;
+}
+
+/** Blueprint Contract V2 met trusted routebeleid (prompt training-blueprint/v2.1). */
+export interface TrainingBlueprintServiceV21 {
+  generate(request: BlueprintRequestV21): Promise<TrainingBlueprintV2>;
 }
 
 /** Provider-onafhankelijk contract voor Block Plan Generation op basis van een goedgekeurde Blueprint. V1: mock. */

@@ -3,7 +3,7 @@
 import { parsePreflightAcknowledgement } from "@/modules/privacy";
 import { MAX_INPUT_LENGTH, parseInputKind } from "@/modules/training-agent";
 import { getBlockPlanService, getTrainingBlueprintService } from "@/services/blueprint";
-import { runBlockPlanFlow, runBlueprintFlowV2, type BlockPlanFlowResult, type BlueprintFlowResultV2 } from "./blueprint-flow";
+import { runBlockPlanFlow, runBlueprintFlowV21, type BlockPlanFlowResult, type BlueprintFlowResultV2 } from "./blueprint-flow";
 
 /**
  * Server Actions voor Blueprint en Block Plan. Alle invoer wordt hier opnieuw gevalideerd; de poorten worden
@@ -22,7 +22,7 @@ export async function generateBlueprint(
   }
   const trimmed = text.trim();
   if (trimmed.length === 0 || trimmed.length > MAX_INPUT_LENGTH) return { status: "rejected", reason: "input_gate" };
-  return runBlueprintFlowV2(
+  return runBlueprintFlowV21(
     { kind: inputKind, text: trimmed },
     parsePreflightAcknowledgement(acknowledgement),
     analysis,

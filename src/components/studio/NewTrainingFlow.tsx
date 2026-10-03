@@ -30,6 +30,7 @@ const BLUEPRINT_MESSAGES: Record<BlueprintFlowRejection, string> = {
   invalid_analysis: "De analyse kon niet worden gecontroleerd. Analyseer opnieuw.",
   not_ready: "Alleen een analyse die gereed is kan een Blueprint opleveren.",
   unknown_direction: "Kies een van de voorgestelde trainingsrichtingen.",
+  incompatible_analysis: "Deze analyse is gemaakt met een oudere versie zonder routebeleid. Analyseer de invoer opnieuw.",
   invalid_blueprint: "De Blueprint voldeed niet aan de regels en is niet getoond.",
   provider_error: "De Blueprint kon nu niet worden gemaakt. Probeer het later opnieuw.",
   blueprint_not_approved: "Keur eerst de Blueprint goed.",

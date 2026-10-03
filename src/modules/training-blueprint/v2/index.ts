@@ -21,3 +21,10 @@ export {
   type BlueprintV2Design,
   type TrustedBlueprintV2Field,
 } from "./compose";
+export { ambiguityFor } from "./schema";
+export {
+  buildBlueprintGenerationInputV21,
+  composeTrainingBlueprintV21,
+  type BlueprintGenerationInputV21,
+  type BlueprintV21Design,
+} from "./trusted-route-policy";

@@ -32,6 +32,15 @@ export function routePolicyFor(ambiguity: Ambiguity): RoutePolicy {
 }
 
 /**
+ * De enige mapping van het routebeleid van een Analysis-richting (V2.1) naar de Blueprint-ambiguïteit. Exact de inverse
+ * van `routePolicyFor`, zodat Analysis-routebeleid → ambiguïteit → routebeleid van keuzemoment en Actie één doorlopende
+ * waarheid is.
+ */
+export function ambiguityFor(routePolicy: RoutePolicy): Ambiguity {
+  return routePolicy === "open_choice" ? "multiple_defensible_actions" : "single_best_action";
+}
+
+/**
  * Waarop Feedback en Toets beoordelen. `voorgeschreven_handeling` (heeft de deelnemer de normatief gewenste handeling
  * uitgevoerd?) is alleen toegestaan bij `single_best_action`; bij meerdere verdedigbare routes is routekeuze nooit
  * een beoordelingsgrond.

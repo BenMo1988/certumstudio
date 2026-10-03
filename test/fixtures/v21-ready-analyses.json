@@ -1,0 +1,149 @@
+{
+  "_note": "Echte, menselijk beoordeelde Analysis V2.1-uitkomsten (synthetische input), als fixture voor trusted routebeleid in de Blueprint. Niet wijzigen.",
+  "cases": {
+    "CA-006": {
+      "kind": "casus",
+      "input": "Een teamleider merkt dat een medewerker de afgelopen maand meerdere deadlines heeft gemist en afspraken niet altijd nakomt. In een gesprek zegt de medewerker dat er privé veel speelt, maar dat hij daar op het werk niet verder over wil praten. De teamleider wil respectvol omgaan met die grens, maar moet ook iets doen met de gevolgen voor het team en het werk.",
+      "segments": [
+        {
+          "id": "S1",
+          "text": "Een teamleider merkt dat een medewerker de afgelopen maand meerdere deadlines heeft gemist en afspraken niet altijd nakomt."
+        },
+        {
+          "id": "S2",
+          "text": "In een gesprek zegt de medewerker dat er privé veel speelt, maar dat hij daar op het werk niet verder over wil praten."
+        },
+        {
+          "id": "S3",
+          "text": "De teamleider wil respectvol omgaan met die grens, maar moet ook iets doen met de gevolgen voor het team en het werk."
+        }
+      ],
+      "analysis": {
+        "outcome": "ready",
+        "summary": "Een teamleider merkt dat een medewerker de afgelopen maand meerdere deadlines heeft gemist en afspraken niet altijd nakomt. In een gesprek geeft de medewerker aan dat er privé veel speelt, maar dat hij daar op het werk niet verder over wil praten. De teamleider wil die grens respecteren, maar moet ook iets doen met de gevolgen voor het team en het werk.",
+        "professionalDilemma": "De teamleider staat voor de vraag hoe hij de door de medewerker aangegeven grens rond zijn privésituatie respecteert, terwijl hij tegelijk verantwoordelijkheid houdt voor de gemiste deadlines, niet nagekomen afspraken en de gevolgen daarvan voor het team en het werk.",
+        "proposedLearningGoal": "De deelnemer kan als leidinggevende bepalen hoe hij de privacygrens van een medewerker respecteert en tegelijk verantwoordelijkheid neemt voor de werkprestaties en de gevolgen voor het team, en deze keuze professioneel onderbouwen.",
+        "targetAudience": "Teamleiders en andere leidinggevenden die medewerkers aansturen.",
+        "trainingDirections": [
+          {
+            "id": "grens-en-verantwoordelijkheid",
+            "title": "Privégrens respecteren en werkverantwoordelijkheid bewaken",
+            "focus": "Het keuzemoment waarin de teamleider, nadat de medewerker heeft aangegeven niet verder over zijn privésituatie te willen praten, moet bepalen hoe hij met die grens omgaat en tegelijk iets doet met de gevolgen voor het team en het werk.",
+            "proposedLearningGoal": "De deelnemer kan afwegen hoe hij de door een medewerker aangegeven grens rond privéomstandigheden respecteert en tegelijk verantwoordelijkheid houdt voor het werk en het team, en kan zijn gekozen aanpak onderbouwen in het licht van de situatie en de mogelijke consequenties.",
+            "sourceRefs": [
+              "S2",
+              "S3"
+            ],
+            "routePolicy": "open_choice"
+          },
+          {
+            "id": "bespreken-werkprestaties",
+            "title": "Werkprestaties bespreekbaar maken",
+            "focus": "Het moment waarop de teamleider de waargenomen gemiste deadlines en niet nagekomen afspraken met de medewerker bespreekt, waarbij hij moet kiezen hoe hij het gesprek over het werk voert zonder de aangegeven privégrens te passeren.",
+            "proposedLearningGoal": "De deelnemer kan bepalen hoe hij concrete observaties over werkprestaties bespreekbaar maakt bij een medewerker die privéomstandigheden noemt maar daar niet over wil praten, en kan verantwoorden hoe zijn aanpak recht doet aan zowel de medewerker als de belangen van het werk.",
+            "sourceRefs": [
+              "S1",
+              "S2"
+            ],
+            "routePolicy": "open_choice"
+          }
+        ],
+        "decisionRelevantGaps": [
+          {
+            "question": "Gaat het om leidinggevenden in een specifieke sector of organisatievorm, bijvoorbeeld zorg, onderwijs of sociaal domein?",
+            "affects": "doelgroep",
+            "howItChangesTheDecision": "Een specifieke sector maakt de doelgroep nauwer en kan bepalen welke gevolgen voor het team en het werk in de training centraal staan."
+          },
+          {
+            "question": "Is de training bedoeld voor beginnende of voor ervaren leidinggevenden?",
+            "affects": "leerdoel",
+            "howItChangesTheDecision": "Voor beginnende leidinggevenden ligt het accent eerder op het voeren van het gesprek zelf; voor ervaren leidinggevenden kan het leerdoel meer gericht zijn op de afweging van belangen en de vervolgstappen."
+          }
+        ],
+        "abstractionNotes": [],
+        "sourceCandidates": [
+          {
+            "term": "Organisatiebeleid of richtlijnen over het bespreken van verminderd functioneren en privéomstandigheden",
+            "whyPossiblyRelevant": "De teamleider moet iets doen met de gevolgen voor het werk terwijl de medewerker privéomstandigheden noemt; interne kaders kunnen mogelijk richting geven aan wat een leidinggevende hierin mag en moet."
+          },
+          {
+            "term": "Privacyregels rond gegevens over medewerkers",
+            "whyPossiblyRelevant": "De medewerker geeft aan niet over zijn privésituatie te willen praten; regels over wat een werkgever mag vragen of vastleggen kunnen mogelijk relevant zijn voor de afweging."
+          }
+        ],
+        "rationale": "De casus bevat een concreet keuzemoment waarin een teamleider de grens van een medewerker wil respecteren en tegelijk verantwoordelijk is voor de gevolgen voor team en werk. Die spanning is herkenbaar en leent zich voor een praktijksimulatie waarin meerdere aanpakken verdedigbaar zijn en de kwaliteit van de afweging centraal staat."
+      },
+      "sourceRun": "evals/training-analysis/cases/CA-006-leidinggeven-privegrens/runs/2026-10-03_training-analysis-v2.1_claude-opus-5-5_medium.md"
+    },
+    "CA-010": {
+      "kind": "casus",
+      "input": "Tijdens een lopende groepsactiviteit merkt een begeleider dat een nooduitgang geblokkeerd is door gestapelde dozen. Een collega vraagt de dozen pas na afloop weg te halen, omdat het onderbreken van de activiteit onrust geeft in de groep. In deze werksituatie geldt de vaste instructie dat een geblokkeerde nooduitgang direct wordt vrijgemaakt en dat dit daarna wordt gemeld aan de verantwoordelijke.",
+      "segments": [
+        {
+          "id": "S1",
+          "text": "Tijdens een lopende groepsactiviteit merkt een begeleider dat een nooduitgang geblokkeerd is door gestapelde dozen."
+        },
+        {
+          "id": "S2",
+          "text": "Een collega vraagt de dozen pas na afloop weg te halen, omdat het onderbreken van de activiteit onrust geeft in de groep."
+        },
+        {
+          "id": "S3",
+          "text": "In deze werksituatie geldt de vaste instructie dat een geblokkeerde nooduitgang direct wordt vrijgemaakt en dat dit daarna wordt gemeld aan de verantwoordelijke."
+        }
+      ],
+      "analysis": {
+        "outcome": "ready",
+        "summary": "Tijdens een lopende groepsactiviteit ziet een begeleider dat een nooduitgang geblokkeerd is door gestapelde dozen. Een collega vraagt de dozen pas na afloop weg te halen, omdat het onderbreken van de activiteit volgens de collega onrust geeft in de groep. Er geldt een vaste instructie dat een geblokkeerde nooduitgang direct wordt vrijgemaakt en dat dit daarna wordt gemeld aan de verantwoordelijke.",
+        "professionalDilemma": "De begeleider staat voor de vraag of hij de vaste instructie om de nooduitgang direct vrij te maken uitvoert, terwijl een collega vraagt hiermee te wachten om onrust in de groep te voorkomen.",
+        "proposedLearningGoal": "De deelnemer kan een geblokkeerde nooduitgang conform de vaste instructie direct vrijmaken en dit daarna melden aan de verantwoordelijke, ook wanneer een collega vraagt te wachten, en deze keuze helder tegenover de collega verantwoorden.",
+        "targetAudience": "Begeleiders die groepsactiviteiten begeleiden in een werksituatie waarin vaste veiligheidsinstructies gelden.",
+        "trainingDirections": [
+          {
+            "id": "instructie-volgen-ondanks-verzoek",
+            "title": "Vaste instructie uitvoeren bij tegengesteld verzoek",
+            "focus": "De begeleider ontvangt van een collega het verzoek om te wachten met het vrijmaken van de geblokkeerde nooduitgang, terwijl de vaste instructie voorschrijft dat dit direct gebeurt en daarna wordt gemeld. De richting oefent het vasthouden aan deze handelingslijn en het verantwoorden daarvan tegenover de collega.",
+            "proposedLearningGoal": "De deelnemer kan de nooduitgang direct vrijmaken en dit daarna melden aan de verantwoordelijke, en kan aan de collega uitleggen waarom het verzoek om te wachten niet wordt gevolgd.",
+            "sourceRefs": [
+              "S1",
+              "S2",
+              "S3"
+            ],
+            "routePolicy": "prescribed_action"
+          },
+          {
+            "id": "uitvoering-met-oog-voor-groep",
+            "title": "Direct handelen met aandacht voor de groep",
+            "focus": "De instructie schrijft direct vrijmaken voor, terwijl de collega aangeeft dat het onderbreken van de activiteit onrust geeft. De richting oefent hoe de begeleider de voorgeschreven handeling uitvoert terwijl de groepsactiviteit gaande is, zonder de handeling uit te stellen.",
+            "proposedLearningGoal": "De deelnemer kan de geblokkeerde nooduitgang tijdens een lopende groepsactiviteit direct vrijmaken en daarna melden, en daarbij zijn uitvoering zo inrichten dat hij rekening houdt met de door de collega genoemde zorg over onrust in de groep.",
+            "sourceRefs": [
+              "S2",
+              "S3"
+            ],
+            "routePolicy": "prescribed_action"
+          }
+        ],
+        "decisionRelevantGaps": [
+          {
+            "question": "In welke sector of setting vindt de groepsactiviteit plaats, bijvoorbeeld jeugdhulp, onderwijs of dagbesteding?",
+            "affects": "doelgroep",
+            "howItChangesTheDecision": "Een specifieke setting maakt het mogelijk de doelgroep concreter af te bakenen dan de algemene omschrijving van begeleiders van groepsactiviteiten."
+          }
+        ],
+        "abstractionNotes": [],
+        "sourceCandidates": [
+          {
+            "term": "Brandveiligheids- en ontruimingsvoorschriften",
+            "whyPossiblyRelevant": "De casus gaat over een geblokkeerde nooduitgang, waarvoor mogelijk algemene voorschriften over vrije vluchtwegen gelden die de vaste instructie onderbouwen."
+          },
+          {
+            "term": "Interne veiligheidsinstructies en meldprocedure van de organisatie",
+            "whyPossiblyRelevant": "De input noemt een vaste instructie met een meldstap aan de verantwoordelijke; de exacte inhoud en meldroute kunnen later als bron dienen."
+          }
+        ],
+        "rationale": "De casus bevat een concreet keuzemoment met professionele spanning tussen het verzoek van een collega en een vaste instructie. Omdat de input zelf aangeeft dat direct vrijmaken en daarna melden de geldende handelingslijn is, zijn de trainingsrichtingen als voorgeschreven handelen geclassificeerd."
+      },
+      "sourceRun": "evals/training-analysis/cases/CA-010-vaste-handelingslijn-onder-druk/runs/2026-10-03_training-analysis-v2.1.1_claude-opus-5-5_medium.md"
+    }
+  }
+}

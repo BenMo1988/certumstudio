@@ -52,11 +52,11 @@ const defaultLogger: Logger = (entry) => {
 };
 
 /** Wikkelt iedere Blueprint-implementatie in dezelfde metadata-logging. */
-export function withBlueprintLogging<B extends LoggableBlueprint>(
-  service: { generate(request: BlueprintRequest): Promise<B> },
+export function withBlueprintLogging<B extends LoggableBlueprint, R extends Pick<BlueprintRequest, "input"> = BlueprintRequest>(
+  service: { generate(request: R): Promise<B> },
   info: BlueprintServiceInfo,
   log: Logger = defaultLogger,
-): { generate(request: BlueprintRequest): Promise<B> } {
+): { generate(request: R): Promise<B> } {
   return {
     async generate(request) {
       const startedAt = performance.now();
