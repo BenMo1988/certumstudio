@@ -4,7 +4,7 @@ Bevestigingsrun van `training-analysis/v2.1.1` (contract `analysis-contract/v2.1
 `analyzeInput` op de dev-server (`CERTUM_ANALYSIS_PROVIDER=claude`, `CERTUM_ANALYSIS_MAX_RETRIES=0`,
 `CERTUM_BLUEPRINT_PROVIDER=mock`), met precies één poging. Configuratie bevroren op commit `e870e26`.
 
-**Status: `PENDING_REVIEW`** (nog geen menselijke beoordeling; geen PASS/FAIL).
+**Status: `PASS_WITH_NOTES`** (menselijk beoordeeld; zie "Menselijke evaluatie").
 
 ## Configuratie en metadata
 
@@ -169,6 +169,19 @@ Niet zichtbaar in de UI. Kandidaten voor de latere Bron-fase; **geen gevalideerd
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS_WITH_NOTES`**
 
-Nog niet beoordeeld.
+Menselijke review van de bevestigingsrun training-analysis/v2.1.1.
+
+- `ready` terecht.
+- Beide richtingen `prescribed_action`; geen kunstmatige `open_choice`.
+- Focus en de leerdoelen per richting respecteren de vaste handelingslijn.
+- Ruimte blijft bestaan in de wijze van uitvoering.
+- Geen externe norm als feit toegevoegd.
+
+### Aandachtspunt (formulering, geen functionele fout)
+
+- Het algemene `professionalDilemma` gebruikt de formulering "of" de instructie wordt uitgevoerd.
+- Het algemene leerdoel gebruikt "deze keuze".
+- Dit klinkt opener dan `prescribed_action` inhoudelijk bedoeld is.
+- Geregistreerd als formulering en aandachtspunt; geen aanleiding voor Analysis V2.1.2.

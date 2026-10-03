@@ -4,7 +4,7 @@ Bevestigingsrun van `training-analysis/v2.1.1` (contract `analysis-contract/v2.1
 `analyzeInput` op de dev-server (`CERTUM_ANALYSIS_PROVIDER=claude`, `CERTUM_ANALYSIS_MAX_RETRIES=0`,
 `CERTUM_BLUEPRINT_PROVIDER=mock`), met precies één poging. Configuratie bevroren op commit `e870e26`.
 
-**Status: `PENDING_REVIEW`** (nog geen menselijke beoordeling; geen PASS/FAIL).
+**Status: `PASS`** (menselijk beoordeeld; zie "Menselijke evaluatie").
 
 ## Configuratie en metadata
 
@@ -97,6 +97,10 @@ De situatie beschrijft een routinematige uitvoering van een eenduidige instructi
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS`**
 
-Nog niet beoordeeld.
+Menselijke review van de bevestigingsrun training-analysis/v2.1.1.
+
+- Een eenvoudige vaste procedure zonder betekenisvolle professionele spanning wordt `unsuitable`.
+- `prescribed_action` omzeilt suitability dus niet.
+- Geen nieuwe context of kaders toegevoegd.

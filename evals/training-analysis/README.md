@@ -119,12 +119,21 @@ contractgedrag bewijzen.
 ## Bevestigingsruns — training-analysis/v2.1.1
 
 Na de V2.1-review (CA-009 `FAIL` op suitability) is alleen de prompt aangepast (`training-analysis/v2.1.1`, contract
-blijft `analysis-contract/v2.1`). Twee bevestigingsruns (2026-10-03, `maxRetries: 0`), status `PENDING_REVIEW`:
+blijft `analysis-contract/v2.1`). Twee bevestigingsruns (2026-10-03, `maxRetries: 0`), menselijk beoordeeld:
 
-| Eval | Verwacht (vooraf) | Werkelijk | Run |
-| --- | --- | --- | --- |
-| CA-009 | `unsuitable` | `unsuitable` | [run](cases/CA-009-vaste-handelingslijn-nooduitgang/runs/2026-10-03_training-analysis-v2.1.1_claude-opus-5-5_medium.md) |
-| CA-010 | `ready` + `prescribed_action` | `ready` (2× `prescribed_action`) | [run](cases/CA-010-vaste-handelingslijn-onder-druk/runs/2026-10-03_training-analysis-v2.1.1_claude-opus-5-5_medium.md) |
+| Eval | Verwacht (vooraf) | Werkelijk | Review | Run |
+| --- | --- | --- | --- | --- |
+| CA-009 | `unsuitable` | `unsuitable` | `PASS` | [run](cases/CA-009-vaste-handelingslijn-nooduitgang/runs/2026-10-03_training-analysis-v2.1.1_claude-opus-5-5_medium.md) |
+| CA-010 | `ready` + `prescribed_action` | `ready` (2× `prescribed_action`) | `PASS_WITH_NOTES` | [run](cases/CA-010-vaste-handelingslijn-onder-druk/runs/2026-10-03_training-analysis-v2.1.1_claude-opus-5-5_medium.md) |
+
+**Conclusie:** Analysis Direction V2.1.1 is voldoende stabiel om te sluiten. RoutePolicy is bewezen op:
+
+- unsuitable procedurele input (CA-009);
+- open professionele afweging (CA-001, CA-006);
+- prescribed professionele handeling onder betekenisvolle spanning (CA-010).
+
+Aandachtspunt (formulering, geen aanleiding voor V2.1.2): bij CA-010 klinken het algemene `professionalDilemma` ("of"
+de instructie wordt uitgevoerd) en het algemene leerdoel ("deze keuze") opener dan `prescribed_action` bedoeld is.
 
 ## Baseline conclusions — training-analysis/v2.1
 
