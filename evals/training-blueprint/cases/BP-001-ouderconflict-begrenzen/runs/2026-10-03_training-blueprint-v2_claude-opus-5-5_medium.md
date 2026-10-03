@@ -8,7 +8,7 @@ Uitgevoerd via de Server Action `generateBlueprint` op de dev-server (`CERTUM_BL
 (`ready`) uit de baseline en de vooraf vastgelegde richting. Alle server-side poorten zijn doorlopen. Er is geen nieuwe
 analyse gedaan.
 
-**Status: `PENDING_REVIEW`** (nog geen menselijke beoordeling; geen PASS/FAIL).
+**Status: `PASS`** (menselijk beoordeeld; zie "Menselijke evaluatie").
 
 ## Configuratie en metadata
 
@@ -289,6 +289,14 @@ Controle: deze waarden zijn identiek aan de V2-analyse en de gekozen richting (j
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS`**
 
-Nog niet beoordeeld.
+Menselijke review van de baseline training-blueprint/v2.
+
+Het V1-probleem is opgelost:
+
+- Trusted context blijft onderdeel van premise en Context.
+- Het partij-kiezen-verzoek en de dochter worden niet via assumptions verwijderd.
+- De gekozen trainingsfocus mag smaller zijn zonder de situatie te herschrijven.
+- decisionPoint en Actie blijven open.
+- Bron gebruikt uitsluitend geldige sourceNeedRefs.

@@ -8,7 +8,7 @@ Uitgevoerd via de Server Action `generateBlueprint` op de dev-server (`CERTUM_BL
 (`ready`) uit de baseline en de vooraf vastgelegde richting. Alle server-side poorten zijn doorlopen. Er is geen nieuwe
 analyse gedaan.
 
-**Status: `PENDING_REVIEW`** (nog geen menselijke beoordeling; geen PASS/FAIL).
+**Status: `PASS_WITH_NOTES`** (menselijk beoordeeld; zie "Menselijke evaluatie").
 
 ## Configuratie en metadata
 
@@ -275,6 +275,22 @@ Controle: deze waarden zijn identiek aan de V2-analyse en de gekozen richting (j
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS_WITH_NOTES`**
 
-Nog niet beoordeeld.
+Menselijke review van de baseline training-blueprint/v2.
+
+Blueprint V2 heeft het Blueprint-probleem opgelost:
+
+- `decisionPoint.task` schrijft niet langer één route voor.
+- Actie laat de uitvoering open.
+- `routePolicy` is `open_choice`.
+- Feedback beoordeelt meerdere routes en niet één verplichte route.
+- sourceNeeds en Bron zijn volledig consistent.
+
+### Aandachtspunt (geen Blueprint V2-fout)
+
+Het resterende voorschrift in successCriteria en Toets wordt niet als Blueprint V2-fout geregistreerd. Het trusted
+leerdoel uit Analysis V2 bevat zelf een handelingsvolgorde: de grens erkennen en het gesprek daarna op het werk gericht
+houden. Blueprint V2 mag dit trusted leerdoel niet herschrijven en volgt dus terecht die inhoud.
+
+Geregistreerd als upstream Analysis/TrainingDirection-bevinding **route-prescriptive learning goal** (zie de README).

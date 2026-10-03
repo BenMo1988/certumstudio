@@ -31,9 +31,9 @@ Kwaliteitsbasis voor de stap ná Certum Analyse: van een gekozen trainingsrichti
 
 | Eval | Bron | Gekozen richting | Onderwerp | Laatste run | Status |
 | --- | --- | --- | --- | --- | --- |
-| [BP-001](cases/BP-001-ouderconflict-begrenzen/case.md) | CA-001 | `escalatie-begrenzen` | Escalerend ouderconflict: begrenzen of voortzetten | [2026-10-03 (v2)](cases/BP-001-ouderconflict-begrenzen/runs/2026-10-03_training-blueprint-v2_claude-opus-5-5_medium.md) | `PENDING_REVIEW` |
-| [BP-002](cases/BP-002-privegrens-werk-bespreken/case.md) | CA-006 | `grens-respecteren-en-werk-bespreken` | Privégrens respecteren en werk bespreekbaar houden | [2026-10-03 (v2)](cases/BP-002-privegrens-werk-bespreken/runs/2026-10-03_training-blueprint-v2_claude-opus-5-5_medium.md) | `PENDING_REVIEW` |
-| [BP-003](cases/BP-003-volgorde-vervolgcontact/case.md) | CA-008 | `volgorde-vervolgcontact` | Volgorde van vervolgcontacten bij uiteenlopende perspectieven | [2026-10-03 (v2)](cases/BP-003-volgorde-vervolgcontact/runs/2026-10-03_training-blueprint-v2_claude-opus-5-5_medium.md) | `PENDING_REVIEW` |
+| [BP-001](cases/BP-001-ouderconflict-begrenzen/case.md) | CA-001 | `escalatie-begrenzen` | Escalerend ouderconflict: begrenzen of voortzetten | [2026-10-03 (v2)](cases/BP-001-ouderconflict-begrenzen/runs/2026-10-03_training-blueprint-v2_claude-opus-5-5_medium.md) | `PASS` |
+| [BP-002](cases/BP-002-privegrens-werk-bespreken/case.md) | CA-006 | `grens-respecteren-en-werk-bespreken` | Privégrens respecteren en werk bespreekbaar houden | [2026-10-03 (v2)](cases/BP-002-privegrens-werk-bespreken/runs/2026-10-03_training-blueprint-v2_claude-opus-5-5_medium.md) | `PASS_WITH_NOTES` |
+| [BP-003](cases/BP-003-volgorde-vervolgcontact/case.md) | CA-008 | `volgorde-vervolgcontact` | Volgorde van vervolgcontacten bij uiteenlopende perspectieven | [2026-10-03 (v2)](cases/BP-003-volgorde-vervolgcontact/runs/2026-10-03_training-blueprint-v2_claude-opus-5-5_medium.md) | `PASS` |
 
 ## Baseline conclusions — training-blueprint/v1
 
@@ -59,3 +59,40 @@ Systeembrede bevindingen:
 5. Alle drie de Blueprints gebruikten exact 3 `successCriteria` en alle drie de Bron-fasen bevatten 3 kennisvragen.
    Dit wordt als observatie vastgelegd wegens mogelijk quota- of templategedrag, maar leidt nu nog niet tot een
    wijziging.
+
+## Baseline conclusions — training-blueprint/v2
+
+Baseline van 2026-10-03 (prompt `training-blueprint/v2`, contract `blueprint-contract/v2`, `claude-opus-5-5`,
+effort `medium`, `maxRetries: 0`), één poging per case, menselijk beoordeeld.
+
+| Uitkomst | Aantal | Cases |
+| --- | --- | --- |
+| `PASS` | 2 | BP-001, BP-003 |
+| `PASS_WITH_NOTES` | 1 | BP-002 |
+| `FAIL` | 0 | – |
+
+Vergeleken met V1 (1× PASS, 1× PASS_WITH_NOTES, 1× FAIL):
+
+- BP-001: trusted context wordt niet meer via assumptions uit het ontwerp gehaald.
+- BP-002: `decisionPoint.task` en Actie schrijven geen route meer voor; sourceNeeds en Bron zijn consistent.
+- BP-003: blijft `PASS`.
+
+**Conclusie: Training Blueprint V2 is voldoende stabiel om te sluiten. Er wordt geen Blueprint V3 gestart.**
+
+### Upstream-bevinding: route-prescriptive learning goal
+
+- De geselecteerde trainingsrichting van BP-002 (`grens-respecteren-en-werk-bespreken`) suggereert een open
+  professionele keuze.
+- Het gekoppelde leerdoel schrijft tegelijkertijd een specifieke handelingslijn en volgorde voor: de grens erkennen en
+  het gesprek daarna gericht houden op het werkgedrag.
+- Daardoor ontstaat spanning tussen `multiple_defensible_actions` in de Blueprint en het immutable `learningGoal`.
+  Blueprint V2 volgt het trusted leerdoel terecht; het resterende voorschrift in successCriteria en Toets komt daaruit
+  voort.
+- Dit wordt niet in een Blueprint V3 gerepareerd, maar upstream, in de vorming van trainingsrichtingen en leerdoelen.
+
+### Vervolgbevindingen
+
+1. Analysis directions can be internally inconsistent when an open-choice direction is paired with a route-prescriptive
+   learning goal.
+2. Uit V1, nog open: successCriteria (3/3/3) en Feedback-dimensies (3/3/3) staan in V2 nog steeds op het maximum;
+   sourceNeeds (2/2/2) en Bron-refs niet meer. Observatie, geen wijziging.
