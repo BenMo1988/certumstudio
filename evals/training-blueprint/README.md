@@ -96,3 +96,13 @@ Vergeleken met V1 (1× PASS, 1× PASS_WITH_NOTES, 1× FAIL):
    learning goal.
 2. Uit V1, nog open: successCriteria (3/3/3) en Feedback-dimensies (3/3/3) staan in V2 nog steeds op het maximum;
    sourceNeeds (2/2/2) en Bron-refs niet meer. Observatie, geen wijziging.
+
+## Integratiecases — trusted routebeleid (training-blueprint/v2.1)
+
+De ambiguïteit van de Blueprint komt sinds `training-blueprint/v2.1` (contract `blueprint-contract/v2`) uit het
+routebeleid van de gekozen Analysis V2.1-richting. Twee integratiecases op basis van beoordeelde Analysis V2.1-uitkomsten:
+
+| Eval | Bron | Gekozen richting | Routebeleid | Verwachte ambiguïteit | Status |
+| --- | --- | --- | --- | --- | --- |
+| [B21-OPEN](cases/B21-OPEN-privegrens-open-keuze/case.md) | CA-006 | `grens-en-verantwoordelijkheid` | `open_choice` | `multiple_defensible_actions` | `NOT_RUN` |
+| [B21-PRESCRIBED](cases/B21-PRESCRIBED-nooduitgang-onder-druk/case.md) | CA-010 | `instructie-volgen-ondanks-verzoek` | `prescribed_action` | `single_best_action` | `NOT_RUN` |
