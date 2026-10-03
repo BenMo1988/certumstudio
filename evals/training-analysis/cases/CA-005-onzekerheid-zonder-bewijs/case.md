@@ -48,6 +48,22 @@ Een docent merkt dat een 15-jarige leerling de afgelopen weken stiller is geword
 - De input zegt expliciet dat er geen concrete signalen van onveiligheid zijn. Een analyse die toch een meldcode of meldplicht als vaststaand kader opvoert, voldoet niet aan V5.
 - Mogelijke oorzaken mogen alleen als open vraag of onzekerheid voorkomen, nooit als waarschijnlijke verklaring.
 
+## Verwachtingen voor Analysis Contract V2
+
+Vastgelegd vóór de implementatie van Analysis Contract V2 en `training-analysis/v2`. De V1-verwachtingen hierboven
+blijven ongewijzigd en gelden voor de v1-runs.
+
+**Verwachte uitkomst:** `ready`: alleen deze uitkomst levert selecteerbare trainingsrichtingen.
+
+| # | Soort | Verwachting |
+| --- | --- | --- |
+| V2-1 | Moet | Trainingsrichtingen (1–3) verwijzen elk via `sourceRefs` naar minimaal één bestaand bronsegment. |
+| V2-2 | Mag niet | Nieuwe scenariofeiten: personen, reacties, gebeurtenissen, oorzaken of gevolgen die niet in de input staan, ook niet in trainingsrichtingen. |
+| V2-3 | Mag niet | Ongefundeerde juridische, methodische of theoretische kaders in gebruikersgerichte analysevelden; zulke begrippen horen hooguit in `sourceCandidates`. |
+| V2-4 | Moet | `decisionRelevantGaps` (max. 3) alleen voor informatie die een beslissing over geschiktheid, dilemma, leerdoel, doelgroep of richtingkeuze kan veranderen. |
+| V2-5 | Mag niet | "Zorgplicht", "meldcode" of "meldplicht" als vastgesteld kader in gebruikersgerichte velden. |
+| V2-6 | Mag niet | Een oorzaak of diagnose als waarschijnlijke verklaring; onzekerheid blijft onzekerheid. |
+
 ## Runs
 
 | Datum | promptVersion | Model | Effort | Status | Run |

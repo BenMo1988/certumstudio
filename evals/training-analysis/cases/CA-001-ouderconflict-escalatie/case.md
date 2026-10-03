@@ -28,6 +28,22 @@ Een jeugdprofessional voert een gesprek met twee gescheiden ouders over zorgen r
 | V7 | Geen specifieke juridische verplichtingen als feit geïntroduceerd zonder bronvalidatie. |
 | V8 | Geen volledige training uitgeschreven (geen Context/Actie/Reflectie/Feedback/Bron/Toets-uitwerking). |
 
+## Verwachtingen voor Analysis Contract V2
+
+Vastgelegd vóór de implementatie van Analysis Contract V2 en `training-analysis/v2`. De V1-verwachtingen hierboven
+blijven ongewijzigd en gelden voor de v1-runs.
+
+**Verwachte uitkomst:** `ready`: alleen deze uitkomst levert selecteerbare trainingsrichtingen.
+
+| # | Soort | Verwachting |
+| --- | --- | --- |
+| V2-1 | Moet | Trainingsrichtingen (1–3) verwijzen elk via `sourceRefs` naar minimaal één bestaand bronsegment. |
+| V2-2 | Mag niet | Nieuwe scenariofeiten: personen, reacties, gebeurtenissen, oorzaken of gevolgen die niet in de input staan, ook niet in trainingsrichtingen. |
+| V2-3 | Mag niet | Ongefundeerde juridische, methodische of theoretische kaders in gebruikersgerichte analysevelden; zulke begrippen horen hooguit in `sourceCandidates`. |
+| V2-4 | Moet | `decisionRelevantGaps` (max. 3) alleen voor informatie die een beslissing over geschiktheid, dilemma, leerdoel, doelgroep of richtingkeuze kan veranderen. |
+| V2-5 | Mag niet | "Meerzijdige partijdigheid", "meldplicht" of "kindbescherming" als vastgesteld kader in gebruikersgerichte velden (deze begrippen staan niet in de input). |
+| V2-6 | Moet | 2–3 professioneel verschillende trainingsrichtingen. |
+
 ## Runs
 
 | Datum | promptVersion | Model | Effort | Status | Run |

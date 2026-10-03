@@ -68,7 +68,9 @@ evals/training-analysis/
     ...
 ```
 
-- `case.md` bevat de exacte input en de verwachtingen. Wijzig de input van een bestaande eval niet; maak bij
+- `case.md` bevat de exacte input en de verwachtingen. Sinds Analysis Contract V2 staat daarin ook een aparte sectie
+  "Verwachtingen voor Analysis Contract V2" (V2-1, V2-2, …), vastgelegd vóór de implementatie; de V1-verwachtingen
+  blijven ongewijzigd. Wijzig de input van een bestaande eval niet; maak bij
   twijfel een nieuwe eval aan.
 - Elke run krijgt een eigen bestand: `<datum>_<promptVersion>_<model>_<effort>.md`, met metadata, de volledige
   output en de menselijke beoordeling.

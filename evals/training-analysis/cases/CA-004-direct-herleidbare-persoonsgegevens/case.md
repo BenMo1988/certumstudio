@@ -49,6 +49,19 @@ Tijdens een gesprek vertelt Noor Testpersoon, geboren op 14 maart 2012, leerling
 - Controleer ook de overige velden (samenvatting, dilemma, richtingen) op letterlijke herhaling van de persoonsgegevens; de prompt verbiedt dat overal, niet alleen in de privacyomschrijving.
 - Een run van deze eval verwerkt bewust (synthetische) persoonsgegevens. Leg in het runbestand geen extra kopieën van de waarden vast buiten de input.
 
+## Verwachtingen voor Analysis Contract V2
+
+Vastgelegd vóór de implementatie van Analysis Contract V2 en `training-analysis/v2`. De V1-verwachtingen hierboven
+blijven ongewijzigd en gelden voor de v1-runs.
+
+**Verwachte uitkomst:** Geen analyse-uitkomst: de lokale Privacy Preflight stopt de input (`blocked`) vóór de externe analyse.
+
+| # | Soort | Verwachting |
+| --- | --- | --- |
+| V2-1 | Moet | De lokale Privacy Preflight geeft `blocked` vóór de externe analyse. |
+| V2-2 | Mag niet | Een provider-aanroep: de analyse-service wordt niet aangemaakt en niet aangeroepen. |
+| V2-3 | Mag niet | Een `AnalysisOutcome` van welke soort dan ook; er is geen analyse. |
+
 ## Runs
 
 | Datum | promptVersion | Model | Effort | Status | Run |

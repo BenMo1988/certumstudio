@@ -48,6 +48,21 @@ Omgaan met weerstand
 - Let op het verschil tussen *voorstellen* van een mogelijke situatie (toegestaan, in trainingsrichtingen) en *presenteren* van een situatie alsof die in de input stond (niet toegestaan, vooral in samenvatting en dilemma).
 - Een samenvatting die meer zegt dan dat de input het onderwerp "omgaan met weerstand" is, verdient extra aandacht.
 
+## Verwachtingen voor Analysis Contract V2
+
+Vastgelegd vóór de implementatie van Analysis Contract V2 en `training-analysis/v2`. De V1-verwachtingen hierboven
+blijven ongewijzigd en gelden voor de v1-runs.
+
+**Verwachte uitkomst:** `needs_adjustment`: afbakeningen en beslisrelevante vragen, géén trainingsrichtingen.
+
+| # | Soort | Verwachting |
+| --- | --- | --- |
+| V2-1 | Moet | Uitkomst `needs_adjustment` met 1–3 `possibleScopings` en 1–3 `decisionRelevantGaps`. |
+| V2-2 | Mag niet | Trainingsrichtingen of een selecteerbare richting. |
+| V2-3 | Mag niet | Een concrete cliënt, situatie of gebeurtenis verzinnen alsof die in de input stond; afbakeningen zijn voorstellen. |
+| V2-4 | Moet | `provisionalProfessionalCore` blijft algemeen of `null`; geen onterecht specifiek dilemma. |
+| V2-5 | Mag niet | Ontbrekende informatie die alleen "interessant" is (bijv. gewenste methodiek of niveau van deelnemers) zonder beslisrelevantie. |
+
 ## Runs
 
 | Datum | promptVersion | Model | Effort | Status | Run |

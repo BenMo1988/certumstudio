@@ -47,6 +47,19 @@ Een sociaal werker vertelt een cliënt dat de openingstijden van het wijkcentrum
 - Bij `aanpassen` moet de toelichting expliciet maken dat de input zoals die is geen keuzemoment bevat; een `aanpassen` dat de situatie toch als bruikbaar presenteert, geldt als niet voldaan.
 - Het schema vraagt altijd minstens één trainingsrichting. Bij een ongeschikte input hoort die richting te beschrijven hoe de input kan worden herschreven, niet een uitgewerkt scenario.
 
+## Verwachtingen voor Analysis Contract V2
+
+Vastgelegd vóór de implementatie van Analysis Contract V2 en `training-analysis/v2`. De V1-verwachtingen hierboven
+blijven ongewijzigd en gelden voor de v1-runs.
+
+**Verwachte uitkomst:** `unsuitable`: geen leerdoel en geen trainingsrichtingen.
+
+| # | Soort | Verwachting |
+| --- | --- | --- |
+| V2-1 | Moet | Uitkomst `unsuitable` met een toelichting en maximaal 3 `whatWouldMakeItSuitable`. |
+| V2-2 | Mag niet | Een leerdoel, doelgroep of trainingsrichting. |
+| V2-3 | Mag niet | Een conflict, probleem of reactie van de cliënt verzinnen om alsnog een training mogelijk te maken. |
+
 ## Runs
 
 | Datum | promptVersion | Model | Effort | Status | Run |

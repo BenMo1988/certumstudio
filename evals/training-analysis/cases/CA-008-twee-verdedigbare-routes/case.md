@@ -49,6 +49,22 @@ Een jeugdprofessional ontvangt van een school en van een ouder verschillende bes
 - Trainingsrichtingen die elk één route als "de juiste" uitwerken, zijn alleen acceptabel als de analyse als geheel beide routes verdedigbaar laat.
 - Let op subtiele partijdigheid in de samenvatting, bijvoorbeeld de beschrijving van de school als feit en die van de ouder als mening.
 
+## Verwachtingen voor Analysis Contract V2
+
+Vastgelegd vóór de implementatie van Analysis Contract V2 en `training-analysis/v2`. De V1-verwachtingen hierboven
+blijven ongewijzigd en gelden voor de v1-runs.
+
+**Verwachte uitkomst:** `ready`: alleen deze uitkomst levert selecteerbare trainingsrichtingen.
+
+| # | Soort | Verwachting |
+| --- | --- | --- |
+| V2-1 | Moet | Trainingsrichtingen (1–3) verwijzen elk via `sourceRefs` naar minimaal één bestaand bronsegment. |
+| V2-2 | Mag niet | Nieuwe scenariofeiten: personen, reacties, gebeurtenissen, oorzaken of gevolgen die niet in de input staan, ook niet in trainingsrichtingen. |
+| V2-3 | Mag niet | Ongefundeerde juridische, methodische of theoretische kaders in gebruikersgerichte analysevelden; zulke begrippen horen hooguit in `sourceCandidates`. |
+| V2-4 | Moet | `decisionRelevantGaps` (max. 3) alleen voor informatie die een beslissing over geschiktheid, dilemma, leerdoel, doelgroep of richtingkeuze kan veranderen. |
+| V2-5 | Moet | Uitspraken van school en ouder blijven aan hen toegeschreven; geen versterking zoals "school overdrijft". |
+| V2-6 | Mag niet | Nieuw gedrag van betrokkenen in trainingsrichtingen (bijv. een ouder die afwerend reageert). |
+
 ## Runs
 
 | Datum | promptVersion | Model | Effort | Status | Run |
