@@ -6,7 +6,7 @@
 | **Domein** | Facilitair / veiligheid op de werkvloer |
 | **Inputsoort** | casus |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `FAIL` |
+| **Status (laatste run)** | `PENDING_REVIEW` |
 
 ## Doel van deze eval
 
@@ -66,3 +66,4 @@ instructie over, zonder betekenisvolle professionele spanning, beoordeling, keuz
 | Datum | promptVersion | Model | Effort | Status | Run |
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-03 | training-analysis/v2.1 | claude-opus-5-5 | medium | `FAIL` | [run](runs/2026-10-03_training-analysis-v2.1_claude-opus-5-5_medium.md) |
+| 2026-10-03 | training-analysis/v2.1.1 | claude-opus-5-5 | medium | `PENDING_REVIEW` | [run](runs/2026-10-03_training-analysis-v2.1.1_claude-opus-5-5_medium.md) |

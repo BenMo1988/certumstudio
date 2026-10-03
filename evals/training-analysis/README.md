@@ -116,6 +116,16 @@ Aanvulling vóór de V2.1-baseline: CA-009 is een nieuwe synthetische evalcase w
 handelingslijn bevat. Daarmee wordt `prescribed_action` ook in een echte run getoetst; de unit-testfixture blijft het
 contractgedrag bewijzen.
 
+## Bevestigingsruns — training-analysis/v2.1.1
+
+Na de V2.1-review (CA-009 `FAIL` op suitability) is alleen de prompt aangepast (`training-analysis/v2.1.1`, contract
+blijft `analysis-contract/v2.1`). Twee bevestigingsruns (2026-10-03, `maxRetries: 0`), status `PENDING_REVIEW`:
+
+| Eval | Verwacht (vooraf) | Werkelijk | Run |
+| --- | --- | --- | --- |
+| CA-009 | `unsuitable` | `unsuitable` | [run](cases/CA-009-vaste-handelingslijn-nooduitgang/runs/2026-10-03_training-analysis-v2.1.1_claude-opus-5-5_medium.md) |
+| CA-010 | `ready` + `prescribed_action` | `ready` (2× `prescribed_action`) | [run](cases/CA-010-vaste-handelingslijn-onder-druk/runs/2026-10-03_training-analysis-v2.1.1_claude-opus-5-5_medium.md) |
+
 ## Baseline conclusions — training-analysis/v2.1
 
 Menselijke review van de baseline (Analysis Contract V2.1, `training-analysis/v2.1`, claude-opus-5-5, medium,
