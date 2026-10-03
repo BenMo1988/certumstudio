@@ -6,7 +6,7 @@
 | **Domein** | Leidinggeven / organisatie |
 | **Inputsoort** | casus |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `PENDING_REVIEW` |
+| **Status (laatste run)** | `PASS` |
 
 ## Doel van deze eval
 
@@ -93,4 +93,4 @@ uitgesproken privégrens, zonder het werkgesprek los te laten).
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-03 | training-analysis/v1 | claude-opus-5-5 | medium | `PASS_WITH_NOTES` | [run](runs/2026-10-03_training-analysis-v1_claude-opus-5-5_medium.md) |
 | 2026-10-03 | training-analysis/v2 | claude-opus-5-5 | medium | `PASS_WITH_NOTES` | [run](runs/2026-10-03_training-analysis-v2_claude-opus-5-5_medium.md) |
-| 2026-10-03 | training-analysis/v2.1 | claude-opus-5-5 | medium | `PENDING_REVIEW` | [run](runs/2026-10-03_training-analysis-v2.1_claude-opus-5-5_medium.md) |
+| 2026-10-03 | training-analysis/v2.1 | claude-opus-5-5 | medium | `PASS` | [run](runs/2026-10-03_training-analysis-v2.1_claude-opus-5-5_medium.md) |

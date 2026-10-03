@@ -4,7 +4,7 @@ Baseline-run van training-analysis/v2.1 (Analysis Contract V2.1), uitgevoerd via
 dev-server (`CERTUM_ANALYSIS_PROVIDER=claude`, `CERTUM_BLUEPRINT_PROVIDER=mock`), met precies één poging.
 Configuratie bevroren op commit `b0ae631`.
 
-**Status: `PENDING_REVIEW`** (nog geen menselijke beoordeling; geen PASS/FAIL).
+**Status: `FAIL`** (menselijk beoordeeld; zie "Menselijke evaluatie").
 
 ## Configuratie en metadata
 
@@ -163,6 +163,20 @@ ambiguïteit toegevoegd? Zijn er nieuwe scenariofeiten of kaders?
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `FAIL`**
 
-Nog niet beoordeeld.
+Menselijke review van de baseline training-analysis/v2.1.
+
+### Correct
+
+- `routePolicy: prescribed_action` past bij de vastgelegde instructie.
+- focus en learningGoal zijn daarmee consistent.
+
+### Failreden
+
+- De input bevat expliciet geen betekenisvol professioneel dilemma of keuzemoment.
+- De analyse benoemt zelf dat het leerpunt correcte uitvoering is en dat de leerwaarde beperkt is.
+- Toch wordt de uitkomst `ready`.
+- `prescribed_action` mag de bestaande suitability-eis niet omzeilen.
+
+De FAIL zit niet in de routePolicy-classificatie, maar op de laag van suitability.

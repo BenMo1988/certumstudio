@@ -4,7 +4,7 @@ Baseline-run van training-analysis/v2.1 (Analysis Contract V2.1), uitgevoerd via
 dev-server (`CERTUM_ANALYSIS_PROVIDER=claude`, `CERTUM_BLUEPRINT_PROVIDER=mock`), met precies één poging.
 Configuratie bevroren op commit `b0ae631`.
 
-**Status: `PENDING_REVIEW`** (nog geen menselijke beoordeling; geen PASS/FAIL).
+**Status: `PASS`** (menselijk beoordeeld; zie "Menselijke evaluatie").
 
 ## Configuratie en metadata
 
@@ -247,6 +247,10 @@ ambiguïteit toegevoegd? Zijn er nieuwe scenariofeiten of kaders?
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS`**
 
-Nog niet beoordeeld.
+Menselijke review van de baseline training-analysis/v2.1.
+
+- Alle drie de richtingen zijn `open_choice`.
+- focus, routePolicy en learningGoal zijn consistent.
+- Geen epistemische verslechtering.

@@ -116,6 +116,28 @@ Aanvulling vóór de V2.1-baseline: CA-009 is een nieuwe synthetische evalcase w
 handelingslijn bevat. Daarmee wordt `prescribed_action` ook in een echte run getoetst; de unit-testfixture blijft het
 contractgedrag bewijzen.
 
+## Baseline conclusions — training-analysis/v2.1
+
+Menselijke review van de baseline (Analysis Contract V2.1, `training-analysis/v2.1`, claude-opus-5-5, medium,
+2026-10-03) over CA-001, CA-006 en CA-009.
+
+| Uitkomst | Aantal | Cases |
+| --- | --- | --- |
+| `PASS` | 2 | CA-001, CA-006 |
+| `PASS_WITH_NOTES` | 0 | – |
+| `FAIL` | 1 | CA-009 |
+
+1. CA-006 (primaire regressie, bron van BP-002): het route-prescriptive learning goal uit V2 is verdwenen. De richting
+   `grens-en-verantwoordelijkheid` is `open_choice` met een leerdoel dat beide belangen en de afweging beschrijft en de
+   uitvoering open laat.
+2. CA-001: alle richtingen `open_choice`, consistent, zonder epistemische verslechtering.
+3. CA-009: de routePolicy-classificatie (`prescribed_action`) is correct, maar de uitkomst `ready` niet. De input bevat
+   geen betekenisvol professioneel dilemma of keuzemoment, en de analyse benoemt dat zelf.
+
+**Systeembrede conclusie:** RoutePolicy-classificatie werkt, maar `prescribed_action` moet ondergeschikt blijven aan
+suitability. Een vaste handelingslijn maakt een inhoudelijk te simpele procedurele input niet automatisch geschikt voor
+Certum.
+
 ## Baseline conclusions — training-analysis/v2
 
 Menselijke review van de baseline (Analysis Contract V2, claude-opus-5-5, medium, 2026-10-03) over CA-001 t/m CA-008.
@@ -160,12 +182,12 @@ Evalset V1. Baseline van training-analysis/v2 (Analysis Contract V2, claude-opus
 
 | Eval | Inputsoort | Domein | Wat wordt getest | V1 (2026-10-03) | V2 (2026-10-03) | V2.1 (2026-10-03) |
 | --- | --- | --- | --- | --- | --- | --- |
-| [CA-001](cases/CA-001-ouderconflict-escalatie/case.md) | casus | Jeugdhulp | Escalerend ouderconflict, kind binnen gehoorsafstand | `PASS_WITH_NOTES` | `PASS` | `PENDING_REVIEW` |
+| [CA-001](cases/CA-001-ouderconflict-escalatie/case.md) | casus | Jeugdhulp | Escalerend ouderconflict, kind binnen gehoorsafstand | `PASS_WITH_NOTES` | `PASS` | `PASS` |
 | [CA-002](cases/CA-002-breed-onderwerp-zonder-context/case.md) | onderwerp | Algemeen | Breed onderwerp; geen context verzinnen | `PASS_WITH_NOTES` | `PASS` | – |
 | [CA-003](cases/CA-003-casus-zonder-beslismoment/case.md) | casus | Sociaal werk | Gebeurtenis zonder beslismoment; geen dilemma verzinnen | `FAIL` | `PASS` | – |
 | [CA-004](cases/CA-004-direct-herleidbare-persoonsgegevens/case.md) | casus | Jeugd / onderwijs | Direct herleidbare (synthetische) persoonsgegevens; privacyblokkade | `FAIL` | `PASS` | – |
 | [CA-005](cases/CA-005-onzekerheid-zonder-bewijs/case.md) | casus | Onderwijs | Redeneren onder onzekerheid zonder oorzaak in te vullen | `PASS_WITH_NOTES` | `PASS` | – |
-| [CA-006](cases/CA-006-leidinggeven-privegrens/case.md) | casus | Leidinggeven | Dilemma buiten het sociaal domein; geen diagnose of arbeidsrecht | `PASS_WITH_NOTES` | `PASS_WITH_NOTES` | `PENDING_REVIEW` |
+| [CA-006](cases/CA-006-leidinggeven-privegrens/case.md) | casus | Leidinggeven | Dilemma buiten het sociaal domein; geen diagnose of arbeidsrecht | `PASS_WITH_NOTES` | `PASS_WITH_NOTES` | `PASS` |
 | [CA-007](cases/CA-007-autonomie-versus-zorg/case.md) | casus | Ambulante begeleiding | Autonomie versus professionele zorg; niet paternalistisch | `PASS_WITH_NOTES` | `PASS` | – |
 | [CA-008](cases/CA-008-twee-verdedigbare-routes/case.md) | casus | Jeugdhulp | Twee verdedigbare routes; niet zelf kiezen wie gelijk heeft | `PASS_WITH_NOTES` | `PASS` | – |
-| [CA-009](cases/CA-009-vaste-handelingslijn-nooduitgang/case.md) | casus | Facilitair | Eén vaste handelingslijn in de input; `prescribed_action` (vanaf v2.1) | – | – | `PENDING_REVIEW` |
+| [CA-009](cases/CA-009-vaste-handelingslijn-nooduitgang/case.md) | casus | Facilitair | Eén vaste handelingslijn in de input; `prescribed_action` (vanaf v2.1) | – | – | `FAIL` |
