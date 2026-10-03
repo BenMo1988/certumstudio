@@ -1,8 +1,8 @@
 import { Icon } from "./Icon";
 
-const STEPS = ["Invoer", "Analyse", "Training"] as const;
+const STEPS = ["Invoer", "Analyse", "Blueprint", "Block Plan"] as const;
 
-/** Vaste volgorde van een nieuwe training: Input → Analyse → (keuze) → Training. */
+/** Vaste volgorde: Invoer → Analyse (met keuze) → Training Blueprint → BC Online Block Plan. */
 export function FlowSteps({ current }: { current: (typeof STEPS)[number] }) {
   const currentIndex = STEPS.indexOf(current);
 

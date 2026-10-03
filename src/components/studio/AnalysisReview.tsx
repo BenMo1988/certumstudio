@@ -39,10 +39,23 @@ interface AnalysisReviewProps {
   epistemicFlags: EpistemicFlag[];
   gate: InputGateState;
   onBack: () => void;
+  /** Na bevestiging van een richting: start de volgende stap (Training Blueprint). */
+  onDirectionChosen?: (directionId: string) => void;
+  /** True zolang de volgende stap wordt voorbereid. */
+  pendingNext?: boolean;
 }
 
 /** Stap 2: de gebruiker beoordeelt de V2-analyse. Alleen `ready` levert selecteerbare trainingsrichtingen. */
-export function AnalysisReview({ input, analysis, segments, epistemicFlags, gate, onBack }: AnalysisReviewProps) {
+export function AnalysisReview({
+  input,
+  analysis,
+  segments,
+  epistemicFlags,
+  gate,
+  onBack,
+  onDirectionChosen,
+  pendingNext = false,
+}: AnalysisReviewProps) {
   const kindLabel = INPUT_KINDS.find((option) => option.kind === input.kind)?.label;
 
   return (
@@ -58,7 +71,14 @@ export function AnalysisReview({ input, analysis, segments, epistemicFlags, gate
       {analysis.outcome === "unsuitable" && <UnsuitableView analysis={analysis} onBack={onBack} />}
       {analysis.outcome === "needs_adjustment" && <NeedsAdjustmentView analysis={analysis} onBack={onBack} />}
       {analysis.outcome === "ready" && (
-        <ReadyView analysis={analysis} segments={segments} gate={gate} onBack={onBack} />
+        <ReadyView
+          analysis={analysis}
+          segments={segments}
+          gate={gate}
+          onBack={onBack}
+          onDirectionChosen={onDirectionChosen}
+          pendingNext={pendingNext}
+        />
       )}
     </div>
   );
@@ -161,11 +181,15 @@ function ReadyView({
   segments,
   gate,
   onBack,
+  onDirectionChosen,
+  pendingNext,
 }: {
   analysis: ReadyOutcome;
   segments: SourceSegment[];
   gate: InputGateState;
   onBack: () => void;
+  onDirectionChosen?: (directionId: string) => void;
+  pendingNext: boolean;
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [confirmedId, setConfirmedId] = useState<string | null>(null);
@@ -175,8 +199,9 @@ function ReadyView({
 
   function confirmDirection() {
     // Zelfde domeinregel als de knopstatus: alleen ready + bestaande richting + geldige poorten.
-    if (getProceedBlockerV2(analysis, selectedId, gate) !== null) return;
+    if (getProceedBlockerV2(analysis, selectedId, gate) !== null || selectedId === null) return;
     setConfirmedId(selectedId);
+    onDirectionChosen?.(selectedId);
   }
 
   return (
@@ -254,8 +279,8 @@ function ReadyView({
         <p role="status" className="mt-6 flex items-start gap-2.5 rounded-md border border-petrol-100 bg-petrol-50 px-4 py-3 text-sm text-petrol-800">
           <Icon name="check" className="mt-px size-4 shrink-0" />
           <span>
-            Gekozen richting: <span className="font-medium">{confirmed.title}</span>. Het opbouwen van de training volgt in
-            een volgende stap.
+            Gekozen richting: <span className="font-medium">{confirmed.title}</span>.
+            {pendingNext ? " De Training Blueprint wordt opgesteld…" : ""}
           </span>
         </p>
       )}
@@ -267,7 +292,7 @@ function ReadyView({
         </Button>
         <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-4">
           {blocker && <p className="text-sm text-muted sm:text-right">{BLOCKER_MESSAGE[blocker]}</p>}
-          <Button onClick={confirmDirection} disabled={blocker !== null}>
+          <Button onClick={confirmDirection} disabled={blocker !== null || pendingNext}>
             Gebruik deze trainingsrichting
           </Button>
         </div>

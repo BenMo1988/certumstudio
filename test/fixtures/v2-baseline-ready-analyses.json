@@ -1,0 +1,289 @@
+{
+ "_note": "Synthetische testdata: V2-baseline-analyses (training-analysis/v2, 2026-10-03) van CA-001, CA-006 en CA-008, als bron voor BP-001 t/m BP-003. Niet wijzigen.",
+ "cases": {
+  "CA-001": {
+   "kind": "casus",
+   "input": "Een jeugdprofessional voert een gesprek met twee gescheiden ouders over zorgen rondom hun 12-jarige dochter. Tijdens het gesprek verwijten de ouders elkaar dat de ander verantwoordelijk is voor de problemen van het kind. De toon wordt steeds feller. De dochter zit in een aangrenzende ruimte en kan delen van het gesprek horen. Eén ouder vraagt de professional expliciet partij te kiezen en zegt anders niet meer mee te zullen werken aan de hulpverlening. De professional twijfelt of hij het gesprek moet voortzetten, eerst moet begrenzen of het gesprek moet beëindigen.",
+   "segments": [
+    {
+     "id": "S1",
+     "text": "Een jeugdprofessional voert een gesprek met twee gescheiden ouders over zorgen rondom hun 12-jarige dochter."
+    },
+    {
+     "id": "S2",
+     "text": "Tijdens het gesprek verwijten de ouders elkaar dat de ander verantwoordelijk is voor de problemen van het kind."
+    },
+    {
+     "id": "S3",
+     "text": "De toon wordt steeds feller."
+    },
+    {
+     "id": "S4",
+     "text": "De dochter zit in een aangrenzende ruimte en kan delen van het gesprek horen."
+    },
+    {
+     "id": "S5",
+     "text": "Eén ouder vraagt de professional expliciet partij te kiezen en zegt anders niet meer mee te zullen werken aan de hulpverlening."
+    },
+    {
+     "id": "S6",
+     "text": "De professional twijfelt of hij het gesprek moet voortzetten, eerst moet begrenzen of het gesprek moet beëindigen."
+    }
+   ],
+   "analysis": {
+    "outcome": "ready",
+    "summary": "Een jeugdprofessional voert een gesprek met twee gescheiden ouders over zorgen rondom hun dochter. De ouders verwijten elkaar dat de ander verantwoordelijk is voor de problemen van het kind en de toon wordt steeds feller. De dochter zit in een aangrenzende ruimte en kan delen van het gesprek horen. Eén ouder vraagt de professional expliciet partij te kiezen en zegt anders niet meer mee te werken aan de hulpverlening. De professional twijfelt of hij het gesprek moet voortzetten, eerst moet begrenzen of moet beëindigen.",
+    "professionalDilemma": "De professional moet tijdens een escalerend gesprek kiezen tussen voortzetten, begrenzen of beëindigen, terwijl de dochter delen van het gesprek kan horen en één ouder verdere medewerking afhankelijk maakt van de vraag of de professional partij kiest.",
+    "proposedLearningGoal": "De deelnemer kan in een escalerend gesprek met gescheiden ouders, waarin het kind meeluistert en een ouder vraagt partij te kiezen, een onderbouwde keuze maken tussen het gesprek voortzetten, begrenzen of beëindigen.",
+    "targetAudience": "Jeugdprofessionals die gesprekken voeren met (gescheiden) ouders over zorgen rondom een kind.",
+    "trainingDirections": [
+     {
+      "id": "escalatie-begrenzen",
+      "title": "Oplopend conflict tussen ouders begrenzen",
+      "focus": "De professional moet bepalen hoe hij reageert wanneer ouders elkaar verwijten maken en de toon steeds feller wordt, en of hij het gesprek voortzet, begrenst of beëindigt.",
+      "proposedLearningGoal": "De deelnemer kan herkennen wanneer wederzijdse verwijten tussen ouders het gesprek doen escaleren en kan afwegen of en hoe hij het gesprek begrenst.",
+      "sourceRefs": [
+       "S2",
+       "S3",
+       "S6"
+      ]
+     },
+     {
+      "id": "meeluisterend-kind",
+      "title": "Rekening houden met het meeluisterende kind",
+      "focus": "De professional moet in zijn keuze over het verloop van het gesprek meewegen dat de dochter in een aangrenzende ruimte delen van het gesprek kan horen.",
+      "proposedLearningGoal": "De deelnemer kan de aanwezigheid van een meeluisterend kind betrekken bij de beslissing om een gesprek voort te zetten, te begrenzen of te beëindigen.",
+      "sourceRefs": [
+       "S4",
+       "S6"
+      ]
+     },
+     {
+      "id": "verzoek-partij-kiezen",
+      "title": "Reageren op de vraag om partij te kiezen",
+      "focus": "De professional moet reageren op een ouder die expliciet vraagt partij te kiezen en anders dreigt niet meer mee te werken aan de hulpverlening.",
+      "proposedLearningGoal": "De deelnemer kan reageren op een expliciet verzoek van een ouder om partij te kiezen, waarbij verdere medewerking aan de hulpverlening op het spel wordt gezet, en die reactie onderbouwen.",
+      "sourceRefs": [
+       "S5",
+       "S6"
+      ]
+     }
+    ],
+    "decisionRelevantGaps": [
+     {
+      "question": "In welke rol en setting voert de professional dit gesprek, bijvoorbeeld als vrijwillige hulpverlener of binnen een ander kader?",
+      "affects": "doelgroep",
+      "howItChangesTheDecision": "De rol bepaalt voor welke groep jeugdprofessionals de training het meest passend is en welke handelingsruimte de professional heeft om het gesprek te beëindigen of door te zetten zonder medewerking."
+     },
+     {
+      "question": "Is het doel van de training vooral gespreksvaardigheid in het moment, of ook de afweging over het vervolg van de hulpverlening na het gesprek?",
+      "affects": "richtingkeuze",
+      "howItChangesTheDecision": "Bij een focus op het moment liggen de richtingen over begrenzen en het meeluisterende kind voor de hand; bij een focus op het vervolg weegt de richting over het verzoek om partij te kiezen en dreigende niet-medewerking zwaarder."
+     }
+    ],
+    "abstractionNotes": [
+     {
+      "feature": "De combinatie van specifieke leeftijd en geslacht van het kind.",
+      "advice": "Beschrijf het kind bij trainingsontwikkeling algemener, bijvoorbeeld als een kind in de basisschool- of vroege tienerleeftijd, tenzij leeftijd inhoudelijk relevant is voor de leerdoelen."
+     }
+    ],
+    "sourceCandidates": [
+     {
+      "term": "Meerzijdige partijdigheid",
+      "whyPossiblyRelevant": "Een ouder vraagt de professional expliciet partij te kiezen; een kader over het innemen van een positie tegenover meerdere partijen kan mogelijk helpen bij die afweging."
+     },
+     {
+      "term": "De-escalerende gespreksvoering",
+      "whyPossiblyRelevant": "De toon in het gesprek wordt steeds feller en de professional overweegt te begrenzen; methodieken voor de-escalatie kunnen mogelijk ondersteuning bieden."
+     },
+     {
+      "term": "Literatuur over kinderen in (conflict)scheidingen",
+      "whyPossiblyRelevant": "Het kind kan delen van het ouderconflict horen; kennis over de impact daarvan kan mogelijk de afweging van de professional onderbouwen."
+     }
+    ],
+    "rationale": "De casus bevat een concreet keuzemoment waarin de professional expliciet twijfelt tussen voortzetten, begrenzen of beëindigen van het gesprek. Meerdere spanningsvelden, zoals escalatie, een meeluisterend kind en een voorwaardelijk verzoek om partij te kiezen, maken de situatie geschikt als basis voor een praktijksimulatie."
+   }
+  },
+  "CA-006": {
+   "kind": "casus",
+   "input": "Een teamleider merkt dat een medewerker de afgelopen maand meerdere deadlines heeft gemist en afspraken niet altijd nakomt. In een gesprek zegt de medewerker dat er privé veel speelt, maar dat hij daar op het werk niet verder over wil praten. De teamleider wil respectvol omgaan met die grens, maar moet ook iets doen met de gevolgen voor het team en het werk.",
+   "segments": [
+    {
+     "id": "S1",
+     "text": "Een teamleider merkt dat een medewerker de afgelopen maand meerdere deadlines heeft gemist en afspraken niet altijd nakomt."
+    },
+    {
+     "id": "S2",
+     "text": "In een gesprek zegt de medewerker dat er privé veel speelt, maar dat hij daar op het werk niet verder over wil praten."
+    },
+    {
+     "id": "S3",
+     "text": "De teamleider wil respectvol omgaan met die grens, maar moet ook iets doen met de gevolgen voor het team en het werk."
+    }
+   ],
+   "analysis": {
+    "outcome": "ready",
+    "summary": "Een teamleider merkt dat een medewerker de afgelopen maand meerdere deadlines heeft gemist en afspraken niet altijd nakomt. In een gesprek geeft de medewerker aan dat er privé veel speelt, maar dat hij daar op het werk niet verder over wil praten. De teamleider wil die grens respecteren en moet tegelijk iets doen met de gevolgen voor het team en het werk.",
+    "professionalDilemma": "Hoe respecteert de teamleider de door de medewerker aangegeven grens rond privéomstandigheden, terwijl hij tegelijkertijd de gemiste deadlines en niet nagekomen afspraken bespreekbaar maakt en de gevolgen voor team en werk aanpakt?",
+    "proposedLearningGoal": "De deelnemer kan in een gesprek met een medewerker die aangeeft niet over privéomstandigheden te willen praten, die grens respecteren en tegelijk duidelijke afspraken maken over werkprestaties en de gevolgen voor het team.",
+    "targetAudience": "Leidinggevenden en teamleiders die medewerkers aansturen.",
+    "trainingDirections": [
+     {
+      "id": "grens-respecteren-en-werk-bespreken",
+      "title": "Grens respecteren, werk bespreekbaar houden",
+      "focus": "De teamleider kiest hoe hij reageert op de mededeling van de medewerker dat er privé veel speelt en dat hij daar niet verder over wil praten, zonder het gesprek over de gemiste deadlines en afspraken los te laten.",
+      "proposedLearningGoal": "De deelnemer kan de door een medewerker aangegeven privégrens erkennen en het gesprek daarna gericht houden op het werkgedrag en de gemaakte afspraken.",
+      "sourceRefs": [
+       "S2",
+       "S3"
+      ]
+     },
+     {
+      "id": "afspraken-maken-over-werkprestaties",
+      "title": "Afspraken maken over werkprestaties",
+      "focus": "De teamleider moet iets doen met de gemiste deadlines en niet nagekomen afspraken en de gevolgen daarvan voor het team en het werk, binnen de grens die de medewerker heeft aangegeven.",
+      "proposedLearningGoal": "De deelnemer kan met een medewerker concrete en haalbare afspraken maken over werkprestaties, met aandacht voor de gevolgen voor het team, zonder naar privéomstandigheden te vragen.",
+      "sourceRefs": [
+       "S1",
+       "S3"
+      ]
+     },
+     {
+      "id": "signaleren-en-aankaarten",
+      "title": "Signalen benoemen en aankaarten",
+      "focus": "De teamleider merkt over een periode van een maand een patroon van gemiste deadlines en niet nagekomen afspraken op en moet kiezen hoe hij dit feitelijk en respectvol bij de medewerker aankaart.",
+      "proposedLearningGoal": "De deelnemer kan waargenomen veranderingen in werkgedrag feitelijk en zonder oordeel benoemen in een gesprek met een medewerker.",
+      "sourceRefs": [
+       "S1",
+       "S2"
+      ]
+     }
+    ],
+    "decisionRelevantGaps": [
+     {
+      "question": "Gaat het om het eerste gesprek over dit patroon of hebben er al eerder gesprekken of afspraken plaatsgevonden?",
+      "affects": "richtingkeuze",
+      "howItChangesTheDecision": "Bij een eerste gesprek ligt de nadruk op het aankaarten en de grens respecteren; als er al eerder afspraken zijn gemaakt, verschuift de focus naar het bewaken en eventueel aanscherpen van afspraken."
+     },
+     {
+      "question": "In welke sector of organisatievorm werkt de teamleider?",
+      "affects": "doelgroep",
+      "howItChangesTheDecision": "Een specifieke sector, zoals jeugdhulp of onderwijs, kan de doelgroep versmallen en bepalen welke gevolgen voor team en werk in de training centraal staan."
+     }
+    ],
+    "abstractionNotes": [],
+    "sourceCandidates": [
+     {
+      "term": "Kaders rond verzuim, inzetbaarheid en de rol van de leidinggevende bij privéomstandigheden van medewerkers",
+      "whyPossiblyRelevant": "De input raakt aan de vraag wat een leidinggevende wel en niet kan vragen of verwachten als een medewerker aangeeft dat privé veel speelt."
+     },
+     {
+      "term": "Gespreksvoering bij functionerings- of slechtnieuwsgesprekken",
+      "whyPossiblyRelevant": "De teamleider moet werkprestaties bespreekbaar maken in een gesprek waarin de medewerker een grens aangeeft."
+     },
+     {
+      "term": "Privacy van medewerkers op de werkvloer",
+      "whyPossiblyRelevant": "De medewerker geeft aan niet over privézaken te willen praten, wat vragen kan oproepen over welke informatie een leidinggevende mag vragen of vastleggen."
+     }
+    ],
+    "rationale": "De casus bevat een concreet keuzemoment: de teamleider moet de privégrens van de medewerker respecteren en tegelijk de gevolgen van gemiste deadlines en niet nagekomen afspraken aanpakken. Die spanning is duidelijk en goed bruikbaar voor een praktijksimulatie voor leidinggevenden."
+   }
+  },
+  "CA-008": {
+   "kind": "casus",
+   "input": "Een jeugdprofessional ontvangt van een school en van een ouder verschillende beschrijvingen van het gedrag van dezelfde jongere. De school zegt dat de jongere regelmatig teruggetrokken en gespannen overkomt. De ouder herkent dit thuis niet en vindt dat school het probleem groter maakt dan het is. Er zijn geen acute veiligheidszorgen. De professional heeft de volgende dag een gesprek met het gezin en twijfelt of hij vóór dat gesprek eerst opnieuw contact opneemt met school om de verschillen verder te verhelderen, of dat hij de verschillende perspectieven eerst open met ouder en jongere bespreekt.",
+   "segments": [
+    {
+     "id": "S1",
+     "text": "Een jeugdprofessional ontvangt van een school en van een ouder verschillende beschrijvingen van het gedrag van dezelfde jongere."
+    },
+    {
+     "id": "S2",
+     "text": "De school zegt dat de jongere regelmatig teruggetrokken en gespannen overkomt."
+    },
+    {
+     "id": "S3",
+     "text": "De ouder herkent dit thuis niet en vindt dat school het probleem groter maakt dan het is."
+    },
+    {
+     "id": "S4",
+     "text": "Er zijn geen acute veiligheidszorgen."
+    },
+    {
+     "id": "S5",
+     "text": "De professional heeft de volgende dag een gesprek met het gezin en twijfelt of hij vóór dat gesprek eerst opnieuw contact opneemt met school om de verschillen verder te verhelderen, of dat hij de verschillende perspectieven eerst open met ouder en jongere bespreekt."
+    }
+   ],
+   "analysis": {
+    "outcome": "ready",
+    "summary": "Een jeugdprofessional krijgt van school en van een ouder verschillende beschrijvingen van het gedrag van dezelfde jongere. Volgens school komt de jongere regelmatig teruggetrokken en gespannen over. De ouder herkent dit thuis niet en vindt dat school het probleem groter maakt dan het is. Er zijn geen acute veiligheidszorgen. De professional heeft de volgende dag een gesprek met het gezin en twijfelt of hij eerst opnieuw contact opneemt met school of de verschillende perspectieven eerst open met ouder en jongere bespreekt.",
+    "professionalDilemma": "De professional moet kiezen tussen vóór het gezinsgesprek eerst bij school verdere verheldering zoeken over de verschillen, of de uiteenlopende perspectieven zonder die extra stap direct en open met ouder en jongere bespreken.",
+    "proposedLearningGoal": "De deelnemer kan bij uiteenlopende beschrijvingen van school en ouder over dezelfde jongere een onderbouwde keuze maken over de volgorde van vervolgcontacten en deze keuze toelichten.",
+    "targetAudience": "Jeugdprofessionals die met gezinnen en scholen samenwerken.",
+    "trainingDirections": [
+     {
+      "id": "volgorde-vervolgcontact",
+      "title": "Afwegen van de volgorde van contacten",
+      "focus": "De twijfel van de professional of hij vóór het gezinsgesprek eerst opnieuw contact opneemt met school of eerst met ouder en jongere spreekt, gegeven dat er geen acute veiligheidszorgen zijn.",
+      "proposedLearningGoal": "De deelnemer kan de voor- en nadelen van eerst school benaderen versus eerst het gezin spreken tegen elkaar afwegen en een gemotiveerde keuze maken.",
+      "sourceRefs": [
+       "S4",
+       "S5"
+      ]
+     },
+     {
+      "id": "perspectieven-open-bespreken",
+      "title": "Verschillende perspectieven open bespreken",
+      "focus": "De optie om de verschillende beschrijvingen van school en ouder open met ouder en jongere te bespreken, waarbij de uitspraak van school en de opvatting van de ouder elk aan de betrokkene toegeschreven blijven.",
+      "proposedLearningGoal": "De deelnemer kan uiteenlopende beschrijvingen van school en ouder neutraal en toegeschreven aan de betrokkenen inbrengen in een gesprek met ouder en jongere.",
+      "sourceRefs": [
+       "S1",
+       "S2",
+       "S3",
+       "S5"
+      ]
+     },
+     {
+      "id": "verheldering-bij-school",
+      "title": "Doelgericht verhelderen bij school",
+      "focus": "De optie om vóór het gezinsgesprek opnieuw contact op te nemen met school om de verschillen in beschrijving van het gedrag verder te verhelderen.",
+      "proposedLearningGoal": "De deelnemer kan bepalen of en welke aanvullende verheldering bij school nodig is voordat hij het gesprek met het gezin voert.",
+      "sourceRefs": [
+       "S1",
+       "S2",
+       "S5"
+      ]
+     }
+    ],
+    "decisionRelevantGaps": [
+     {
+      "question": "Is ouder en jongere bekend dat de professional contact heeft met school, en hebben zij daarmee ingestemd?",
+      "affects": "richtingkeuze",
+      "howItChangesTheDecision": "Als die instemming ontbreekt of onduidelijk is, verschuift het zwaartepunt naar de afweging rond eerst het gezin spreken en wordt de richting over verheldering bij school minder vanzelfsprekend."
+     },
+     {
+      "question": "Wat is de leeftijd van de jongere en is de jongere aanwezig bij het gesprek van de volgende dag?",
+      "affects": "leerdoel",
+      "howItChangesTheDecision": "Bij een oudere of aanwezige jongere ligt meer nadruk op het betrekken van het eigen perspectief van de jongere in het leerdoel; bij afwezigheid richt het leerdoel zich vooral op het gesprek met de ouder."
+     }
+    ],
+    "abstractionNotes": [],
+    "sourceCandidates": [
+     {
+      "term": "Regels rond toestemming en gegevensuitwisseling tussen hulpverlening en school",
+      "whyPossiblyRelevant": "De keuze om opnieuw contact op te nemen met school raakt mogelijk aan de vraag welke informatie de professional met school mag delen of opvragen."
+     },
+     {
+      "term": "Gespreksmethodieken voor het bespreken van uiteenlopende perspectieven met gezinnen",
+      "whyPossiblyRelevant": "Een van de opties is de verschillende beschrijvingen open met ouder en jongere bespreken, waarvoor mogelijk gespreksbenaderingen bestaan."
+     },
+     {
+      "term": "Werkwijzen voor samenwerking tussen jeugdhulp, school en ouders",
+      "whyPossiblyRelevant": "De casus draait om afstemming tussen professional, school en gezin bij verschillende beelden van dezelfde jongere."
+     }
+    ],
+    "rationale": "De casus bevat een concreet keuzemoment: de professional twijfelt over de volgorde van contact met school en gezin vóór een gepland gesprek. Beide opties zijn verdedigbaar en er zijn geen acute veiligheidszorgen, waardoor de afweging zelf leerwaardig is. Daarom is de input geschikt als basis voor een praktijksimulatie."
+   }
+  }
+ }
+}

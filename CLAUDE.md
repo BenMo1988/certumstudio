@@ -153,6 +153,28 @@ Vóór iedere externe AI-aanroep voert Certum lokaal de Privacy Preflight uit (`
 - Lokale NER of een lokaal model komt pas in beeld nadat een aparte synthetische Nederlandse privacy-evalset
   aantoonbaar betere detectie laat zien met een werkbaar aantal valse treffers.
 
+### Training Blueprint en BC Online Block Plan (stap 7, alleen mock)
+
+Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
+
+- **Volgorde met menselijke gates:** analyse `ready` + gekozen richting → Training Blueprint (`training-blueprint/v1`)
+  → Blueprint goedgekeurd → BC Online Block Plan (`bc-online-block-plan/v1`) → Block Plan goedgekeurd → export via een
+  adapter (bestaat nog niet; `getExportBlocker` blokkeert altijd). `blocked`, `unsuitable` en `needs_adjustment`
+  leveren nooit een Blueprint of Block Plan op. De server-side gates staan in `src/app/trainings/new/blueprint-flow.ts`
+  en herhalen preflight, datapolicy en analyse-invarianten.
+- **De Blueprint is de didactische waarheid.** Het Block Plan bepaalt nooit de inhoud: het kiest alleen bestaande
+  blokken per Certum-fase.
+- **Certum-fasen zijn geen BC Online-bloktypes.** Er is geen 1-op-1-mapping. Eén fase mag meerdere blokken hebben en één
+  bloktype mag in meerdere fasen voorkomen. De formele Toets in BC Online is niet de Certum-fase Toets.
+- **Catalogus:** `src/knowledge/platform/bc-online-block-catalog.ts` bevat alleen door Bureau Certum waargenomen blokken,
+  met interne ids (`certum.bco.*`). Een `certumCatalogId` is geen bewezen BC Online-backendtype
+  (`BC_ONLINE_BACKEND_TYPES_KNOWN = false`). Verzin nooit backend-ids. Niet aangetoond: branching, antwoorden van de
+  deelnemer in WhatsApp/E-mail, een juist antwoord bij een Poll, API/backendtypes. Conditionele logica betekent
+  conditionele tekstweergave, geen vertakking.
+- **Wat niet kan, wordt een `capabilityGap`**, nooit een fictief blok. `skjPoints` is altijd `null`. Chat-sleutelwoorden
+  vervangen nooit het beoordelen van professioneel redeneren.
+- Er zijn nog geen Claude-prompt voor Blueprint of Block Plan, geen BC Online-adapter, API, database, MCP of export.
+
 ### Privacy in logs (niet onderhandelbaar)
 
 - Log **nooit** de inputtekst, prompts of providerresponses: niet naar de console, niet naar analytics en niet naar
@@ -198,9 +220,12 @@ src/
     trainings/         Trainingsprojecten
     cases/             Praktijkcasussen
     training-agent/    Certum Training Agent: v1-contract (historisch) en v2/ (actief contract)
-  knowledge/           Certum-kennis en methodiek
+    training-blueprint/ Training Blueprint V1: contract, invarianten, goedkeuringsgates
+    block-plan/        BC Online Block Plan V1: contract en invarianten
+  knowledge/           Certum-kennis en methodiek; platform/ bevat de BC Online-blokcatalogus
   services/            Externe koppelingen, elk achter een interface, alleen server-side
     analysis/          TrainingAnalysisService(V2): mock + Claude; v1 historisch naast v2
+    blueprint/         TrainingBlueprintService en BlockPlanService: alleen mock
 ```
 
 Regels:
@@ -238,27 +263,29 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 4, Certum Analyse: klaar.
 - Stap 5, de Claude-provider voor de analyse: klaar. Lokaal kies je tussen mock en claude via `.env.local` (zie hieronder).
 - Stap 6A, de lokale Privacy Preflight V1 en `synthetic_only`: klaar.
-- Stap 6B+C, Analysis Contract V2 en `training-analysis/v2`: gebouwd en getest met mocks. Er is nog geen V2-baseline
-  met Claude.
+- Stap 6B+C, Analysis Contract V2 en `training-analysis/v2`: klaar, met een V2-baseline met Claude (zie evals).
+- Stap 7, Training Blueprint V1 en BC Online Block Plan V1: fundering klaar, alleen met mocks.
 
 Routes:
 - `/`: dashboard.
 - `/trainings`: overzicht van trainingen.
-- `/trainings/new`: kies een soort input, voer tekst in, voer de Certum Analyse uit en kies een trainingsrichting.
+- `/trainings/new`: kies een soort input, voer tekst in, voer de Certum Analyse uit, kies een trainingsrichting en
+  beoordeel en keur daarna de Blueprint en het Block Plan goed.
 - `/trainings/[id]`: Training Workspace met de zes methodiekonderdelen.
 
 Er is één centrale instroom voor het maken van trainingen: `/trainings/new`. `?input=casus` (of `onderwerp`, of
 `praktijkvraag`) selecteert vooraf een soort; de dashboardactie "Casus invoeren" gebruikt dat. Er komt geen aparte
 casusflow naast deze instroom.
 
-Gebruik voor trainingen altijd `/trainings/...` (meervoud). "Gebruik deze trainingsrichting" bevestigt alleen de keuze en bouwt nog geen training. "Bewerken" in de
+Gebruik voor trainingen altijd `/trainings/...` (meervoud). "Gebruik deze trainingsrichting" maakt een Blueprint (mock); goedkeuren maakt nog niets aan in BC Online. "Bewerken" in de
 Workspace doet nog niets. Er wordt nergens iets opgeslagen.
 
 ## Evals
 
-Er zijn twee evalsets, elk met een eigen README:
+Er zijn drie evalsets, elk met een eigen README:
 - `evals/training-analysis/` (CA-001 t/m CA-008): de inhoud van de analyse door een AI-provider.
 - `evals/privacy-preflight/` (PP-001 t/m PP-003): de lokale Privacy Preflight, zonder externe AI.
+- `evals/training-blueprint/` (BP-001 t/m BP-003): verwachtingen voor Blueprint en Block Plan (nog niet met AI gedraaid).
 
 Kwaliteitsbasis voor Certum Analyse staat in `evals/training-analysis/`. Er staat alleen
 synthetische data in en het is geen productiecode. Elke run wordt vastgelegd met promptVersion, model en effort.
@@ -271,7 +298,7 @@ als verbetering geldt. Er is nog geen geautomatiseerde scorer of runner.
   als basis voor trainingen. Die komt los van de instroom op `/trainings/new`. Het type `PracticeCase` in
   `modules/cases` staat hiervoor al klaar.
 
-Er is nog geen AI-agent, database, authenticatie of externe koppeling.
+Er is nog geen database, authenticatie of koppeling met BC Online.
 
 ## Commando's
 
