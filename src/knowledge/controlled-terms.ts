@@ -41,7 +41,14 @@ export const CONTROLLED_TERMS: ControlledTerm[] = [
   { term: "Leerplichtwet", category: "wet_regelgeving", pattern: "leerplichtwet" },
   { term: "Arbowet / Wet verbetering poortwachter", category: "wet_regelgeving", pattern: "arbowet|poortwachter" },
   { term: "arbeidsrecht", category: "wet_regelgeving", pattern: "arbeidsrecht\\p{L}*|arbeidsrechtelijk\\p{L}*" },
-  { term: "ouderlijk gezag", category: "wet_regelgeving", pattern: "ouderlijk gezag|gezagsregeling|gezag" },
+  // Alleen juridisch/ouderlijk gezag; het losse woord "gezag" ("met gezag spreken") niet.
+  {
+    term: "ouderlijk gezag",
+    category: "wet_regelgeving",
+    pattern:
+      "(?:ouderlijk|gezamenlijk|eenhoofdig) gezag|gezagsregeling\\p{L}*|gezagsdrager\\p{L}*|gezagsbeëindiging|" +
+      "gezag over (?:het|de|hun|zijn|haar) kind\\p{L}*",
+  },
   // Meldcode / meldplicht
   { term: "meldcode", category: "meldcode", pattern: "meldcode\\p{L}*" },
   { term: "meldplicht", category: "meldcode", pattern: "meldplicht\\p{L}*|meldrecht" },
@@ -57,7 +64,12 @@ export const CONTROLLED_TERMS: ControlledTerm[] = [
   // Methodieken
   { term: "motiverende gespreksvoering", category: "methodiek", pattern: "motiverende gespreksvoering" },
   { term: "Signs of Safety", category: "methodiek", pattern: "signs of safety" },
-  { term: "oplossingsgericht werken", category: "methodiek", pattern: "oplossingsgericht\\p{L}*" },
+  // Alleen de methodische formuleringen; het gewone bijvoeglijk naamwoord ("verloopt oplossingsgericht") niet.
+  {
+    term: "oplossingsgericht werken",
+    category: "methodiek",
+    pattern: "oplossingsgericht werken|oplossingsgerichte (?:therapie|benadering|methodiek|methode|gespreksvoering|coaching)",
+  },
   { term: "geweldloze communicatie", category: "methodiek", pattern: "geweldloze communicatie" },
   { term: "presentiebenadering", category: "methodiek", pattern: "presentiebenadering|presentietheorie" },
   { term: "eigen kracht-conferentie", category: "methodiek", pattern: "eigen[- ]kracht[- ]?conferentie" },
@@ -66,7 +78,12 @@ export const CONTROLLED_TERMS: ControlledTerm[] = [
   { term: "burn-out", category: "diagnose", pattern: "burn-?out" },
   { term: "ADHD", category: "diagnose", pattern: "adhd" },
   { term: "autisme", category: "diagnose", pattern: "autisme|autistisch\\p{L}*" },
-  { term: "PTSS / trauma", category: "diagnose", pattern: "ptss|trauma\\p{L}*|getraumatiseerd" },
+  // Alleen klinische termen; alledaags "traumatisch" of "een trauma" is op zichzelf geen diagnose.
+  {
+    term: "PTSS / traumatisering",
+    category: "diagnose",
+    pattern: "ptss|posttraumatische stress\\p{L}*|getraumatiseerd\\p{L}*|traumatisering",
+  },
   { term: "angststoornis", category: "diagnose", pattern: "angststoornis\\p{L}*" },
   { term: "persoonlijkheidsstoornis", category: "diagnose", pattern: "persoonlijkheidsstoornis\\p{L}*|borderline" },
   { term: "verslaving", category: "diagnose", pattern: "verslav\\p{L}*" },
