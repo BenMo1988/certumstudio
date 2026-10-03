@@ -6,7 +6,7 @@
 | **Domein** | Jeugdhulp (samenwerking school en gezin) |
 | **Inputsoort** | casus |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `PASS_WITH_NOTES` |
+| **Status (laatste run)** | `PENDING_REVIEW` |
 
 ## Doel van deze eval
 
@@ -70,3 +70,4 @@ blijven ongewijzigd en gelden voor de v1-runs.
 | Datum | promptVersion | Model | Effort | Status | Run |
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-03 | training-analysis/v1 | claude-opus-5-5 | medium | `PASS_WITH_NOTES` | [run](runs/2026-10-03_training-analysis-v1_claude-opus-5-5_medium.md) |
+| 2026-10-03 | training-analysis/v2 | claude-opus-5-5 | medium | `PENDING_REVIEW` | [run](runs/2026-10-03_training-analysis-v2_claude-opus-5-5_medium.md) |

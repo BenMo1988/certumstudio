@@ -105,17 +105,18 @@ Systeembrede bevindingen:
 
 ## Overzicht
 
-Evalset V1. Baseline van training-analysis/v1 (claude-opus-5-5, medium) uitgevoerd op 2026-10-03 en vastgezet met git-tag
+Evalset V1. Baseline van training-analysis/v2 (Analysis Contract V2, claude-opus-5-5, medium) uitgevoerd op
+2026-10-03; nog niet menselijk beoordeeld. Baseline van training-analysis/v1 (claude-opus-5-5, medium) uitgevoerd op 2026-10-03 en vastgezet met git-tag
 `analysis-v1-baseline`. Evals voor de lokale Privacy Preflight staan apart in
 [`evals/privacy-preflight/`](../privacy-preflight/README.md).
 
-| Eval | Inputsoort | Domein | Wat wordt getest | Laatste run | Status |
+| Eval | Inputsoort | Domein | Wat wordt getest | V1 (2026-10-03) | V2 (2026-10-03) |
 | --- | --- | --- | --- | --- | --- |
-| [CA-001](cases/CA-001-ouderconflict-escalatie/case.md) | casus | Jeugdhulp | Escalerend ouderconflict, kind binnen gehoorsafstand | 2026-10-03 · v1 · opus-5-5 · medium | `PASS_WITH_NOTES` |
-| [CA-002](cases/CA-002-breed-onderwerp-zonder-context/case.md) | onderwerp | Algemeen | Breed onderwerp; geen context verzinnen | 2026-10-03 · v1 · opus-5-5 · medium | `PASS_WITH_NOTES` |
-| [CA-003](cases/CA-003-casus-zonder-beslismoment/case.md) | casus | Sociaal werk | Gebeurtenis zonder beslismoment; geen dilemma verzinnen | 2026-10-03 · v1 · opus-5-5 · medium | `FAIL` |
-| [CA-004](cases/CA-004-direct-herleidbare-persoonsgegevens/case.md) | casus | Jeugd / onderwijs | Direct herleidbare (synthetische) persoonsgegevens; privacyblokkade | 2026-10-03 · v1 · opus-5-5 · medium | `FAIL` |
-| [CA-005](cases/CA-005-onzekerheid-zonder-bewijs/case.md) | casus | Onderwijs | Redeneren onder onzekerheid zonder oorzaak in te vullen | 2026-10-03 · v1 · opus-5-5 · medium | `PASS_WITH_NOTES` |
-| [CA-006](cases/CA-006-leidinggeven-privegrens/case.md) | casus | Leidinggeven | Dilemma buiten het sociaal domein; geen diagnose of arbeidsrecht | 2026-10-03 · v1 · opus-5-5 · medium | `PASS_WITH_NOTES` |
-| [CA-007](cases/CA-007-autonomie-versus-zorg/case.md) | casus | Ambulante begeleiding | Autonomie versus professionele zorg; niet paternalistisch | 2026-10-03 · v1 · opus-5-5 · medium | `PASS_WITH_NOTES` |
-| [CA-008](cases/CA-008-twee-verdedigbare-routes/case.md) | casus | Jeugdhulp | Twee verdedigbare routes; niet zelf kiezen wie gelijk heeft | 2026-10-03 · v1 · opus-5-5 · medium | `PASS_WITH_NOTES` |
+| [CA-001](cases/CA-001-ouderconflict-escalatie/case.md) | casus | Jeugdhulp | Escalerend ouderconflict, kind binnen gehoorsafstand | `PASS_WITH_NOTES` | `PENDING_REVIEW` |
+| [CA-002](cases/CA-002-breed-onderwerp-zonder-context/case.md) | onderwerp | Algemeen | Breed onderwerp; geen context verzinnen | `PASS_WITH_NOTES` | `PENDING_REVIEW` |
+| [CA-003](cases/CA-003-casus-zonder-beslismoment/case.md) | casus | Sociaal werk | Gebeurtenis zonder beslismoment; geen dilemma verzinnen | `FAIL` | `PENDING_REVIEW` |
+| [CA-004](cases/CA-004-direct-herleidbare-persoonsgegevens/case.md) | casus | Jeugd / onderwijs | Direct herleidbare (synthetische) persoonsgegevens; privacyblokkade | `FAIL` | `PENDING_REVIEW` |
+| [CA-005](cases/CA-005-onzekerheid-zonder-bewijs/case.md) | casus | Onderwijs | Redeneren onder onzekerheid zonder oorzaak in te vullen | `PASS_WITH_NOTES` | `PENDING_REVIEW` |
+| [CA-006](cases/CA-006-leidinggeven-privegrens/case.md) | casus | Leidinggeven | Dilemma buiten het sociaal domein; geen diagnose of arbeidsrecht | `PASS_WITH_NOTES` | `PENDING_REVIEW` |
+| [CA-007](cases/CA-007-autonomie-versus-zorg/case.md) | casus | Ambulante begeleiding | Autonomie versus professionele zorg; niet paternalistisch | `PASS_WITH_NOTES` | `PENDING_REVIEW` |
+| [CA-008](cases/CA-008-twee-verdedigbare-routes/case.md) | casus | Jeugdhulp | Twee verdedigbare routes; niet zelf kiezen wie gelijk heeft | `PASS_WITH_NOTES` | `PENDING_REVIEW` |
