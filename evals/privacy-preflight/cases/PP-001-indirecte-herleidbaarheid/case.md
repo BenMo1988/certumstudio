@@ -7,7 +7,7 @@
 | **Inputsoort** | casus |
 | **Laag** | Privacy Preflight (lokaal, deterministisch); later ook de analyse |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `NOT_RUN` |
+| **Status (laatste run)** | `PASS` |
 
 ## Doel van deze eval
 
@@ -50,7 +50,6 @@ Een jeugdprofessional begeleidt een 14-jarige leerling van de enige basisschool 
 
 ## Runs
 
-Nog geen runs. Een runbestand wordt pas aangemaakt nadat de evaluatie daadwerkelijk is uitgevoerd.
-
 | Datum | Laag / versie | Status | Run |
 | --- | --- | --- | --- |
+| 2026-10-03 | privacy-preflight/v1 | `PASS` | [run](runs/2026-10-03_privacy-preflight-v1.md) |

@@ -1,4 +1,10 @@
 import {
+  ACTIVE_DATA_POLICY,
+  evaluateDataPolicy,
+  type DataPolicyRejection,
+  type DataProcessingPolicy,
+} from "@/modules/governance";
+import {
   PRIVACY_PREFLIGHT_VERSION,
   evaluatePreflightGate,
   hashPreflightText,
@@ -11,15 +17,19 @@ import {
 import type { AgentInput, InputAnalysis } from "@/modules/training-agent";
 import type { TrainingAnalysisService } from "@/services/analysis/training-analysis-service";
 
+/** Waarom een invoer niet naar de externe analyse mag: privacypoort of data-policy. */
+export type InputGateRejection = GateRejection | DataPolicyRejection;
+
 export type GatedAnalysisResult =
   | { status: "analysis"; analysis: InputAnalysis }
-  | { status: "preflight"; reason: GateRejection; preflight: PreflightResult };
+  | { status: "preflight"; reason: InputGateRejection; preflight: PreflightResult };
 
 /** Privacyveilige metadata: aantallen per categorie, nooit tekst, waarden, posities of hashes. */
 export type PreflightLogEntry =
   | {
       event: "certum.preflight";
       preflightVersion: string;
+      dataPolicy: DataProcessingPolicy;
       inputKind: AgentInput["kind"];
       inputLength: number;
       status: PreflightResult["status"];
@@ -27,8 +37,8 @@ export type PreflightLogEntry =
       reviewCount: number;
       categories: Partial<Record<PreflightCategory, number>>;
       acknowledgedCount: number;
-      attested: boolean;
-      decision: "allowed" | GateRejection;
+      syntheticDataAttested: boolean;
+      decision: "allowed" | InputGateRejection;
     }
   | {
       event: "certum.preflight_miss";
@@ -41,10 +51,12 @@ export type PreflightLogEntry =
 const defaultLog = (entry: PreflightLogEntry) => console.info(JSON.stringify(entry));
 
 /**
- * De bindende privacygate vóór iedere externe AI-aanroep.
+ * De bindende poorten vóór iedere externe AI-aanroep, in vaste volgorde:
+ * 1. lokale Privacy Preflight (blocked / review / binding aan de tekst);
+ * 2. de actieve data-policy (nu: synthetic_only, voor iedere inputsoort).
  *
- * De preflight wordt hier altijd opnieuw uitgevoerd, ongeacht wat de browser al controleerde.
- * Alleen als de gate expliciet toestemming geeft, wordt de analyse-service aangemaakt en aangeroepen.
+ * Beide worden hier altijd opnieuw beoordeeld, ongeacht wat de browser al controleerde.
+ * Alleen als beide toestemming geven, wordt de analyse-service aangemaakt en aangeroepen.
  */
 export async function runGatedAnalysis(
   input: AgentInput,
@@ -52,32 +64,42 @@ export async function runGatedAnalysis(
   deps: {
     getService: () => TrainingAnalysisService;
     log?: (entry: PreflightLogEntry) => void;
+    policy?: DataProcessingPolicy;
   },
 ): Promise<GatedAnalysisResult> {
   const log = deps.log ?? defaultLog;
+  const policy = deps.policy ?? ACTIVE_DATA_POLICY;
   const preflight = runPrivacyPreflight(input.text);
   const currentTextHash = await hashPreflightText(input.text);
-  const decision = evaluatePreflightGate({ inputKind: input.kind, preflight, currentTextHash, acknowledgement });
+  const ackForThisText = acknowledgement?.textHash === currentTextHash ? acknowledgement : null;
+
+  const privacyDecision = evaluatePreflightGate({ preflight, currentTextHash, acknowledgement });
+  const policyDecision = evaluateDataPolicy(policy, ackForThisText?.syntheticDataAttested === true);
+  const rejection: InputGateRejection | null = !privacyDecision.allowed
+    ? privacyDecision.reason
+    : !policyDecision.allowed
+      ? policyDecision.reason
+      : null;
 
   const categories: Partial<Record<PreflightCategory, number>> = {};
   for (const f of preflight.findings) categories[f.category] = (categories[f.category] ?? 0) + 1;
-  const hashMatches = acknowledgement?.textHash === currentTextHash;
   log({
     event: "certum.preflight",
     preflightVersion: PRIVACY_PREFLIGHT_VERSION,
+    dataPolicy: policy,
     inputKind: input.kind,
     inputLength: input.text.length,
     status: preflight.status,
     blockedCount: preflight.findings.filter((f) => f.severity === "blocked").length,
     reviewCount: preflight.findings.filter((f) => f.severity === "review_required").length,
     categories,
-    acknowledgedCount: hashMatches ? acknowledgement.acknowledgedFindingIds.length : 0,
-    attested: hashMatches && acknowledgement.anonymizationAttested,
-    decision: decision.allowed ? "allowed" : decision.reason,
+    acknowledgedCount: ackForThisText?.acknowledgedFindingIds.length ?? 0,
+    syntheticDataAttested: ackForThisText?.syntheticDataAttested === true,
+    decision: rejection ?? "allowed",
   });
 
-  if (!decision.allowed) {
-    return { status: "preflight", reason: decision.reason, preflight };
+  if (rejection) {
+    return { status: "preflight", reason: rejection, preflight };
   }
 
   const analysis = await deps.getService().analyze(input);

@@ -2,22 +2,19 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { analyzeInput } from "@/app/trainings/new/actions";
-import {
-  evaluatePreflightGate,
-  hashPreflightText,
-  runPrivacyPreflight,
-  type GateRejection,
-} from "@/modules/privacy";
+import type { InputGateRejection } from "@/app/trainings/new/gated-analysis";
+import { ACTIVE_DATA_POLICY, evaluateDataPolicy } from "@/modules/governance";
+import { evaluatePreflightGate, hashPreflightText, runPrivacyPreflight } from "@/modules/privacy";
 import type { AgentInput, AgentInputKind, InputAnalysis } from "@/modules/training-agent";
 import { AnalysisReview } from "./AnalysisReview";
 import { FlowSteps } from "./FlowSteps";
 import { PageHeader } from "./PageHeader";
 import { TrainingInputStep } from "./TrainingInputStep";
 
-const PREFLIGHT_MESSAGES: Record<GateRejection, string> = {
+const PREFLIGHT_MESSAGES: Record<InputGateRejection, string> = {
   blocked: "De tekst bevat direct herkenbare persoonsgegevens. Pas de tekst aan.",
   review_required: "Bevestig eerst alle gemarkeerde mogelijke persoonsgegevens, of pas de tekst aan.",
-  attestation_required: "Bevestig eerst dat de casus fictief of geanonimiseerd is.",
+  synthetic_data_attestation_required: "Bevestig eerst dat de invoer uitsluitend fictieve/synthetische testdata bevat.",
   stale_acknowledgement: "De tekst is gewijzigd na je bevestiging. Controleer en bevestig opnieuw.",
 };
 
@@ -31,30 +28,31 @@ export function NewTrainingFlow({ initialKind }: { initialKind?: AgentInputKind 
   const [kind, setKind] = useState<AgentInputKind | null>(initialKind ?? null);
   const [text, setText] = useState("");
   const [acknowledgedIds, setAcknowledgedIds] = useState<string[]>([]);
-  const [attested, setAttested] = useState(false);
+  const [syntheticDataAttested, setSyntheticDataAttested] = useState(false);
   const [result, setResult] = useState<{ input: AgentInput; analysis: InputAnalysis } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   const trimmed = text.trim();
   const preflight = useMemo(() => runPrivacyPreflight(trimmed), [trimmed]);
-  const localGate = evaluatePreflightGate({
-    inputKind: kind ?? "",
-    preflight,
-    currentTextHash: "lokaal",
-    acknowledgement: { textHash: "lokaal", acknowledgedFindingIds: acknowledgedIds, anonymizationAttested: attested },
-  });
+  // Alleen voor directe feedback; de server beoordeelt beide poorten opnieuw en bindend.
+  const canSubmit =
+    evaluatePreflightGate({
+      preflight,
+      currentTextHash: "lokaal",
+      acknowledgement: { textHash: "lokaal", acknowledgedFindingIds: acknowledgedIds, syntheticDataAttested },
+    }).allowed && evaluateDataPolicy(ACTIVE_DATA_POLICY, syntheticDataAttested).allowed;
 
   /** Iedere tekstwijziging maakt eerdere bevestigingen en de attestatie ongeldig. */
   function changeText(next: string) {
     setText(next);
     setAcknowledgedIds([]);
-    setAttested(false);
+    setSyntheticDataAttested(false);
     setError(null);
   }
 
   function submit() {
-    if (!kind || !localGate.allowed) return;
+    if (!kind || !canSubmit) return;
     const input = { kind, text: trimmed } as AgentInput;
     setError(null);
     startTransition(async () => {
@@ -62,7 +60,7 @@ export function NewTrainingFlow({ initialKind }: { initialKind?: AgentInputKind 
       const response = await analyzeInput(kind, trimmed, {
         textHash,
         acknowledgedFindingIds: acknowledgedIds,
-        anonymizationAttested: attested,
+        syntheticDataAttested,
       });
       if (response.status === "error") {
         setError(response.error);
@@ -105,21 +103,21 @@ export function NewTrainingFlow({ initialKind }: { initialKind?: AgentInputKind 
         text={text}
         pending={pending}
         error={error}
-        canSubmit={localGate.allowed && trimmed.length > 0}
+        canSubmit={canSubmit && trimmed.length > 0}
         preflight={preflight}
         acknowledgedIds={acknowledgedIds}
-        attested={attested}
+        syntheticDataAttested={syntheticDataAttested}
         onKindChange={(next) => {
           setKind(next);
           setAcknowledgedIds([]);
-          setAttested(false);
+          setSyntheticDataAttested(false);
           setError(null);
         }}
         onTextChange={changeText}
         onToggleAcknowledgement={(id) =>
           setAcknowledgedIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]))
         }
-        onAttestationChange={setAttested}
+        onAttestationChange={setSyntheticDataAttested}
         onSubmit={submit}
       />
     </>

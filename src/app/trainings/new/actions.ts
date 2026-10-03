@@ -1,17 +1,13 @@
 "use server";
 
-import {
-  parsePreflightAcknowledgement,
-  type GateRejection,
-  type PreflightResult,
-} from "@/modules/privacy";
+import { parsePreflightAcknowledgement, type PreflightResult } from "@/modules/privacy";
 import {
   MAX_INPUT_LENGTH,
   parseInputKind,
   type InputAnalysis,
 } from "@/modules/training-agent";
 import { AnalysisError, getTrainingAnalysisService, type AnalysisErrorKind } from "@/services/analysis";
-import { runGatedAnalysis } from "./gated-analysis";
+import { runGatedAnalysis, type InputGateRejection } from "./gated-analysis";
 
 const GENERIC_ERROR = "De analyse kon niet worden uitgevoerd. Probeer het opnieuw.";
 
@@ -26,11 +22,12 @@ const USER_MESSAGES: Partial<Record<AnalysisErrorKind, string>> = {
 
 export type AnalyzeInputResult =
   | { status: "analysis"; analysis: InputAnalysis }
-  | { status: "preflight"; reason: GateRejection; preflight: PreflightResult }
+  | { status: "preflight"; reason: InputGateRejection; preflight: PreflightResult }
   | { status: "error"; error: string };
 
 /**
- * Voert Certum Analyse uit, maar alleen na de lokale Privacy Preflight. Slaat niets op.
+ * Voert Certum Analyse uit, maar alleen na de lokale Privacy Preflight en de actieve
+ * data-policy (synthetic_only). Slaat niets op.
  *
  * Server Functions zijn via een directe POST bereikbaar, dus alle invoer, inclusief de
  * bevestigingen, wordt hier opnieuw gevalideerd en de preflight opnieuw uitgevoerd.

@@ -178,66 +178,51 @@ describe("evaluatePreflightGate", () => {
   const blocked: PreflightResult = runPrivacyPreflight("Bel 06-00000000 of vraag naar juf Anouk.");
   const safe: PreflightResult = runPrivacyPreflight("Een leerling vertelt over thuis.");
   const HASH = "a".repeat(64);
-  const ack = (ids: string[], attested = false, textHash = HASH) => ({
+  const ack = (ids: string[], textHash = HASH) => ({
     textHash,
     acknowledgedFindingIds: ids,
-    anonymizationAttested: attested,
+    syntheticDataAttested: true,
   });
 
-  it("blocked kan nooit worden bevestigd, ook niet met alle id's en attestatie", () => {
+  it("blocked kan nooit worden bevestigd, ook niet met alle id's", () => {
     const allIds = blocked.findings.map((f) => f.id);
-    expect(
-      evaluatePreflightGate({ inputKind: "casus", preflight: blocked, currentTextHash: HASH, acknowledgement: ack(allIds, true) }),
-    ).toEqual({ allowed: false, reason: "blocked" });
+    expect(evaluatePreflightGate({ preflight: blocked, currentTextHash: HASH, acknowledgement: ack(allIds) })).toEqual({
+      allowed: false,
+      reason: "blocked",
+    });
   });
 
   it("review zonder (volledige) bevestiging gaat niet door", () => {
-    expect(
-      evaluatePreflightGate({ inputKind: "praktijkvraag", preflight: review, currentTextHash: HASH, acknowledgement: null }),
-    ).toEqual({ allowed: false, reason: "review_required" });
-    expect(
-      evaluatePreflightGate({ inputKind: "praktijkvraag", preflight: review, currentTextHash: HASH, acknowledgement: ack([]) }),
-    ).toEqual({ allowed: false, reason: "review_required" });
+    expect(evaluatePreflightGate({ preflight: review, currentTextHash: HASH, acknowledgement: null })).toEqual({
+      allowed: false,
+      reason: "review_required",
+    });
+    expect(evaluatePreflightGate({ preflight: review, currentTextHash: HASH, acknowledgement: ack([]) })).toEqual({
+      allowed: false,
+      reason: "review_required",
+    });
   });
 
-  it("review met bevestiging van elke bevinding gaat door (geen casus)", () => {
+  it("review met bevestiging van elke bevinding gaat door", () => {
     expect(
-      evaluatePreflightGate({
-        inputKind: "praktijkvraag",
-        preflight: review,
-        currentTextHash: HASH,
-        acknowledgement: ack(["possible_person_name-1"]),
-      }),
+      evaluatePreflightGate({ preflight: review, currentTextHash: HASH, acknowledgement: ack(["possible_person_name-1"]) }),
     ).toEqual({ allowed: true });
   });
 
   it("bevestiging bij een andere tekst (hash) is ongeldig", () => {
     expect(
       evaluatePreflightGate({
-        inputKind: "praktijkvraag",
         preflight: review,
         currentTextHash: HASH,
-        acknowledgement: ack(["possible_person_name-1"], false, "b".repeat(64)),
+        acknowledgement: ack(["possible_person_name-1"], "b".repeat(64)),
       }),
     ).toEqual({ allowed: false, reason: "stale_acknowledgement" });
   });
 
-  it("casus vereist altijd attestatie, ook bij safe", () => {
-    expect(
-      evaluatePreflightGate({ inputKind: "casus", preflight: safe, currentTextHash: HASH, acknowledgement: null }),
-    ).toEqual({ allowed: false, reason: "attestation_required" });
-    expect(
-      evaluatePreflightGate({ inputKind: "casus", preflight: safe, currentTextHash: HASH, acknowledgement: ack([], false) }),
-    ).toEqual({ allowed: false, reason: "attestation_required" });
-    expect(
-      evaluatePreflightGate({ inputKind: "casus", preflight: safe, currentTextHash: HASH, acknowledgement: ack([], true) }),
-    ).toEqual({ allowed: true });
-  });
-
-  it("onderwerp of praktijkvraag zonder bevindingen gaat zonder bevestiging door", () => {
-    expect(
-      evaluatePreflightGate({ inputKind: "onderwerp", preflight: safe, currentTextHash: HASH, acknowledgement: null }),
-    ).toEqual({ allowed: true });
+  it("safe zonder bevindingen: de preflight-poort zelf laat door (de data-policy is een aparte poort)", () => {
+    expect(evaluatePreflightGate({ preflight: safe, currentTextHash: HASH, acknowledgement: null })).toEqual({
+      allowed: true,
+    });
   });
 });
 
@@ -250,7 +235,7 @@ describe("hashPreflightText en parsePreflightAcknowledgement", () => {
   });
 
   it("accepteert alleen een geldig gevormde bevestiging", () => {
-    const valid = { textHash: "a".repeat(64), acknowledgedFindingIds: ["full_date-1"], anonymizationAttested: true };
+    const valid = { textHash: "a".repeat(64), acknowledgedFindingIds: ["full_date-1"], syntheticDataAttested: true };
     expect(parsePreflightAcknowledgement(valid)).toEqual(valid);
     for (const invalid of [
       null,
@@ -258,7 +243,9 @@ describe("hashPreflightText en parsePreflightAcknowledgement", () => {
       { ...valid, textHash: "kort" },
       { ...valid, acknowledgedFindingIds: "full_date-1" },
       { ...valid, acknowledgedFindingIds: ["<script>"] },
-      { ...valid, anonymizationAttested: "ja" },
+      { ...valid, syntheticDataAttested: "ja" },
+      // Oude veldnaam wordt niet geaccepteerd: zonder syntheticDataAttested geen geldige bevestiging.
+      { textHash: valid.textHash, acknowledgedFindingIds: [], anonymizationAttested: true },
     ]) {
       expect(parsePreflightAcknowledgement(invalid)).toBeNull();
     }

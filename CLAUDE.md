@@ -6,7 +6,19 @@
 
 Totdat Bureau Certum expliciet een governance- en privacybesluit heeft genomen over de verwerking van echte
 casuïstiek door externe providers, werkt Certum Studio **uitsluitend met volledig synthetische testcasuïstiek**.
-Dat geldt ook met de Privacy Preflight: de preflight is een noodzakelijke voorwaarde, geen toestemming.
+
+**Privacy Preflight beperkt technisch risico, maar geeft geen toestemming om echte casuïstiek te verwerken. In de
+huidige ontwikkelfase geldt `synthetic_only`.**
+
+- De policy staat op één centrale plek: `ACTIVE_DATA_POLICY` in `src/modules/governance/data-policy.ts`. Dit is een
+  **tijdelijke governance-policy**, geen permanente functionele eis van Certum Studio. Wijzig hem alleen bewust, na
+  een expliciet besluit van Bureau Certum.
+- Onder `synthetic_only` moet de gebruiker bij **iedere** invoer (onderwerp, praktijkvraag én casus) bevestigen:
+  "Ik bevestig dat deze invoer uitsluitend fictieve/synthetische testdata bevat en geen gegevens uit een echte casus
+  bevat." De bevestiging is gebonden aan exact deze tekst.
+- **De server dwingt dit af.** `runGatedAnalysis` beoordeelt de policy bij iedere aanroep opnieuw.
+  `evaluateDataPolicy` krijgt bewust geen inputsoort mee, zodat een andere soort kiezen de regel niet kan omzeilen.
+  Een vinkje in de UI alleen is onvoldoende.
 
 ## Wat het is
 
@@ -92,12 +104,17 @@ Vóór iedere externe AI-aanroep voert Certum lokaal de Privacy Preflight uit (`
 - **`safe` is geen anonimiteitsgarantie.** Het betekent alleen "geen direct herkenbare identificatoren gevonden".
   Namen en combinaties van kenmerken zijn niet betrouwbaar automatisch te herkennen. Presenteer `safe` nooit als
   "bevat geen persoonsgegevens".
-- **Casus:** altijd een anonimiseringsattestatie, ook bij `safe`.
+- **Attestatie:** naast de preflight geldt de data-policy (zie "Harde projectregel"). De preflight vervangt de
+  attestatie niet, en de attestatie vervangt de preflight niet.
 - **Binding aan de tekst:** bevestigingen en attestatie zijn via een SHA-256-hash gebonden aan exact dezelfde
   (getrimde) tekst. Elke wijziging maakt ze ongeldig.
+- **Bekende ontwikkelbeperking, Web Crypto:** de hash in de browser gebruikt Web Crypto, en dat werkt alleen in een
+  secure context. `localhost` werkt. Productie moet via HTTPS draaien. Een lokaal netwerkadres via gewone HTTP kan de
+  hashing in de browser verhinderen; de analyse is dan niet te starten. De server-side privacygate blijft altijd
+  bindend.
 - **De server beslist.** De browser voert de preflight alleen uit voor directe feedback.
   `runGatedAnalysis` (`src/app/trainings/new/gated-analysis.ts`) voert hem altijd opnieuw uit en maakt de
-  analyse-service pas aan als `evaluatePreflightGate` toestemming geeft.
+  analyse-service pas aan als `evaluatePreflightGate` én `evaluateDataPolicy` toestemming geven.
 - Er wordt nooit iets automatisch verwijderd, geanonimiseerd of vervangen.
 - **Preflight-miss:** blokkeert de provider na een geslaagde preflight alsnog, dan wordt dat gelogd als
   `certum.preflight_miss` met `preflightMiss: true` (alleen metadata).
@@ -145,6 +162,7 @@ src/
   lib/                 Kleine generieke helpers (bijv. datumopmaak)
   modules/             Domein, per onderdeel
     privacy/           Privacy Preflight V1 (lokaal, deterministisch) + gate-logica
+    governance/        Tijdelijke data-policy (nu: synthetic_only)
     trainings/         Trainingsprojecten
     cases/             Praktijkcasussen
     training-agent/    Certum Training Agent (nu alleen types)
@@ -205,7 +223,11 @@ Workspace doet nog niets. Er wordt nergens iets opgeslagen.
 
 ## Evals
 
-Kwaliteitsbasis voor Certum Analyse staat in `evals/training-analysis/` (zie de README daar). Er staat alleen
+Er zijn twee evalsets, elk met een eigen README:
+- `evals/training-analysis/` (CA-001 t/m CA-008): de inhoud van de analyse door een AI-provider.
+- `evals/privacy-preflight/` (PP-001 t/m PP-003): de lokale Privacy Preflight, zonder externe AI.
+
+Kwaliteitsbasis voor Certum Analyse staat in `evals/training-analysis/`. Er staat alleen
 synthetische data in en het is geen productiecode. Elke run wordt vastgelegd met promptVersion, model en effort.
 Doe na een wijziging in prompt, model of effort de relevante evals opnieuw en leg de runs vast, voordat de wijziging
 als verbetering geldt. Er is nog geen geautomatiseerde scorer of runner.

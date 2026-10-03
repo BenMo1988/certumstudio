@@ -19,7 +19,7 @@ interface TrainingInputStepProps {
   canSubmit: boolean;
   preflight: PreflightResult;
   acknowledgedIds: string[];
-  attested: boolean;
+  syntheticDataAttested: boolean;
   onKindChange: (kind: AgentInputKind) => void;
   onTextChange: (text: string) => void;
   onToggleAcknowledgement: (id: string) => void;
@@ -36,7 +36,7 @@ export function TrainingInputStep({
   canSubmit,
   preflight,
   acknowledgedIds,
-  attested,
+  syntheticDataAttested,
   onKindChange,
   onTextChange,
   onToggleAcknowledgement,
@@ -92,9 +92,8 @@ export function TrainingInputStep({
             <PrivacyPreflightPanel
               text={text.trim()}
               preflight={preflight}
-              isCasus={selected.kind === "casus"}
               acknowledgedIds={acknowledgedIds}
-              attested={attested}
+              syntheticDataAttested={syntheticDataAttested}
               disabled={pending}
               onToggleAcknowledgement={onToggleAcknowledgement}
               onAttestationChange={onAttestationChange}

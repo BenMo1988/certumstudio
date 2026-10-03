@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { SYNTHETIC_DATA_ATTESTATION } from "@/modules/governance";
 import { CATEGORY_INFO, type PreflightFinding, type PreflightResult } from "@/modules/privacy";
 import { Icon } from "./Icon";
 
@@ -6,9 +7,9 @@ interface PrivacyPreflightPanelProps {
   /** De getrimde tekst waarop de preflight is uitgevoerd (voor het tonen van de gevonden fragmenten). */
   text: string;
   preflight: PreflightResult;
-  isCasus: boolean;
   acknowledgedIds: string[];
-  attested: boolean;
+  /** Bevestiging onder de tijdelijke governance-policy synthetic_only (alle inputsoorten). */
+  syntheticDataAttested: boolean;
   disabled: boolean;
   onToggleAcknowledgement: (id: string) => void;
   onAttestationChange: (attested: boolean) => void;
@@ -21,9 +22,8 @@ interface PrivacyPreflightPanelProps {
 export function PrivacyPreflightPanel({
   text,
   preflight,
-  isCasus,
   acknowledgedIds,
-  attested,
+  syntheticDataAttested,
   disabled,
   onToggleAcknowledgement,
   onAttestationChange,
@@ -82,22 +82,23 @@ export function PrivacyPreflightPanel({
         )}
       </div>
 
-      {isCasus && (
-        <label className="flex cursor-pointer items-start gap-2.5 border-t border-line bg-surface px-5 py-4 text-sm text-ink">
-          <input
-            type="checkbox"
-            className="mt-0.5 size-4 shrink-0 accent-petrol-700"
-            checked={attested}
-            disabled={disabled || blocked.length > 0}
-            onChange={(event) => onAttestationChange(event.target.checked)}
-            data-testid="attestation"
-          />
-          <span>
-            Ik bevestig dat deze casus volledig fictief of geanonimiseerd is en geen combinatie van kenmerken bevat
-            waardoor betrokkenen herkenbaar zijn.
+      {/* Tijdelijke governance-policy synthetic_only: verplicht voor iedere inputsoort. */}
+      <label className="flex cursor-pointer items-start gap-2.5 border-t border-line bg-surface px-5 py-4 text-sm text-ink">
+        <input
+          type="checkbox"
+          className="mt-0.5 size-4 shrink-0 accent-petrol-700"
+          checked={syntheticDataAttested}
+          disabled={disabled || blocked.length > 0}
+          onChange={(event) => onAttestationChange(event.target.checked)}
+          data-testid="attestation"
+        />
+        <span>
+          {SYNTHETIC_DATA_ATTESTATION}
+          <span className="mt-0.5 block text-xs text-muted">
+            In de huidige ontwikkelfase verwerkt Certum Studio uitsluitend synthetische testdata.
           </span>
-        </label>
-      )}
+        </span>
+      </label>
 
       <p className="flex items-start gap-2 border-t border-line px-5 py-3 text-xs text-muted">
         <Icon name="info" className="mt-px size-3.5 shrink-0" />

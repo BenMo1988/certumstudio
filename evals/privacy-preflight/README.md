@@ -12,6 +12,12 @@ vóórdat een tekst naar een externe AI-provider mag (`src/modules/privacy/`).
 identificatoren heeft gevonden. Namen, indirecte kenmerken en combinaties van kenmerken worden niet betrouwbaar
 automatisch herkend.
 
+## Relatie met de data-policy
+
+Onder de tijdelijke governance-policy `synthetic_only` vereist iedere invoer, van elke soort, een
+synthetische-data-attestatie. De preflight vervangt die attestatie niet, en de attestatie vervangt de preflight niet.
+Privacy Preflight beperkt technisch risico, maar geeft geen toestemming om echte casuïstiek te verwerken.
+
 ## Waarom deze evals los staan
 
 De Training Analysis-evals (`evals/training-analysis/`) beoordelen de inhoud van een analyse door een AI-provider.
@@ -57,8 +63,8 @@ evals/privacy-preflight/
 
 | Eval | Inputsoort | Wat wordt getest | Laatste run | Status |
 | --- | --- | --- | --- | --- |
-| [PP-001](cases/PP-001-indirecte-herleidbaarheid/case.md) | casus | Indirecte herleidbaarheid; geen schijngarantie | – | `NOT_RUN` |
-| [PP-002](cases/PP-002-false-positive-datum/case.md) | praktijkvraag | Geen harde blokkade op cijfers en datums | – | `NOT_RUN` |
-| [PP-003](cases/PP-003-mogelijke-persoonsnaam/case.md) | casus | Mogelijke voornaam alleen als review-signaal | – | `NOT_RUN` |
+| [PP-001](cases/PP-001-indirecte-herleidbaarheid/case.md) | casus | Indirecte herleidbaarheid; geen schijngarantie | 2026-10-03 · privacy-preflight/v1 | `PASS` |
+| [PP-002](cases/PP-002-false-positive-datum/case.md) | praktijkvraag | Geen harde blokkade op cijfers en datums | 2026-10-03 · privacy-preflight/v1 | `PASS` |
+| [PP-003](cases/PP-003-mogelijke-persoonsnaam/case.md) | casus | Mogelijke voornaam alleen als review-signaal | 2026-10-03 · privacy-preflight/v1 | `PASS` |
 
 De PP-cases zijn eerder vastgelegd als CA-009 t/m CA-011 (commit `fce1bb2`), vóór de implementatie van de preflight.

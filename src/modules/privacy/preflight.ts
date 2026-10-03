@@ -55,16 +55,15 @@ export async function hashPreflightText(text: string): Promise<string> {
  * de browser alleen voor directe feedback.
  *
  * Volgorde: blocked kan nooit worden bevestigd; daarna moet een bevestiging bij exact
- * deze tekst horen; daarna moeten alle review-bevindingen bevestigd zijn; bij een casus
- * is de anonimiseringsattestatie altijd verplicht, ook als de preflight "safe" is.
+ * deze tekst horen; daarna moeten alle review-bevindingen bevestigd zijn.
+ * De data-policy (synthetic_only) is een aparte poort: zie modules/governance.
  */
 export function evaluatePreflightGate(params: {
-  inputKind: string;
   preflight: PreflightResult;
   currentTextHash: string;
   acknowledgement: PreflightAcknowledgement | null;
 }): GateDecision {
-  const { inputKind, preflight, currentTextHash, acknowledgement } = params;
+  const { preflight, currentTextHash, acknowledgement } = params;
 
   if (preflight.findings.some((f) => f.severity === "blocked")) {
     return { allowed: false, reason: "blocked" };
@@ -78,20 +77,16 @@ export function evaluatePreflightGate(params: {
     (f) => f.severity === "review_required" && !acknowledged.has(f.id),
   );
   if (unacknowledged.length > 0) return { allowed: false, reason: "review_required" };
-
-  if (inputKind === "casus" && acknowledgement?.anonymizationAttested !== true) {
-    return { allowed: false, reason: "attestation_required" };
-  }
   return { allowed: true };
 }
 
 /** Leest een bevestiging uit onbetrouwbare invoer (Server Action). Ongeldig → null. */
 export function parsePreflightAcknowledgement(raw: unknown): PreflightAcknowledgement | null {
   if (typeof raw !== "object" || raw === null) return null;
-  const { textHash, acknowledgedFindingIds, anonymizationAttested } = raw as Record<string, unknown>;
+  const { textHash, acknowledgedFindingIds, syntheticDataAttested } = raw as Record<string, unknown>;
   if (typeof textHash !== "string" || !/^[0-9a-f]{64}$/.test(textHash)) return null;
   if (!Array.isArray(acknowledgedFindingIds) || acknowledgedFindingIds.length > 200) return null;
   if (!acknowledgedFindingIds.every((id) => typeof id === "string" && /^[a-z_]+-\d{1,3}$/.test(id))) return null;
-  if (typeof anonymizationAttested !== "boolean") return null;
-  return { textHash, acknowledgedFindingIds, anonymizationAttested };
+  if (typeof syntheticDataAttested !== "boolean") return null;
+  return { textHash, acknowledgedFindingIds, syntheticDataAttested };
 }

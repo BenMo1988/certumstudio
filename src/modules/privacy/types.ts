@@ -48,20 +48,19 @@ export interface PreflightResult {
   findings: PreflightFinding[];
 }
 
-/** Menselijke bevestiging, gebonden aan exact dezelfde tekst via een hash. */
+/** Menselijke bevestigingen, gebonden aan exact dezelfde tekst via een hash. */
 export interface PreflightAcknowledgement {
   /** SHA-256 van de getrimde tekst. Nooit loggen. */
   textHash: string;
   /** Alleen review-bevindingen kunnen worden bevestigd. */
   acknowledgedFindingIds: string[];
-  /** Verplicht bij inputsoort casus, ook als de preflight "safe" is. */
-  anonymizationAttested: boolean;
+  /**
+   * Bevestiging onder de tijdelijke governance-policy `synthetic_only` (zie modules/governance).
+   * Beoordeeld door die policy, niet door de preflight.
+   */
+  syntheticDataAttested: boolean;
 }
 
-export type GateRejection =
-  | "blocked"
-  | "review_required"
-  | "attestation_required"
-  | "stale_acknowledgement";
+export type GateRejection = "blocked" | "review_required" | "stale_acknowledgement";
 
 export type GateDecision = { allowed: true } | { allowed: false; reason: GateRejection };

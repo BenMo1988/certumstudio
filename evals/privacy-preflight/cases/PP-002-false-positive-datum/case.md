@@ -7,7 +7,7 @@
 | **Inputsoort** | praktijkvraag |
 | **Laag** | Privacy Preflight (lokaal, deterministisch) |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `NOT_RUN` |
+| **Status (laatste run)** | `PASS` |
 
 ## Doel van deze eval
 
@@ -47,7 +47,6 @@ Tijdens de teamvergadering van 12-03-2025 bespreekt het team de werkwijze uit ve
 
 ## Runs
 
-Nog geen runs. Een runbestand wordt pas aangemaakt nadat de evaluatie daadwerkelijk is uitgevoerd.
-
 | Datum | Laag / versie | Status | Run |
 | --- | --- | --- | --- |
+| 2026-10-03 | privacy-preflight/v1 | `PASS` | [run](runs/2026-10-03_privacy-preflight-v1.md) |
