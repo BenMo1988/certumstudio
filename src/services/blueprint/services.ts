@@ -11,7 +11,11 @@ export interface BlueprintRequest {
   selectedDirectionId: string;
 }
 
-/** Provider-onafhankelijk contract voor Blueprint Generation. V1: alleen een mock. */
+/**
+ * Provider-onafhankelijk contract voor Blueprint Generation (mock of Claude).
+ * Het request is de server-side gevalideerde context; wat een provider te zien krijgt, bepaalt
+ * `buildBlueprintGenerationInput` (modules/training-blueprint/generation-input.ts).
+ */
 export interface TrainingBlueprintService {
   generate(request: BlueprintRequest): Promise<TrainingBlueprint>;
 }

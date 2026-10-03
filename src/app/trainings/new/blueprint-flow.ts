@@ -25,6 +25,7 @@ import {
   type ApprovalState,
   type TrainingBlueprint,
 } from "@/modules/training-blueprint";
+import { AnalysisError, type AnalysisErrorKind } from "@/services/analysis/errors";
 import type { BlockPlanService, TrainingBlueprintService } from "@/services/blueprint/services";
 
 /** Waarom een Blueprint of Block Plan niet mag ontstaan. Bevat geen inhoud. */
@@ -34,6 +35,7 @@ export type BlueprintFlowRejection =
   | "not_ready"
   | "unknown_direction"
   | "invalid_blueprint"
+  | "provider_error"
   | "blueprint_not_approved"
   | "invalid_block_plan";
 
@@ -45,14 +47,17 @@ export type BlockPlanFlowResult =
   | { status: "block_plan"; blockPlan: BcOnlineBlockPlan }
   | { status: "rejected"; reason: BlueprintFlowRejection };
 
-/** Privacyveilige metadata; nooit inhoud van analyse, Blueprint of plan. */
+/**
+ * Privacyveilige metadata; nooit inhoud van analyse, Blueprint of plan. Provider, model en aantallen van de
+ * generatie zelf staan in `certum.blueprint_generation` (services/blueprint/logging.ts).
+ */
 export type BlueprintLogEntry =
   | {
       event: "certum.blueprint";
       version: string;
-      generator: "mock";
       outcome: "success" | "rejected";
       reason?: BlueprintFlowRejection;
+      errorKind?: AnalysisErrorKind | "unknown";
       ambiguity?: TrainingBlueprint["ambiguity"];
       sourceNeeds?: number;
       inputKind?: AgentInput["kind"];
@@ -84,8 +89,14 @@ export async function runBlueprintFlow(
   deps: { getService: () => TrainingBlueprintService; log?: (entry: BlueprintLogEntry) => void },
 ): Promise<BlueprintFlowResult> {
   const log = deps.log ?? defaultLog;
-  const reject = (reason: BlueprintFlowRejection): BlueprintFlowResult => {
-    log({ event: "certum.blueprint", version: TRAINING_BLUEPRINT_VERSION, generator: "mock", outcome: "rejected", reason });
+  const reject = (reason: BlueprintFlowRejection, errorKind?: AnalysisErrorKind | "unknown"): BlueprintFlowResult => {
+    log({
+      event: "certum.blueprint",
+      version: TRAINING_BLUEPRINT_VERSION,
+      outcome: "rejected",
+      reason,
+      ...(errorKind && { errorKind }),
+    });
     return { status: "rejected", reason };
   };
 
@@ -106,13 +117,20 @@ export async function runBlueprintFlow(
   if (blocker === "not_ready" || analysis.outcome !== "ready") return reject("not_ready");
   if (blocker !== null) return reject("unknown_direction");
 
-  const blueprint = await deps.getService().generate({ input, analysis, segments, selectedDirectionId });
+  // Pas hier, na alle poorten, wordt de provider aangemaakt. Een providerfout blijft een fout: geen terugval naar mock.
+  let blueprint: TrainingBlueprint;
+  try {
+    blueprint = await deps.getService().generate({ input, analysis, segments, selectedDirectionId });
+  } catch (error) {
+    if (error instanceof AnalysisError && error.kind === "invalid-output") return reject("invalid_blueprint", error.kind);
+    return reject("provider_error", error instanceof AnalysisError ? error.kind : "unknown");
+  }
+  // Ook na een provider die zelf controleert: de flow is de poort voor iedere implementatie.
   if (checkBlueprintInvariants(blueprint, { analysis, segments }).length > 0) return reject("invalid_blueprint");
 
   log({
     event: "certum.blueprint",
     version: TRAINING_BLUEPRINT_VERSION,
-    generator: "mock",
     outcome: "success",
     ambiguity: blueprint.ambiguity,
     sourceNeeds: blueprint.sourceNeeds.length,

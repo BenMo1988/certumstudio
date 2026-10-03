@@ -1,3 +1,4 @@
+import { buildBlueprintGenerationInput } from "@/modules/training-blueprint/generation-input";
 import { TRAINING_BLUEPRINT_VERSION, type TrainingBlueprint } from "@/modules/training-blueprint/schema";
 import type { BlueprintRequest, TrainingBlueprintService } from "../services";
 
@@ -9,12 +10,18 @@ import type { BlueprintRequest, TrainingBlueprintService } from "../services";
  * - ambiguïteit: multiple_defensible_actions als de focus van de richting een keuze tussen opties (" of ") of een open
  *   handelwijze ("kiest hoe") noemt; single_best_action alleen als de richting geen open keuze laat;
  * - prestatie: gesprek_voeren als de focus over reageren of een gesprek gaat, anders keuze_maken_en_onderbouwen;
- * - sourceNeeds: afgeleid van de (interne) sourceCandidates, als te valideren kennisvraag; nooit als bron.
+ * - sourceNeeds: één generieke, te valideren kennisvraag over de afweging; nooit een bron.
+ *
+ * Gebruikt hetzelfde provider-inputcontract als de Claude-provider (geen sourceCandidates, geen andere richtingen).
  */
 export class MockTrainingBlueprintService implements TrainingBlueprintService {
-  async generate({ analysis, selectedDirectionId }: BlueprintRequest): Promise<TrainingBlueprint> {
-    const direction = analysis.trainingDirections.find((d) => d.id === selectedDirectionId);
-    if (!direction) throw new Error("Onbekende richting.");
+  async generate(request: BlueprintRequest): Promise<TrainingBlueprint> {
+    const { selectedDirection: direction, professionalCore: core } = buildBlueprintGenerationInput({
+      inputKind: request.input.kind,
+      analysis: request.analysis,
+      segments: request.segments,
+      selectedDirectionId: request.selectedDirectionId,
+    });
 
     // Open keuze: opties (" of ") of een open handelwijze ("kiest hoe", "bepalen hoe"). Eén beste route alleen als de
     // richting zelf geen open keuze laat.
@@ -25,13 +32,13 @@ export class MockTrainingBlueprintService implements TrainingBlueprintService {
     return {
       version: TRAINING_BLUEPRINT_VERSION,
       title: direction.title,
-      targetAudience: analysis.targetAudience,
+      targetAudience: core.targetAudience,
       learningGoal: direction.proposedLearningGoal,
-      professionalDilemma: analysis.professionalDilemma,
+      professionalDilemma: core.professionalDilemma,
       selectedDirectionId: direction.id,
       sourceRefs: [...direction.sourceRefs],
       participantRole: "De deelnemer is de professional uit de beschreven situatie.",
-      scenarioPremise: analysis.summary,
+      scenarioPremise: core.summary,
       decisionPoint: direction.focus,
       ambiguity: multiple ? "multiple_defensible_actions" : "single_best_action",
       successCriteria: [
@@ -44,16 +51,18 @@ export class MockTrainingBlueprintService implements TrainingBlueprintService {
           reason: "De bron beschrijft de rol niet volledig; zonder deze aanname is het keuzemoment niet te oefenen.",
         },
       ],
-      sourceNeeds: analysis.sourceCandidates.map((candidate) => ({
-        question: `Welke gevalideerde kennis over "${candidate.term}" is relevant voor deze afweging?`,
-        sourceType: "nog_te_bepalen" as const,
-        whyNeeded: candidate.whyPossiblyRelevant,
-      })),
+      sourceNeeds: [
+        {
+          question: "Welke gevalideerde kennis ondersteunt de professionele afweging in dit keuzemoment?",
+          sourceType: "nog_te_bepalen",
+          whyNeeded: "De Bron-fase moet de afweging na het handelen onderbouwen met gevalideerde kennis.",
+        },
+      ],
       learningArc: {
         context: {
           participantKnows: "De situatie zoals beschreven, tot en met het moment waarop de professional moet kiezen.",
           deliberatelyUnknown: "Hoe betrokkenen op de keuze zullen reageren en hoe de situatie zich daarna ontwikkelt.",
-          tensionArises: analysis.professionalDilemma,
+          tensionArises: core.professionalDilemma,
         },
         actie: {
           participantMust: direction.focus,
@@ -61,7 +70,7 @@ export class MockTrainingBlueprintService implements TrainingBlueprintService {
         },
         reflectie: {
           looksBackOn: "De eigen gemaakte keuze in het keuzemoment en het effect dat de deelnemer ervan verwacht.",
-          explicitTradeOff: analysis.professionalDilemma,
+          explicitTradeOff: core.professionalDilemma,
         },
         feedback: {
           respondsTo: "Het handelen van de deelnemer én de onderbouwing van de gemaakte afweging.",
@@ -71,8 +80,8 @@ export class MockTrainingBlueprintService implements TrainingBlueprintService {
             : null,
         },
         bron: {
-          knowledgeQuestions: analysis.sourceCandidates.map((c) => `Welke gevalideerde kennis over "${c.term}" ondersteunt deze afweging?`),
-          sourceTypes: analysis.sourceCandidates.length > 0 ? ["nog_te_bepalen"] : [],
+          knowledgeQuestions: ["Welke gevalideerde kennis ondersteunt deze afweging?"],
+          sourceTypes: ["nog_te_bepalen"],
         },
         toets: {
           demonstrate: "Dezelfde professionele afweging maken en onderbouwen.",

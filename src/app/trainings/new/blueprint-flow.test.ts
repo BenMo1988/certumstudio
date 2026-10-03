@@ -179,7 +179,7 @@ describe("runBlueprintFlow: poorten", () => {
     const { deps: d, logs } = deps();
     await runBlueprintFlow({ kind: "casus", text: c.input }, await ack(c.input), c.analysis, "escalatie-begrenzen", d);
     expect(logs).toEqual([
-      { event: "certum.blueprint", version: "training-blueprint/v1", generator: "mock", outcome: "success", ambiguity: "multiple_defensible_actions", sourceNeeds: 3, inputKind: "casus" },
+      { event: "certum.blueprint", version: "training-blueprint/v1", outcome: "success", ambiguity: "multiple_defensible_actions", sourceNeeds: 1, inputKind: "casus" },
     ]);
   });
 });

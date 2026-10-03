@@ -31,6 +31,7 @@ const BLUEPRINT_MESSAGES: Record<BlueprintFlowRejection, string> = {
   not_ready: "Alleen een analyse die gereed is kan een Blueprint opleveren.",
   unknown_direction: "Kies een van de voorgestelde trainingsrichtingen.",
   invalid_blueprint: "De Blueprint voldeed niet aan de regels en is niet getoond.",
+  provider_error: "De Blueprint kon nu niet worden gemaakt. Probeer het later opnieuw.",
   blueprint_not_approved: "Keur eerst de Blueprint goed.",
   invalid_block_plan: "Het Block Plan voldeed niet aan de regels en is niet getoond.",
 };

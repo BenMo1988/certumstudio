@@ -13,6 +13,7 @@ export {
   type TrainingBlueprint,
 } from "./schema";
 export { checkBlueprintInvariants, type BlueprintViolation } from "./validation";
+export { buildBlueprintGenerationInput, type BlueprintGenerationInput } from "./generation-input";
 export {
   getBlockPlanGenerationBlocker,
   getExportBlocker,

@@ -1,18 +1,18 @@
 import "server-only";
-import { MockBlockPlanService } from "./mock/mock-block-plan-service";
-import { MockTrainingBlueprintService } from "./mock/mock-blueprint-service";
+import { createBlockPlanService, createTrainingBlueprintService } from "./factory";
 import type { BlockPlanService, TrainingBlueprintService } from "./services";
 
 export type { BlockPlanService, BlueprintRequest, TrainingBlueprintService } from "./services";
 
 /**
- * V1: Blueprint en Block Plan worden alleen door mocks gemaakt. Er is bewust nog geen AI-provider of prompt;
- * die komt pas na beoordeling van contract, catalogus, UX en mockflow.
+ * Blueprint Generation: mock of Claude volgens CERTUM_BLUEPRINT_PROVIDER (zie config.ts); standaard mock.
+ * De UI kent geen provider.
  */
 export function getTrainingBlueprintService(): TrainingBlueprintService {
-  return new MockTrainingBlueprintService();
+  return createTrainingBlueprintService();
 }
 
+/** Block Plan Generation: alleen mock. Er is nog geen AI-provider of prompt voor het Block Plan. */
 export function getBlockPlanService(): BlockPlanService {
-  return new MockBlockPlanService();
+  return createBlockPlanService();
 }

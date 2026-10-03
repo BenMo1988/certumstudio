@@ -12,12 +12,25 @@ export type BlueprintViolation =
   | "ambiguiteit-zonder-behandeling"
   | "behandeling-zonder-ambiguiteit"
   | "vaag-succescriterium"
-  | "bronverwijzing-verzonnen";
+  | "bronverwijzing-verzonnen"
+  | "uitvoeringsblok-gekozen";
 
 /** Formuleringen die op begrip in plaats van observeerbaar handelen wijzen. */
 const VAGUE_CRITERION = /^\s*de deelnemer (begrijpt|weet|kent|beseft|snapt|is zich bewust)\b/i;
 /** Signalen van een concrete bron (URL, jaartal tussen haakjes, artikelnummer); die horen pas na validatie. */
 const CONCRETE_SOURCE = /https?:\/\/|www\.|\(\s*(19|20)\d{2}\s*\)|\bart(ikel)?\.?\s*\d+/i;
+/**
+ * Namen die alleen een BC Online-uitvoeringsblok kunnen betekenen. Bewust smal: woorden als "open vraag",
+ * "toets" of "informatie opvragen" zijn ook gewoon professioneel handelen en geven anders valse treffers.
+ */
+const EXECUTION_BLOCK = /\b(chat[\s-]?simulatie|conditionele logica|ai[\s-]feedback|bc online)\b/i;
+
+function allStrings(value: unknown): string[] {
+  if (typeof value === "string") return [value];
+  if (Array.isArray(value)) return value.flatMap(allStrings);
+  if (value && typeof value === "object") return Object.values(value).flatMap(allStrings);
+  return [];
+}
 
 /**
  * Domeincontrole van een Blueprint tegen de analyse waaruit hij ontstond.
@@ -25,7 +38,8 @@ const CONCRETE_SOURCE = /https?:\/\/|www\.|\(\s*(19|20)\d{2}\s*\)|\bart(ikel)?\.
  * - het leerdoel is het leerdoel van die richting; het dilemma is dat van de analyse;
  * - sourceRefs bestaan in de segmenten én horen bij de gekozen richting;
  * - multiple_defensible_actions vraagt een expliciete behandeling in de Feedback-intentie (en andersom);
- * - succescriteria zijn observeerbaar; Bron bevat geen concrete bronverwijzingen.
+ * - succescriteria zijn observeerbaar; Bron bevat geen concrete bronverwijzingen;
+ * - de Blueprint kiest geen BC Online-uitvoeringsblokken (dat doet het Block Plan).
  */
 export function checkBlueprintInvariants(
   candidate: unknown,
@@ -57,6 +71,8 @@ export function checkBlueprintInvariants(
     ...blueprint.learningArc.bron.knowledgeQuestions,
   ];
   if (bronTexts.some((t) => CONCRETE_SOURCE.test(t))) violations.add("bronverwijzing-verzonnen");
+
+  if (allStrings(blueprint).some((t) => EXECUTION_BLOCK.test(t))) violations.add("uitvoeringsblok-gekozen");
 
   return [...violations];
 }

@@ -153,7 +153,7 @@ Vóór iedere externe AI-aanroep voert Certum lokaal de Privacy Preflight uit (`
 - Lokale NER of een lokaal model komt pas in beeld nadat een aparte synthetische Nederlandse privacy-evalset
   aantoonbaar betere detectie laat zien met een werkbaar aantal valse treffers.
 
-### Training Blueprint en BC Online Block Plan (stap 7, alleen mock)
+### Training Blueprint en BC Online Block Plan (stap 7; Blueprint-provider stap 8A)
 
 Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
 
@@ -173,7 +173,20 @@ Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
   conditionele tekstweergave, geen vertakking.
 - **Wat niet kan, wordt een `capabilityGap`**, nooit een fictief blok. `skjPoints` is altijd `null`. Chat-sleutelwoorden
   vervangen nooit het beoordelen van professioneel redeneren.
-- Er zijn nog geen Claude-prompt voor Blueprint of Block Plan, geen BC Online-adapter, API, database, MCP of export.
+- **Blueprint-provider (stap 8A):** `TrainingBlueprintService` met mock en Claude, gekozen via
+  `CERTUM_BLUEPRINT_PROVIDER` (standaard `mock`, los van `CERTUM_ANALYSIS_PROVIDER`). Geen terugval naar mock.
+  - Provider-input: `buildBlueprintGenerationInput` (`modules/training-blueprint/generation-input.ts`): gekozen richting,
+    samenvatting, dilemma, doelgroep, alleen de segmenten van de richting en de beslisrelevante open vragen. Geen andere
+    richtingen, sourceCandidates, abstractionNotes of rationale.
+  - Prompt `training-blueprint/v1` (`knowledge/prompts/training-blueprint-v1.ts`, Certum Learning Architect). De
+    promptversie is een andere constante dan de contractversie, ook al is de naam gelijk.
+  - Model en effort alleen in `CLAUDE_BLUEPRINT_DEFAULTS` (`services/blueprint/config.ts`). Analysis-config blijft los.
+  - Geldig pas na structured output (`messages.parse` + `zodOutputFormat(TrainingBlueprintSchema)`), Zod en
+    `checkBlueprintInvariants`. Geen reparatie of tweede aanroep; ongeldig is `invalid-output`.
+  - De Blueprint kiest geen BC Online-blokken; de invariant `uitvoeringsblok-gekozen` bewaakt dat voor eenduidige namen.
+  - Logging: `certum.blueprint_generation` met alleen provider, model, effort, versies, inputsoort, duur, uitkomst,
+    ambiguïteit en aantallen. Geen inhoud en geen richting-id.
+- Het Block Plan is nog mock-only. Er is geen BC Online-adapter, API, database, MCP of export.
 
 ### Privacy in logs (niet onderhandelbaar)
 
@@ -225,7 +238,7 @@ src/
   knowledge/           Certum-kennis en methodiek; platform/ bevat de BC Online-blokcatalogus
   services/            Externe koppelingen, elk achter een interface, alleen server-side
     analysis/          TrainingAnalysisService(V2): mock + Claude; v1 historisch naast v2
-    blueprint/         TrainingBlueprintService en BlockPlanService: alleen mock
+    blueprint/         TrainingBlueprintService (mock + Claude) en BlockPlanService (alleen mock)
 ```
 
 Regels:
@@ -265,6 +278,7 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 6A, de lokale Privacy Preflight V1 en `synthetic_only`: klaar.
 - Stap 6B+C, Analysis Contract V2 en `training-analysis/v2`: klaar, met een V2-baseline met Claude (zie evals).
 - Stap 7, Training Blueprint V1 en BC Online Block Plan V1: fundering klaar, alleen met mocks.
+- Stap 8A, Claude-provider voor de Training Blueprint: gebouwd en getest zonder API-aanroepen. Nog geen BP-baseline.
 
 Routes:
 - `/`: dashboard.
@@ -314,6 +328,7 @@ Zie `.env.example`.
 ```
 CERTUM_ANALYSIS_PROVIDER=mock      # standaard, geen sleutel nodig
 CERTUM_ANALYSIS_PROVIDER=claude    # echte Certum Analyse via Claude
+CERTUM_BLUEPRINT_PROVIDER=mock     # standaard; claude = echte Blueprint Generation (betaald)
 ANTHROPIC_API_KEY=sk-ant-...       # alleen nodig bij claude
 ```
 
