@@ -10,6 +10,7 @@ import type { ReadyOutcome, SourceSegment } from "@/modules/training-agent/v2";
 import {
   TRAINING_BLUEPRINT_VERSION,
   buildBlueprintGenerationInput,
+  composeTrainingBlueprint,
   type TrainingBlueprint,
 } from "@/modules/training-blueprint";
 import { MOCK_V2_BLOCKED, MOCK_V2_NEEDS_ADJUSTMENT, MOCK_V2_UNSUITABLE } from "@/services/analysis/mock/v2/mock-outcomes";
@@ -18,6 +19,7 @@ import type { ClaudeMessagesClient } from "../analysis/claude/claude-training-an
 import { AnalysisError } from "../analysis/errors";
 import { ClaudeTrainingBlueprintService } from "./claude/claude-training-blueprint-service";
 import { CLAUDE_BLUEPRINT_DEFAULTS, readBlueprintConfig } from "./config";
+import { BlueprintDesignSchema, type BlueprintDesign } from "./design";
 import { createBlockPlanService, createTrainingBlueprintService } from "./factory";
 import { withBlueprintLogging, type BlueprintGenerationLogEntry } from "./logging";
 import { MockBlockPlanService } from "./mock/mock-block-plan-service";
@@ -38,9 +40,22 @@ function requestFor(bp: keyof typeof BP): BlueprintRequest {
   return { input: { kind: c.kind, text: c.input }, analysis: c.analysis, segments: c.segments, selectedDirectionId: BP[bp].direction };
 }
 
-/** Een geldige Blueprint als nagebootste Claude-output (zelfde contract als de mock). */
-async function validOutput(bp: keyof typeof BP): Promise<TrainingBlueprint> {
+/** Een geldige, volledige Blueprint (zelfde contract als de mock). */
+async function validBlueprint(bp: keyof typeof BP): Promise<TrainingBlueprint> {
   return new MockTrainingBlueprintService().generate(requestFor(bp));
+}
+
+const TRUSTED_FIELDS = ["version", "selectedDirectionId", "learningGoal", "professionalDilemma", "sourceRefs"] as const;
+
+/** Wat Claude teruggeeft: alleen het ontwerp, zonder de vaste velden. */
+function designOf(blueprint: TrainingBlueprint): BlueprintDesign {
+  const copy: Record<string, unknown> = structuredClone(blueprint);
+  for (const field of TRUSTED_FIELDS) delete copy[field];
+  return BlueprintDesignSchema.parse(copy);
+}
+
+async function validOutput(bp: keyof typeof BP): Promise<BlueprintDesign> {
+  return designOf(await validBlueprint(bp));
 }
 
 type ParseResult = { stop_reason: string; stop_details?: { category: string | null } | null; parsed_output: unknown };
@@ -110,12 +125,16 @@ describe("prompt training-blueprint/v1", () => {
   it("heeft een eigen promptversie, los van de analyse", () => {
     expect(TRAINING_BLUEPRINT_PROMPT_VERSION).toBe("training-blueprint/v1");
     expect(TRAINING_BLUEPRINT_PROMPT_VERSION).not.toBe("training-analysis/v2");
+    expect(TRAINING_BLUEPRINT_VERSION).toBe("blueprint-contract/v1");
+    expect(TRAINING_BLUEPRINT_PROMPT_VERSION).not.toBe(TRAINING_BLUEPRINT_VERSION);
   });
 
   it("legt de harde regels vast", () => {
     const p = TRAINING_BLUEPRINT_V1_INSTRUCTIONS;
     expect(p).toContain("Certum Learning Architect");
-    expect(p).toMatch(/teken voor teken over uit het leerdoel/);
+    expect(p).toMatch(/bindende context/);
+    expect(p).toMatch(/door het systeem aan de Blueprint toegevoegd/);
+    expect(p).not.toMatch(/teken voor teken/);
     expect(p).toMatch(/Geen nieuwe bronfeiten/);
     expect(p).toMatch(/"single_best_action" alleen als de gekozen richting werkelijk één normatief gewenste/);
     expect(p).toMatch(/Een lege lijst is toegestaan/);
@@ -127,14 +146,15 @@ describe("prompt training-blueprint/v1", () => {
 
 describe("ClaudeTrainingBlueprintService", () => {
   it("implementeert hetzelfde contract als de mock en stuurt alleen de provider-input", async () => {
-    const output = await validOutput("BP-001");
+    const expected = await validBlueprint("BP-001");
+    const output = designOf(expected);
     const { service, parse } = claudeReturning(ok(output));
     const mock: TrainingBlueprintService = new MockTrainingBlueprintService();
     const claude: TrainingBlueprintService = service;
     expect(typeof mock.generate).toBe(typeof claude.generate);
 
     const r = requestFor("BP-001");
-    await expect(claude.generate(r)).resolves.toEqual(output);
+    await expect(claude.generate(r)).resolves.toEqual(expected);
 
     const sent = parse.mock.calls[0][0] as {
       model: string;
@@ -173,22 +193,15 @@ describe("ClaudeTrainingBlueprintService", () => {
     expect(await errorKindOf(service.generate(requestFor("BP-001")))).toBe(kind);
   });
 
-  it.each<[string, (b: TrainingBlueprint) => void]>([
-    ["gewijzigd leerdoel", (b) => (b.learningGoal = `${b.learningGoal} En nog iets.`)],
-    ["gewijzigd dilemma", (b) => (b.professionalDilemma = "Een ander dilemma.")],
-    ["verkeerde richting-id", (b) => (b.selectedDirectionId = "meeluisterend-kind")],
-    ["verzonnen richting-id", (b) => (b.selectedDirectionId = "verzonnen")],
-    ["onbekende sourceRef", (b) => (b.sourceRefs = ["S42"])],
-    ["sourceRef buiten de richting", (b) => (b.sourceRefs = ["S1"])],
+  it.each<[string, (b: BlueprintDesign) => void]>([
     ["te veel succescriteria (schema)", (b) => (b.successCriteria = ["Onderbouwt a.", "Onderbouwt b.", "Onderbouwt c.", "Onderbouwt d."])],
-    ["andere contractversie (schema)", (b) => ((b as { version: string }).version = "training-blueprint/v0")],
     ["concrete bron in sourceNeeds", (b) => (b.sourceNeeds = [{ question: "Wat zegt artikel 7 hierover?", sourceType: "wet_regelgeving", whyNeeded: "Kader." }])],
     ["link in kennisvraag", (b) => (b.learningArc.bron.knowledgeQuestions = ["Zie https://example.org/richtlijn"])],
     ["vaag succescriterium", (b) => (b.successCriteria = ["De deelnemer begrijpt de afweging."])],
     ["multiple zonder behandeling", (b) => (b.learningArc.feedback.multipleDefensibleHandling = null)],
     ["single met behandeling", (b) => (b.ambiguity = "single_best_action")],
     ["BC Online-blok gekozen", (b) => (b.learningArc.actie.participantMust = "De deelnemer reageert in een chatsimulatie.")],
-  ])("%s → invalid-output", async (_, change) => {
+  ])("%s → invalid-output (invarianten draaien na samenstellen)", async (_, change) => {
     const output = structuredClone(await validOutput("BP-001"));
     change(output);
     const { service } = claudeReturning(ok(output));
@@ -197,10 +210,10 @@ describe("ClaudeTrainingBlueprintService", () => {
 
   it("multiple_defensible_actions met behandeling is geldig (BP-001, BP-002, BP-003)", async () => {
     for (const bp of ["BP-001", "BP-002", "BP-003"] as const) {
-      const output = await validOutput(bp);
-      expect(output.ambiguity).toBe("multiple_defensible_actions");
-      const { service } = claudeReturning(ok(output));
-      await expect(service.generate(requestFor(bp))).resolves.toEqual(output);
+      const expected = await validBlueprint(bp);
+      expect(expected.ambiguity).toBe("multiple_defensible_actions");
+      const { service } = claudeReturning(ok(designOf(expected)));
+      await expect(service.generate(requestFor(bp))).resolves.toEqual(expected);
     }
   });
 
@@ -224,10 +237,64 @@ describe("ClaudeTrainingBlueprintService", () => {
 
   it("doet nooit een tweede aanroep of reparatie", async () => {
     const output = structuredClone(await validOutput("BP-001"));
-    output.professionalDilemma = "Een ander dilemma.";
+    output.successCriteria = ["De deelnemer begrijpt de afweging."];
     const { service, parse } = claudeReturning(ok(output));
     await expect(service.generate(requestFor("BP-001"))).rejects.toBeInstanceOf(AnalysisError);
     expect(parse).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("vaste velden worden server-side samengesteld", () => {
+  it("het outputschema voor Claude bevat de vaste velden niet", async () => {
+    const { service, parse } = claudeReturning(ok(await validOutput("BP-001")));
+    await service.generate(requestFor("BP-001"));
+    const sent = parse.mock.calls[0][0] as { output_config: { format: { schema: { properties: Record<string, unknown>; required: string[] } } } };
+    const properties = Object.keys(sent.output_config.format.schema.properties);
+    for (const field of TRUSTED_FIELDS) {
+      expect(properties).not.toContain(field);
+      expect(sent.output_config.format.schema.required).not.toContain(field);
+    }
+    expect(properties).toEqual(expect.arrayContaining(["decisionPoint", "ambiguity", "learningArc", "successCriteria"]));
+  });
+
+  it.each(["BP-001", "BP-002", "BP-003"] as const)("%s: de Blueprint bevat exact de trusted waarden", async (bp) => {
+    const r = requestFor(bp);
+    const direction = r.analysis.trainingDirections.find((d) => d.id === r.selectedDirectionId)!;
+    const { service } = claudeReturning(ok(await validOutput(bp)));
+    const blueprint = await service.generate(r);
+    expect(blueprint.version).toBe(TRAINING_BLUEPRINT_VERSION);
+    expect(blueprint.selectedDirectionId).toBe(direction.id);
+    expect(blueprint.learningGoal).toBe(direction.proposedLearningGoal);
+    expect(blueprint.professionalDilemma).toBe(r.analysis.professionalDilemma);
+    expect(blueprint.sourceRefs).toEqual(direction.sourceRefs);
+  });
+
+  it.each<[string, Record<string, unknown>]>([
+    ["leerdoel", { learningGoal: "De professional kan iets anders." }],
+    ["dilemma", { professionalDilemma: "Een ander dilemma." }],
+    ["richting", { selectedDirectionId: "meeluisterend-kind" }],
+    ["sourceRefs", { sourceRefs: ["S1"] }],
+    ["contractversie", { version: "blueprint-contract/v0" }],
+  ])("Claude kan %s niet via de output meesturen of wijzigen", async (_, extra) => {
+    const { service } = claudeReturning(ok({ ...(await validOutput("BP-001")), ...extra }));
+    expect(await errorKindOf(service.generate(requestFor("BP-001")))).toBe("invalid-output");
+  });
+
+  it("samenstellen overschrijft vaste velden altijd met de trusted context", async () => {
+    const r = requestFor("BP-001");
+    const input = buildBlueprintGenerationInput({ inputKind: "casus", analysis: r.analysis, segments: r.segments, selectedDirectionId: r.selectedDirectionId });
+    const sneaky = { ...(await validOutput("BP-001")), learningGoal: "Anders.", selectedDirectionId: "verzonnen" } as BlueprintDesign;
+    const blueprint = composeTrainingBlueprint(sneaky, input);
+    expect(blueprint.learningGoal).toBe(input.selectedDirection.proposedLearningGoal);
+    expect(blueprint.selectedDirectionId).toBe(input.selectedDirection.id);
+  });
+
+  it("een ontwerp dat niet past bij de richting wordt na samenstellen nog steeds afgewezen", async () => {
+    // BP-002 heeft meerdere verdedigbare routes; een ontwerp dat dat negeert, botst met de invarianten.
+    const design = structuredClone(await validOutput("BP-002"));
+    design.learningArc.feedback.multipleDefensibleHandling = null;
+    const { service } = claudeReturning(ok(design));
+    expect(await errorKindOf(service.generate(requestFor("BP-002")))).toBe("invalid-output");
   });
 });
 
@@ -255,7 +322,7 @@ describe("configuratie en factory", () => {
   it("claude met sleutel geeft de eigen Blueprint-defaults (zonder netwerkaanroep)", () => {
     const config = readBlueprintConfig({ CERTUM_BLUEPRINT_PROVIDER: "claude", ANTHROPIC_API_KEY: "sk-test" });
     expect(config).toEqual({ provider: "claude", claude: { apiKey: "sk-test", ...CLAUDE_BLUEPRINT_DEFAULTS } });
-    expect(CLAUDE_BLUEPRINT_DEFAULTS).toMatchObject({ model: "claude-opus-5-5", effort: "medium" });
+    expect(CLAUDE_BLUEPRINT_DEFAULTS).toMatchObject({ model: "claude-opus-5-5", effort: "medium", maxRetries: 0 });
     expect(typeof createTrainingBlueprintService({ CERTUM_BLUEPRINT_PROVIDER: "claude", ANTHROPIC_API_KEY: "sk-test" }).generate).toBe("function");
   });
 
@@ -273,8 +340,8 @@ describe("configuratie en factory", () => {
 
 describe("logging", () => {
   it("logt alleen metadata en aantallen, geen inhoud of richting-id", async () => {
-    const output = await validOutput("BP-001");
-    const { service } = claudeReturning(ok(output));
+    const output = await validBlueprint("BP-001");
+    const { service } = claudeReturning(ok(designOf(output)));
     const logs: BlueprintGenerationLogEntry[] = [];
     const wrapped = withBlueprintLogging(
       service,
@@ -293,7 +360,7 @@ describe("logging", () => {
       model: "claude-opus-5-5",
       effort: "medium",
       promptVersion: "training-blueprint/v1",
-      blueprintContractVersion: "training-blueprint/v1",
+      blueprintContractVersion: "blueprint-contract/v1",
       inputKind: "casus",
       outcome: "success",
       ambiguity: "multiple_defensible_actions",
@@ -389,7 +456,7 @@ describe("poorten vóór providercreatie (runBlueprintFlow)", () => {
 
   it("ongeldige Claude-output wordt invalid_blueprint en wordt niet getoond", async () => {
     const output = structuredClone(await validOutput("BP-001"));
-    output.learningGoal = "De deelnemer kan iets anders.";
+    output.sourceNeeds = [{ question: "Wat zegt artikel 7 hierover?", sourceType: "wet_regelgeving", whyNeeded: "Kader." }];
     const { service } = claudeReturning(ok(output));
     const logs: BlueprintLogEntry[] = [];
     const result = await runBlueprintFlow({ kind: "casus", text: c.input }, await ack(c.input), c.analysis, "escalatie-begrenzen", {
@@ -401,13 +468,13 @@ describe("poorten vóór providercreatie (runBlueprintFlow)", () => {
   });
 
   it("geldige Claude-output komt door alle poorten", async () => {
-    const output = await validOutput("BP-001");
-    const { service, parse } = claudeReturning(ok(output));
+    const expected = await validBlueprint("BP-001");
+    const { service, parse } = claudeReturning(ok(designOf(expected)));
     const result = await runBlueprintFlow({ kind: "casus", text: c.input }, await ack(c.input), c.analysis, "escalatie-begrenzen", {
       getService: () => service,
       log: () => {},
     });
-    expect(result).toEqual({ status: "blueprint", blueprint: output });
+    expect(result).toEqual({ status: "blueprint", blueprint: expected });
     expect(parse).toHaveBeenCalledTimes(1);
   });
 });

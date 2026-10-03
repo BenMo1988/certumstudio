@@ -7,18 +7,22 @@ import {
   TrainingBlueprintSchema,
   buildBlueprintGenerationInput,
   checkBlueprintInvariants,
+  composeTrainingBlueprint,
   type TrainingBlueprint,
 } from "@/modules/training-blueprint";
 import { toAnalysisError, type ClaudeMessagesClient } from "../../analysis/claude/claude-training-analysis-service";
 import { AnalysisError } from "../../analysis/errors";
 import type { ClaudeBlueprintSettings } from "../config";
+import { BlueprintDesignSchema } from "../design";
 import type { BlueprintRequest, TrainingBlueprintService } from "../services";
 
 /**
  * Blueprint Generation via Claude (Certum Learning Architect, prompt training-blueprint/v1).
  *
- * Structured output op basis van het domeinschema `TrainingBlueprintSchema` (een object als root, dus geen wrapper).
- * Geldig pas na: 1. structured-output parsing, 2. Zod, 3. Blueprint-invarianten tegen de analyse.
+ * Claude ontwerpt alleen `BlueprintDesignSchema` (het domeinschema zonder de vaste velden). De server voegt de vaste
+ * velden toe uit de gevalideerde richting en analyse, zodat Claude ze by construction niet kan wijzigen.
+ * Geldig pas na: 1. structured-output parsing, 2. Zod op het ontwerp, 3. samenstellen, 4. Zod op de volledige
+ * Blueprint, 5. Blueprint-invarianten tegen de analyse.
  * Geen reparatie, geen tweede aanroep en geen model-fallback: ongeldig is `invalid-output`.
  */
 export class ClaudeTrainingBlueprintService implements TrainingBlueprintService {
@@ -45,7 +49,7 @@ export class ClaudeTrainingBlueprintService implements TrainingBlueprintService 
         messages: [{ role: "user", content: buildTrainingBlueprintV1Request(generationInput) }],
         output_config: {
           effort: this.settings.effort,
-          format: zodOutputFormat(TrainingBlueprintSchema),
+          format: zodOutputFormat(BlueprintDesignSchema),
         },
       });
     } catch (error) {
@@ -66,7 +70,11 @@ export class ClaudeTrainingBlueprintService implements TrainingBlueprintService 
     }
 
     // Zod opnieuw expliciet: de SDK geeft literal/enum en maxima alleen als beschrijving aan het model door.
-    const parsed = TrainingBlueprintSchema.safeParse(candidate);
+    const design = BlueprintDesignSchema.safeParse(candidate);
+    if (!design.success) {
+      throw new AnalysisError("invalid-output", "Blueprint-ontwerp voldoet niet aan het schema.");
+    }
+    const parsed = TrainingBlueprintSchema.safeParse(composeTrainingBlueprint(design.data, generationInput));
     if (!parsed.success) {
       throw new AnalysisError("invalid-output", "Blueprint voldoet niet aan het schema.");
     }

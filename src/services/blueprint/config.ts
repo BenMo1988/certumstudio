@@ -25,7 +25,9 @@ export const CLAUDE_BLUEPRINT_DEFAULTS = {
   effort: "medium",
   maxTokens: 16_000,
   timeoutMs: 120_000,
-  maxRetries: 2,
+  // 0: de SDK herhaalt bij time-out, verbindingsfout, 408/409/429/5xx het hele verzoek. Na een time-out of 5xx kan het
+  // model al gegenereerd hebben; een retry is dan een onzichtbare tweede generatie. Voor evalbare runs: één poging.
+  maxRetries: 0,
 } as const satisfies Omit<ClaudeBlueprintSettings, "apiKey">;
 
 type Env = Record<string, string | undefined>;

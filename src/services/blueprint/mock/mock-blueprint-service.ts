@@ -1,5 +1,6 @@
+import { composeTrainingBlueprint } from "@/modules/training-blueprint/compose";
 import { buildBlueprintGenerationInput } from "@/modules/training-blueprint/generation-input";
-import { TRAINING_BLUEPRINT_VERSION, type TrainingBlueprint } from "@/modules/training-blueprint/schema";
+import type { TrainingBlueprint } from "@/modules/training-blueprint/schema";
 import type { BlueprintRequest, TrainingBlueprintService } from "../services";
 
 /**
@@ -12,16 +13,18 @@ import type { BlueprintRequest, TrainingBlueprintService } from "../services";
  * - prestatie: gesprek_voeren als de focus over reageren of een gesprek gaat, anders keuze_maken_en_onderbouwen;
  * - sourceNeeds: één generieke, te valideren kennisvraag over de afweging; nooit een bron.
  *
- * Gebruikt hetzelfde provider-inputcontract als de Claude-provider (geen sourceCandidates, geen andere richtingen).
+ * Gebruikt hetzelfde provider-inputcontract als de Claude-provider (geen sourceCandidates, geen andere richtingen) en
+ * ontwerpt, net als Claude, alleen het ontwerp; de vaste velden komen uit composeTrainingBlueprint.
  */
 export class MockTrainingBlueprintService implements TrainingBlueprintService {
   async generate(request: BlueprintRequest): Promise<TrainingBlueprint> {
-    const { selectedDirection: direction, professionalCore: core } = buildBlueprintGenerationInput({
+    const input = buildBlueprintGenerationInput({
       inputKind: request.input.kind,
       analysis: request.analysis,
       segments: request.segments,
       selectedDirectionId: request.selectedDirectionId,
     });
+    const { selectedDirection: direction, professionalCore: core } = input;
 
     // Open keuze: opties (" of ") of een open handelwijze ("kiest hoe", "bepalen hoe"). Eén beste route alleen als de
     // richting zelf geen open keuze laat.
@@ -29,14 +32,9 @@ export class MockTrainingBlueprintService implements TrainingBlueprintService {
     // Hele woorden: "gezinsgesprek" (een geplande afspraak) is geen handelen in een gesprek.
     const conversational = /\b(reageert|reageren|gesprek|zegt|vraagt)\b/i.test(direction.focus);
 
-    return {
-      version: TRAINING_BLUEPRINT_VERSION,
+    return composeTrainingBlueprint({
       title: direction.title,
       targetAudience: core.targetAudience,
-      learningGoal: direction.proposedLearningGoal,
-      professionalDilemma: core.professionalDilemma,
-      selectedDirectionId: direction.id,
-      sourceRefs: [...direction.sourceRefs],
       participantRole: "De deelnemer is de professional uit de beschreven situatie.",
       scenarioPremise: core.summary,
       decisionPoint: direction.focus,
@@ -89,6 +87,6 @@ export class MockTrainingBlueprintService implements TrainingBlueprintService {
           newDecisionPoint: "Een vergelijkbaar keuzemoment in een andere, nieuwe situatie binnen hetzelfde werkveld.",
         },
       },
-    };
+    }, input);
   }
 }

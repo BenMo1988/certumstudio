@@ -157,7 +157,7 @@ Vóór iedere externe AI-aanroep voert Certum lokaal de Privacy Preflight uit (`
 
 Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
 
-- **Volgorde met menselijke gates:** analyse `ready` + gekozen richting → Training Blueprint (`training-blueprint/v1`)
+- **Volgorde met menselijke gates:** analyse `ready` + gekozen richting → Training Blueprint (`blueprint-contract/v1`)
   → Blueprint goedgekeurd → BC Online Block Plan (`bc-online-block-plan/v1`) → Block Plan goedgekeurd → export via een
   adapter (bestaat nog niet; `getExportBlocker` blokkeert altijd). `blocked`, `unsuitable` en `needs_adjustment`
   leveren nooit een Blueprint of Block Plan op. De server-side gates staan in `src/app/trainings/new/blueprint-flow.ts`
@@ -179,10 +179,15 @@ Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
     samenvatting, dilemma, doelgroep, alleen de segmenten van de richting en de beslisrelevante open vragen. Geen andere
     richtingen, sourceCandidates, abstractionNotes of rationale.
   - Prompt `training-blueprint/v1` (`knowledge/prompts/training-blueprint-v1.ts`, Certum Learning Architect). De
-    promptversie is een andere constante dan de contractversie, ook al is de naam gelijk.
+    contractversie is `blueprint-contract/v1`: prompt en contract hebben bewust verschillende ids.
   - Model en effort alleen in `CLAUDE_BLUEPRINT_DEFAULTS` (`services/blueprint/config.ts`). Analysis-config blijft los.
-  - Geldig pas na structured output (`messages.parse` + `zodOutputFormat(TrainingBlueprintSchema)`), Zod en
-    `checkBlueprintInvariants`. Geen reparatie of tweede aanroep; ongeldig is `invalid-output`.
+    `maxRetries: 0`: een SDK-retry (time-out, verbinding, 408/409/429/5xx) kan een onzichtbare tweede generatie zijn.
+  - **Vaste velden genereert de provider niet.** Claude ontwerpt alleen `BlueprintDesignSchema`
+    (`services/blueprint/design.ts`, = `TrainingBlueprintSchema.omit(...)`). `composeTrainingBlueprint` voegt
+    contractversie, gekozen richting, leerdoel, dilemma en sourceRefs server-side toe uit de gevalideerde context.
+  - Geldig pas na structured output (`messages.parse` + `zodOutputFormat(BlueprintDesignSchema)`), Zod op het ontwerp,
+    samenstellen, Zod op de volledige Blueprint en `checkBlueprintInvariants`. Geen reparatie of tweede aanroep;
+    ongeldig is `invalid-output`.
   - De Blueprint kiest geen BC Online-blokken; de invariant `uitvoeringsblok-gekozen` bewaakt dat voor eenduidige namen.
   - Logging: `certum.blueprint_generation` met alleen provider, model, effort, versies, inputsoort, duur, uitkomst,
     ambiguïteit en aantallen. Geen inhoud en geen richting-id.

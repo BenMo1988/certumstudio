@@ -14,6 +14,7 @@ export {
 } from "./schema";
 export { checkBlueprintInvariants, type BlueprintViolation } from "./validation";
 export { buildBlueprintGenerationInput, type BlueprintGenerationInput } from "./generation-input";
+export { composeTrainingBlueprint, type TrustedBlueprintField } from "./compose";
 export {
   getBlockPlanGenerationBlocker,
   getExportBlocker,

@@ -11,7 +11,8 @@ import { METHODOLOGY_STEPS, type MethodologyStepId } from "@/knowledge";
  * De zes Certum-fasen zijn didactische functies, geen BC Online-bloktypen.
  */
 
-export const TRAINING_BLUEPRINT_VERSION = "training-blueprint/v1";
+/** Contractversie. Bewust een andere id dan de promptversie (training-blueprint/v1). */
+export const TRAINING_BLUEPRINT_VERSION = "blueprint-contract/v1";
 
 /** Maximale lengte van een intentie- of beschrijvingsveld: ruim genoeg voor een intentie, te kort voor content. */
 export const MAX_INTENT_LENGTH = 600;
