@@ -7,6 +7,7 @@ import { AnalysisError } from "./errors";
  * .env.local:
  *   CERTUM_ANALYSIS_PROVIDER=mock     (standaard als niets is ingesteld)
  *   CERTUM_ANALYSIS_PROVIDER=claude   (vereist ANTHROPIC_API_KEY)
+ *   CERTUM_ANALYSIS_MAX_RETRIES=0     (optioneel, voor evalruns: één poging zonder SDK-transportretries)
  */
 
 export const ANALYSIS_PROVIDERS = ["mock", "claude"] as const;
@@ -57,5 +58,22 @@ export function readAnalysisConfig(env: Env = process.env): AnalysisConfig {
       "CERTUM_ANALYSIS_PROVIDER=claude, maar ANTHROPIC_API_KEY ontbreekt. Zet de sleutel in .env.local.",
     );
   }
-  return { provider: "claude", claude: { apiKey, ...CLAUDE_ANALYSIS_DEFAULTS } };
+  return { provider: "claude", claude: { apiKey, ...CLAUDE_ANALYSIS_DEFAULTS, maxRetries: readMaxRetries(env) } };
+}
+
+/**
+ * Optionele override voor evalruns: een SDK-retry (time-out, verbinding, 408/409/429/5xx) kan een onzichtbare tweede
+ * generatie zijn. Alleen 0 t/m de standaardwaarde; zonder variabele geldt CLAUDE_ANALYSIS_DEFAULTS.maxRetries.
+ */
+function readMaxRetries(env: Env): number {
+  const raw = env.CERTUM_ANALYSIS_MAX_RETRIES?.trim();
+  if (!raw) return CLAUDE_ANALYSIS_DEFAULTS.maxRetries;
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < 0 || value > CLAUDE_ANALYSIS_DEFAULTS.maxRetries) {
+    throw new AnalysisError(
+      "config",
+      `Ongeldige CERTUM_ANALYSIS_MAX_RETRIES "${raw}". Kies 0 t/m ${CLAUDE_ANALYSIS_DEFAULTS.maxRetries}.`,
+    );
+  }
+  return value;
 }

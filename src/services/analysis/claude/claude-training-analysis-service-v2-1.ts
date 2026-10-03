@@ -24,6 +24,8 @@ export class ClaudeTrainingAnalysisServiceV21 implements TrainingAnalysisService
   constructor(
     private readonly client: ClaudeMessagesClient,
     private readonly settings: Omit<ClaudeAnalysisSettings, "apiKey">,
+    /** Promptinstructies; standaard training-analysis/v2.1. De actieve app gebruikt v2.1.1 (zie factory.ts). */
+    private readonly instructions: string = TRAINING_ANALYSIS_V21_INSTRUCTIONS,
   ) {}
 
   async analyze({ input, segments }: AnalysisRequestV2): Promise<AnalysisOutcomeV21> {
@@ -32,7 +34,7 @@ export class ClaudeTrainingAnalysisServiceV21 implements TrainingAnalysisService
       response = await this.client.messages.parse({
         model: this.settings.model,
         max_tokens: this.settings.maxTokens,
-        system: TRAINING_ANALYSIS_V21_INSTRUCTIONS,
+        system: this.instructions,
         messages: [{ role: "user", content: buildTrainingAnalysisV21Request({ kind: input.kind, segments }) }],
         output_config: {
           effort: this.settings.effort,

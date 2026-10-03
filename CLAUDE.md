@@ -82,6 +82,11 @@ V2 blijft ongewijzigd en reproduceerbaar (tag `analysis-v2-baseline`), maar is n
 - **Prompt:** exact de v2-tekst plus één ingevoegde sectie over routebeleid en de samenhang focus ↔ routePolicy ↔
   leerdoel (bij `open_choice` een route-neutraal leerdoel). Het voorbeeld is bewust domeinneutraal.
 - **Geen taallinter:** de semantische samenhang wordt via prompt en evals beoordeeld, niet met regexes.
+- **Actieve prompt: `training-analysis/v2.1.1`** (contract blijft `analysis-contract/v2.1`): de v2.1-tekst plus één
+  alinea "Bepaal eerst suitability". `prescribed_action` maakt een eenvoudige procedurele input zonder betekenisvolle
+  spanning, beoordeling, keuze of uitvoeringsvraag niet geschikt; die blijft `unsuitable`.
+- `CERTUM_ANALYSIS_MAX_RETRIES=0` (optioneel, voor evalruns) zet de SDK-transportretries uit; zonder variabele geldt
+  `CLAUDE_ANALYSIS_DEFAULTS.maxRetries`.
 - Logging: `certum.analysis` heeft bij V2.1 alleen de aantallen `openChoiceDirections` en `prescribedActionDirections`.
 - De Blueprint leest `routePolicy` (nog) niet; de Blueprint-flow accepteert een V2.1- of V2-analyse.
 
@@ -318,7 +323,8 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 8A, Claude-provider voor de Training Blueprint: klaar.
 - Stap 8B, BP-baseline met `training-blueprint/v1`: klaar en beoordeeld (1 PASS, 1 PASS_WITH_NOTES, 1 FAIL).
 - Stap 8C, Blueprint Contract V2 en `training-blueprint/v2`: klaar en beoordeeld (2 PASS, 1 PASS_WITH_NOTES); gesloten.
-- Analysis Direction V2.1 (`routePolicy` op trainingsrichtingen): gebouwd en getest met mocks. Nog geen V2.1-baseline.
+- Analysis Direction V2.1 (`routePolicy` op trainingsrichtingen): baseline beoordeeld (CA-001 PASS, CA-006 PASS,
+  CA-009 FAIL op suitability). Promptcorrectie `training-analysis/v2.1.1` gebouwd; bevestigingsruns CA-009/CA-010.
 
 Routes:
 - `/`: dashboard.
