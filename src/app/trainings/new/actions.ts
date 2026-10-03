@@ -5,7 +5,18 @@ import {
   parseInputKind,
   type InputAnalysis,
 } from "@/modules/training-agent";
-import { getTrainingAnalysisService } from "@/services/analysis";
+import { AnalysisError, getTrainingAnalysisService, type AnalysisErrorKind } from "@/services/analysis";
+
+const GENERIC_ERROR = "De analyse kon niet worden uitgevoerd. Probeer het opnieuw.";
+
+/** Gebruikersmeldingen per fouttype. Nooit technische of providerdetails. */
+const USER_MESSAGES: Partial<Record<AnalysisErrorKind, string>> = {
+  "rate-limit": "Het is op dit moment te druk voor de analyse. Probeer het over een minuut opnieuw.",
+  timeout: "De analyse duurde te lang. Probeer het opnieuw.",
+  refusal: "Deze invoer kon niet worden geanalyseerd. Pas de tekst aan en probeer het opnieuw.",
+  config: "De analyse is niet goed ingesteld. Neem contact op met de beheerder.",
+  auth: "De analyse is niet goed ingesteld. Neem contact op met de beheerder.",
+};
 
 export type AnalyzeInputResult =
   | { ok: true; analysis: InputAnalysis }
@@ -35,7 +46,10 @@ export async function analyzeInput(kind: unknown, text: unknown): Promise<Analyz
   try {
     const analysis = await getTrainingAnalysisService().analyze({ kind: inputKind, text: trimmed });
     return { ok: true, analysis };
-  } catch {
-    return { ok: false, error: "De analyse kon niet worden uitgevoerd. Probeer het opnieuw." };
+  } catch (error) {
+    // Details staan al in de metadata-log van de service; hier alleen een veilige melding.
+    const kind = error instanceof AnalysisError ? error.kind : null;
+    if (kind === "config") console.error(`[certum.analysis] ${(error as AnalysisError).message}`);
+    return { ok: false, error: (kind && USER_MESSAGES[kind]) ?? GENERIC_ERROR };
   }
 }

@@ -48,16 +48,41 @@ Vaste flow: **Input → Certum Analyse → menselijke keuze/goedkeuring → Trai
 
 ### Analysecontract
 
-- Domeintypes: `src/modules/training-agent/types.ts` (`AgentInput`, `InputAnalysis`, `TrainingDirection`,
-  `SuitabilityAssessment`, `PrivacyAssessment`).
-- Engine: `TrainingAnalysisService` in `src/services/analysis/`. De implementatie wordt gekozen in
-  `getTrainingAnalysisService()`. Nu is dat `MockTrainingAnalysisService`.
+- **Eén runtime-schema**: `InputAnalysisSchema` (Zod) in `src/modules/training-agent/analysis-schema.ts`. Daaruit volgen
+  de TypeScript-types (`types.ts`), de structured output van de provider en de validatie. Definieer de vorm van een
+  analyse nergens anders.
+- **Vorm en betekenis zijn gescheiden.** Het schema bewaakt de vorm. `checkAnalysisInvariants()` bewaakt de
+  businessregels, zoals unieke richting-id's en een omschrijving bij elke privacybevinding. Elke provider roept
+  die check aan voordat een analyse de app in gaat.
+- Engine: `TrainingAnalysisService` in `src/services/analysis/`. Er zijn twee implementaties: `MockTrainingAnalysisService`
+  en `ClaudeTrainingAnalysisService`. Welke wordt gebruikt, volgt uit `CERTUM_ANALYSIS_PROVIDER` (zie `config.ts`).
+  Bij een fout valt Claude nooit automatisch terug op de mock.
+- Model, effort en limieten staan alleen in `CLAUDE_ANALYSIS_DEFAULTS` (`src/services/analysis/config.ts`). De effort
+  staat voorlopig op `medium`; of `high` aantoonbaar betere analyses geeft, wordt later met een vaste evalset getest.
+- Structured output loopt via de stabiele SDK-route: `client.messages.parse()` met `zodOutputFormat`.
+- **Geen model-fallback.** Weigert Claude een analyse, dan wordt dat een `refusal`-fout via de gewone foutafhandeling;
+  er is geen automatische overstap naar een ander model. Zo staat vast welk model elke analyse maakte. Een fallback
+  (bijv. `fallbacks: "default"`) kan later bewust worden toegevoegd, nadat kwaliteit, privacy en providerbeleid
+  zijn geëvalueerd.
+- Prompt: `src/knowledge/prompts/training-analysis.ts`, provider-onafhankelijk en met een versienummer. Verhoog
+  `TRAINING_ANALYSIS_PROMPT_VERSION` bij elke inhoudelijke wijziging.
 - De UI roept alleen de Server Action `analyzeInput` aan (`src/app/trainings/new/actions.ts`). De UI kent geen
   provider. Code als `if (provider === "claude")` hoort nergens buiten `services/` te staan.
 - De analyse wordt niet opgeslagen: die leeft alleen in de state van de pagina.
 - `rationale` is een korte uitleg voor de gebruiker, geen opgeslagen interne redenering van een model.
 - Mock-scenario's testen: `#ongeschikt` in de tekst geeft een ongeschikte input; `#blokkeren` in een casus geeft een
   privacyblokkade.
+
+### Privacy in logs (niet onderhandelbaar)
+
+- Log **nooit** de inputtekst, prompts of providerresponses: niet naar de console, niet naar analytics en niet naar
+  bestanden. Casussen kunnen herleidbare gegevens bevatten.
+- Alleen technische metadata mag gelogd worden: provider, model, effort, promptversie, soort input, lengte, duur,
+  uitkomst, fouttype, privacyniveau en oordeel. Model en effort staan erbij, zodat bij evaluaties altijd te zien is
+  met welke configuratie een analyse is gemaakt. Zie `withAnalysisLogging` in `src/services/analysis/logging.ts`.
+- `logging.serverFunctions: false` in `next.config.ts` moet blijven staan. Zonder die instelling logt Next.js in dev de
+  argumenten van Server Functions, en dat zijn de casusteksten.
+- Foutmeldingen voor gebruikers bevatten nooit details van de provider.
 
 ## Werkwijze
 
@@ -126,7 +151,8 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 1, de technische fundering: klaar.
 - Stap 2, de eerste studio-interface: klaar.
 - Stap 3, de Training Workspace: klaar.
-- Stap 4, Certum Analyse: klaar. De flow werkt met een mockservice; er is nog geen echte AI-provider.
+- Stap 4, Certum Analyse: klaar.
+- Stap 5, de Claude-provider voor de analyse: klaar. Lokaal kies je tussen mock en claude via `.env.local` (zie hieronder).
 
 Routes:
 - `/`: dashboard.
@@ -154,3 +180,16 @@ Er is nog geen AI-agent, database, authenticatie of externe koppeling.
 - `npm run dev`: lokaal starten (http://localhost:3000; staat BC Online daar al, dan wijkt Next uit naar 3001)
 - `npm run build`: productiebuild
 - `npm run lint`: ESLint
+- `npm test`: unit tests (Vitest). Die doen nooit echte API-aanroepen.
+
+## Configuratie (`.env.local`, nooit committen)
+
+Zie `.env.example`.
+
+```
+CERTUM_ANALYSIS_PROVIDER=mock      # standaard, geen sleutel nodig
+CERTUM_ANALYSIS_PROVIDER=claude    # echte Certum Analyse via Claude
+ANTHROPIC_API_KEY=sk-ant-...       # alleen nodig bij claude
+```
+
+Herstart `npm run dev` na elke wijziging in `.env.local`.

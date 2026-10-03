@@ -12,6 +12,7 @@ export const MOCK_ANALYSIS_ONDERWERP: InputAnalysis = {
     "Betrokken en beschikbaar willen zijn voor de cliënt, tegenover het bewaken van professionele afstand en de eigen belastbaarheid.",
   proposedLearningGoal:
     "De deelnemer kan in een concrete situatie een professionele grens benoemen en onderbouwen, zonder de werkrelatie met de cliënt te schaden.",
+  targetAudience: null,
   suitability: {
     verdict: "aanpassen",
     explanation:
@@ -40,7 +41,7 @@ export const MOCK_ANALYSIS_ONDERWERP: InputAnalysis = {
         "De deelnemer kan een gift beoordelen aan de hand van de beroepscode en het gesprek daarover respectvol voeren.",
     },
   ],
-  privacyAssessment: { level: "geen" },
+  privacyAssessment: { level: "geen", description: null },
   missingInformation: [
     "Voor welke beroepsgroep of setting is de training bedoeld?",
     "Is er een concrete aanleiding, zoals een signaal uit het team?",
@@ -77,7 +78,7 @@ export const MOCK_ANALYSIS_PRAKTIJKVRAAG: InputAnalysis = {
         "De deelnemer kan een grens aangeven, het gesprek zorgvuldig beëindigen en een vervolg afspreken.",
     },
   ],
-  privacyAssessment: { level: "geen" },
+  privacyAssessment: { level: "geen", description: null },
   missingInformation: ["Is de boosheid gericht op de professional zelf of op de situatie van het kind?"],
   rationale:
     "De vraag bevat een concreet terugkerend moment en een spanningsveld tussen erkennen en begrenzen. Dat maakt hem direct bruikbaar voor een simulatie met keuzemomenten.",
@@ -143,6 +144,7 @@ export const MOCK_ANALYSIS_UNSUITABLE: InputAnalysis = {
   summary: "De input beschrijft geen professionele situatie, vraag of keuze.",
   professionalDilemma: "Geen professioneel dilemma herkend.",
   proposedLearningGoal: "Nog niet te bepalen.",
+  targetAudience: null,
   suitability: {
     verdict: "ongeschikt",
     explanation:
@@ -156,7 +158,7 @@ export const MOCK_ANALYSIS_UNSUITABLE: InputAnalysis = {
       proposedLearningGoal: "Nog niet te bepalen.",
     },
   ],
-  privacyAssessment: { level: "geen" },
+  privacyAssessment: { level: "geen", description: null },
   missingInformation: [
     "Om welke professionele situatie gaat het?",
     "Welke keuze of handeling stond centraal?",

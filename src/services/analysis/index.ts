@@ -1,14 +1,15 @@
 import "server-only";
-import { MockTrainingAnalysisService } from "./mock/mock-training-analysis-service";
+import { createTrainingAnalysisService } from "./factory";
 import type { TrainingAnalysisService } from "./training-analysis-service";
 
+export { AnalysisError, type AnalysisErrorKind } from "./errors";
 export type { TrainingAnalysisService } from "./training-analysis-service";
 
 /**
- * De enige plek waar gekozen wordt welke implementatie de analyse uitvoert.
- * Een echte provider (bijv. Claude) komt hier later achter, zonder dat
- * de rest van de app verandert.
+ * De analyse-engine voor de app. Welke implementatie (mock of claude) volgt
+ * uit CERTUM_ANALYSIS_PROVIDER; zie config.ts. De rest van de app kent alleen
+ * het contract.
  */
 export function getTrainingAnalysisService(): TrainingAnalysisService {
-  return new MockTrainingAnalysisService();
+  return createTrainingAnalysisService();
 }
