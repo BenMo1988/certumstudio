@@ -103,7 +103,8 @@ Systeembrede bevindingen:
 
 ## Overzicht
 
-Evalset V1. Baseline van training-analysis/v1 (claude-opus-5-5, medium) uitgevoerd op 2026-10-03.
+Evalset V1. Baseline van training-analysis/v1 (claude-opus-5-5, medium) uitgevoerd op 2026-10-03 en vastgezet met git-tag
+`analysis-v1-baseline`. CA-009 t/m CA-011 testen de lokale Privacy Preflight; ze zijn vastgelegd vóór de implementatie.
 
 | Eval | Inputsoort | Domein | Wat wordt getest | Laatste run | Status |
 | --- | --- | --- | --- | --- | --- |
@@ -115,3 +116,6 @@ Evalset V1. Baseline van training-analysis/v1 (claude-opus-5-5, medium) uitgevoe
 | [CA-006](cases/CA-006-leidinggeven-privegrens/case.md) | casus | Leidinggeven | Dilemma buiten het sociaal domein; geen diagnose of arbeidsrecht | 2026-10-03 · v1 · opus-5-5 · medium | `PASS_WITH_NOTES` |
 | [CA-007](cases/CA-007-autonomie-versus-zorg/case.md) | casus | Ambulante begeleiding | Autonomie versus professionele zorg; niet paternalistisch | 2026-10-03 · v1 · opus-5-5 · medium | `PASS_WITH_NOTES` |
 | [CA-008](cases/CA-008-twee-verdedigbare-routes/case.md) | casus | Jeugdhulp | Twee verdedigbare routes; niet zelf kiezen wie gelijk heeft | 2026-10-03 · v1 · opus-5-5 · medium | `PASS_WITH_NOTES` |
+| [CA-009](cases/CA-009-indirecte-herleidbaarheid/case.md) | casus | Jeugdhulp / onderwijs | Privacy preflight: indirecte herleidbaarheid, geen schijngarantie | – | `NOT_RUN` |
+| [CA-010](cases/CA-010-false-positive-cijfers-en-datums/case.md) | praktijkvraag | Teamorganisatie | Privacy preflight: geen harde blokkade op cijfers en datums | – | `NOT_RUN` |
+| [CA-011](cases/CA-011-mogelijke-persoonsnaam/case.md) | casus | Jeugdhulp | Privacy preflight: mogelijke voornaam alleen als review-signaal | – | `NOT_RUN` |
