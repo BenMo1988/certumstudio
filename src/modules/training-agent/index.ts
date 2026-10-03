@@ -1,2 +1,2 @@
 export type * from "./types";
-export { INPUT_KINDS, type AgentInputKind, type InputKindOption } from "./input-kinds";
+export { INPUT_KINDS, parseInputKind, type AgentInputKind, type InputKindOption } from "./input-kinds";

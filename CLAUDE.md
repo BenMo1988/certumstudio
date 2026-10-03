@@ -108,10 +108,19 @@ Routes:
 - `/trainings`: overzicht van trainingen.
 - `/trainings/new`: kies een soort input; het passende invoerveld verschijnt op dezelfde pagina.
 - `/trainings/[id]`: Training Workspace met de zes methodiekonderdelen.
-- `/cases/new`: casus invoeren.
 
-Gebruik voor trainingen altijd `/trainings/...` (meervoud). Formulieren en de knoppen "Bewerken", "Verder naar analyse"
-en "Casus analyseren" slaan nog niets op en voeren nog niets uit.
+Er is één centrale instroom voor het maken van trainingen: `/trainings/new`. `?input=casus` (of `onderwerp`, of
+`praktijkvraag`) selecteert vooraf een soort; de dashboardactie "Casus invoeren" gebruikt dat. Er komt geen aparte
+casusflow naast deze instroom.
+
+Gebruik voor trainingen altijd `/trainings/...` (meervoud). Formulieren en de knoppen "Bewerken" en "Verder naar analyse"
+slaan nog niets op en voeren nog niets uit.
+
+## Toekomstige mogelijkheden (nog niet bouwen)
+
+- **Casusbibliotheek**: een aparte feature om geanonimiseerde casussen te bewaren, te doorzoeken en te hergebruiken
+  als basis voor trainingen. Die komt los van de instroom op `/trainings/new`. Het type `PracticeCase` in
+  `modules/cases` staat hiervoor al klaar.
 
 Er is nog geen AI-agent, database, authenticatie of externe koppeling.
 

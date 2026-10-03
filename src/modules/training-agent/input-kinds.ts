@@ -34,3 +34,8 @@ export const INPUT_KINDS: InputKindOption[] = [
     notice: "Gebruik geen namen of andere direct herleidbare persoonsgegevens.",
   },
 ];
+
+/** Zet een vrije waarde (bijv. uit `?input=`) om naar een geldige inputsoort, anders `undefined`. */
+export function parseInputKind(value: unknown): AgentInputKind | undefined {
+  return INPUT_KINDS.find((option) => option.kind === value)?.kind;
+}

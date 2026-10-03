@@ -22,7 +22,7 @@ export default async function DashboardPage() {
           description="Start vanuit een onderwerp, praktijkvraag of casus."
         />
         <ActionCard
-          href="/cases/new"
+          href="/trainings/new?input=casus"
           icon="case"
           title="Casus invoeren"
           description="Leg een geanonimiseerde praktijksituatie vast."

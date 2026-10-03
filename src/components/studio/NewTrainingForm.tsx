@@ -16,8 +16,8 @@ const ICONS: Record<AgentInputKind, IconName> = {
  * Kies het startpunt en voer de input in. Slaat bewust nog niets op en
  * stuurt nog niets naar de agent.
  */
-export function NewTrainingForm() {
-  const [kind, setKind] = useState<AgentInputKind | null>(null);
+export function NewTrainingForm({ initialKind }: { initialKind?: AgentInputKind }) {
+  const [kind, setKind] = useState<AgentInputKind | null>(initialKind ?? null);
   const [text, setText] = useState("");
   const selected = INPUT_KINDS.find((option) => option.kind === kind);
 
