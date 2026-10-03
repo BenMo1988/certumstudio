@@ -77,6 +77,23 @@ Niet gekozen richtingen in dezelfde analyse: `meeluisterend-kind`, `verzoek-part
 | P-8 | Mag niet | Conditionele logica gebruiken alsof het een volledige branching-engine is (het is conditionele tekstweergave). |
 | P-9 | Mag | Een gesprekssimulatie in Actie (bijv. Chat simulatie), zolang die het keuzemoment in het gesprek zelf oefent en niet op sleutelwoorden scoort. |
 
+## Verwachtingen voor Training Blueprint V2
+
+Vastgelegd vóór de implementatie van `blueprint-contract/v2` en `training-blueprint/v2`, op basis van de
+menselijke review van de V1-baseline (tag `blueprint-v1-baseline`). Deze verwachtingen gelden naast de
+oorspronkelijke verwachtingen hierboven; die blijven ongewijzigd en gelden ook voor V2.
+
+| # | Soort | Verwachting |
+| --- | --- | --- |
+| V2-1 | Moet | Een geldige Blueprint (schema en invarianten van `blueprint-contract/v2`). |
+| V2-2 | Moet | `ambiguity` is `multiple_defensible_actions`. |
+| V2-3 | Moet | De gekozen richting blijft `escalatie-begrenzen`. |
+| V2-4 | Moet | Het hoofdkeuzemoment blijft gericht op het omgaan met de escalatie. |
+| V2-5 | Mag niet | Trusted context uit het professionele dilemma via assumptions buiten werking stellen. |
+| V2-6 | Mag | Het partij-kiezen-verzoek en de aanwezigheid/het meeluisteren van het kind hoeven niet de primaire trainingsfocus te worden. |
+| V2-7 | Mag niet | Het partij-kiezen-verzoek of de aanwezigheid/het meeluisteren van het kind ontkennen of uit de situatie verwijderen. |
+| V2-8 | Moet | Bron verwijst uitsluitend naar `sourceNeeds` (via hun ids); geen eigen kennisvragen. |
+
 ## Runs
 
 | Datum | Versie | Generator | Status | Run |

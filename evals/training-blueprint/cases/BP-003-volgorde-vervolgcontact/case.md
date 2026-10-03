@@ -78,6 +78,22 @@ Niet gekozen richtingen in dezelfde analyse: `perspectieven-open-bespreken`, `ve
 | P-9 | Mag niet | Een Meerkeuze- of Toetsblok met één "juist antwoord" voor de routekeuze. |
 | P-10 | Moet | Als route-afhankelijke vervolgstappen gewenst zijn: vastleggen als capabilityGap (geen bewezen branching), eventueel met workaround. |
 
+## Verwachtingen voor Training Blueprint V2
+
+Vastgelegd vóór de implementatie van `blueprint-contract/v2` en `training-blueprint/v2`, op basis van de
+menselijke review van de V1-baseline (tag `blueprint-v1-baseline`). Deze verwachtingen gelden naast de
+oorspronkelijke verwachtingen hierboven; die blijven ongewijzigd en gelden ook voor V2.
+
+| # | Soort | Verwachting |
+| --- | --- | --- |
+| V2-1 | Moet | Een geldige Blueprint (schema en invarianten van `blueprint-contract/v2`). |
+| V2-2 | Moet | `ambiguity` is `multiple_defensible_actions`. |
+| V2-3 | Moet | Beide contactvolgordes (eerst school, eerst het gezin) blijven mogelijk. |
+| V2-4 | Moet | School en gezin blijven perspectieven; geen van beide wordt als waarheid behandeld. |
+| V2-5 | Mag niet | BC Online-techniek (blokken, branching, routering) in de Blueprint. |
+| V2-6 | Moet | Bron verwijst uitsluitend naar `sourceNeeds` (via hun ids). |
+| V2-7 | Moet | Toets behoudt transfer: professioneel afwegen onder gewijzigde omstandigheden. |
+
 ## Runs
 
 | Datum | Versie | Generator | Status | Run |

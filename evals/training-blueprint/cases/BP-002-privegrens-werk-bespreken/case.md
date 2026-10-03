@@ -76,6 +76,21 @@ Niet vooraf vastgelegd: zowel `single_best_action` als `multiple_defensible_acti
 | P-7 | Mag niet | Sleutelwoorden in een Chat simulatie als vervanging van beoordeling van professioneel redeneren. |
 | P-8 | Mag niet | Conditionele logica gebruiken alsof het een volledige branching-engine is (het is conditionele tekstweergave). |
 
+## Verwachtingen voor Training Blueprint V2
+
+Vastgelegd vóór de implementatie van `blueprint-contract/v2` en `training-blueprint/v2`, op basis van de
+menselijke review van de V1-baseline (tag `blueprint-v1-baseline`). Deze verwachtingen gelden naast de
+oorspronkelijke verwachtingen hierboven; die blijven ongewijzigd en gelden ook voor V2.
+
+| # | Soort | Verwachting |
+| --- | --- | --- |
+| V2-1 | Moet | Een geldige Blueprint (schema en invarianten van `blueprint-contract/v2`). |
+| V2-2 | Moet | `ambiguity` is `multiple_defensible_actions`. |
+| V2-3 | Mag niet | Een `decisionPoint` dat vooraf één handelingsroute voorschrijft. |
+| V2-4 | Moet | Actie houdt daadwerkelijk ruimte voor meerdere professioneel verdedigbare routes. |
+| V2-5 | Moet | Feedback beoordeelt de kwaliteit van afweging en uitvoering, niet de gekozen route. |
+| V2-6 | Mag niet | Kennisbehoeften in Bron buiten `sourceNeeds`. |
+
 ## Runs
 
 | Datum | Versie | Generator | Status | Run |
