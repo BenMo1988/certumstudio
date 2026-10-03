@@ -30,11 +30,34 @@ Elke training volgt de kernmethodiek van Bureau Certum, in deze volgorde:
 
 Bron van waarheid in code: `src/knowledge/methodology.ts`. Definieer de stappen nergens anders opnieuw.
 
-## Certum Training Agent (toekomst)
+## Certum Training Agent
 
 Verwerkt drie soorten input: een **onderwerp**, een **praktijkvraag** of een **geanonimiseerde praktijkcasus**.
-Werkwijze: eerst de input analyseren en het **professionele dilemma** en het **leerdoel** bepalen, en pas
-daarna de training opbouwen. Types staan in `src/modules/training-agent/types.ts`.
+
+Vaste flow: **Input → Certum Analyse → menselijke keuze/goedkeuring → Training**
+
+### Kernregels (niet onderhandelbaar)
+
+- **Een input wordt nooit rechtstreeks een training.** Iedere training doorloopt eerst Certum Analyse en daarna
+  de menselijke selectie en goedkeuring van een trainingsrichting.
+- **Privacyblokkades worden nooit omzeild, niet door AI en niet door de UI.** Een analyse met
+  `privacyAssessment.level === "blokkeren"` (of met de beoordeling `ongeschikt`) kan niet door naar de volgende fase.
+  De regel staat op één plek: `getProceedBlocker()` in `modules/training-agent/analysis-rules.ts`. De UI gebruikt
+  die regel. Elke toekomstige server-side stap ("training opbouwen") moet dezelfde check opnieuw uitvoeren en
+  mag niet vertrouwen op wat de client stuurt.
+
+### Analysecontract
+
+- Domeintypes: `src/modules/training-agent/types.ts` (`AgentInput`, `InputAnalysis`, `TrainingDirection`,
+  `SuitabilityAssessment`, `PrivacyAssessment`).
+- Engine: `TrainingAnalysisService` in `src/services/analysis/`. De implementatie wordt gekozen in
+  `getTrainingAnalysisService()`. Nu is dat `MockTrainingAnalysisService`.
+- De UI roept alleen de Server Action `analyzeInput` aan (`src/app/trainings/new/actions.ts`). De UI kent geen
+  provider. Code als `if (provider === "claude")` hoort nergens buiten `services/` te staan.
+- De analyse wordt niet opgeslagen: die leeft alleen in de state van de pagina.
+- `rationale` is een korte uitleg voor de gebruiker, geen opgeslagen interne redenering van een model.
+- Mock-scenario's testen: `#ongeschikt` in de tekst geeft een ongeschikte input; `#blokkeren` in een casus geeft een
+  privacyblokkade.
 
 ## Werkwijze
 
@@ -67,7 +90,8 @@ src/
     cases/             Praktijkcasussen
     training-agent/    Certum Training Agent (nu alleen types)
   knowledge/           Certum-kennis en methodiek
-  services/            Externe koppelingen (AI-provider, opslag, LMS), elk achter een interface
+  services/            Externe koppelingen, elk achter een interface, alleen server-side
+    analysis/          TrainingAnalysisService + mock (later: echte AI-provider)
 ```
 
 Regels:
@@ -102,19 +126,20 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 1, de technische fundering: klaar.
 - Stap 2, de eerste studio-interface: klaar.
 - Stap 3, de Training Workspace: klaar.
+- Stap 4, Certum Analyse: klaar. De flow werkt met een mockservice; er is nog geen echte AI-provider.
 
 Routes:
 - `/`: dashboard.
 - `/trainings`: overzicht van trainingen.
-- `/trainings/new`: kies een soort input; het passende invoerveld verschijnt op dezelfde pagina.
+- `/trainings/new`: kies een soort input, voer tekst in, voer de Certum Analyse uit en kies een trainingsrichting.
 - `/trainings/[id]`: Training Workspace met de zes methodiekonderdelen.
 
 Er is één centrale instroom voor het maken van trainingen: `/trainings/new`. `?input=casus` (of `onderwerp`, of
 `praktijkvraag`) selecteert vooraf een soort; de dashboardactie "Casus invoeren" gebruikt dat. Er komt geen aparte
 casusflow naast deze instroom.
 
-Gebruik voor trainingen altijd `/trainings/...` (meervoud). Formulieren en de knoppen "Bewerken" en "Verder naar analyse"
-slaan nog niets op en voeren nog niets uit.
+Gebruik voor trainingen altijd `/trainings/...` (meervoud). "Gebruik deze trainingsrichting" bevestigt alleen de keuze en bouwt nog geen training. "Bewerken" in de
+Workspace doet nog niets. Er wordt nergens iets opgeslagen.
 
 ## Toekomstige mogelijkheden (nog niet bouwen)
 

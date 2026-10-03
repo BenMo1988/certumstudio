@@ -7,16 +7,17 @@ interface ButtonProps {
   children: ReactNode;
   variant?: Variant;
   href?: string;
+  onClick?: () => void;
   disabled?: boolean;
   title?: string;
 }
 
 const VARIANTS: Record<Variant, string> = {
-  primary: "bg-petrol-700 text-white hover:bg-petrol-800",
-  secondary: "border border-line bg-canvas text-ink hover:bg-surface",
+  primary: "bg-petrol-700 text-white hover:bg-petrol-800 disabled:hover:bg-petrol-700",
+  secondary: "border border-line bg-canvas text-ink hover:bg-surface disabled:hover:bg-canvas",
 };
 
-export function Button({ children, variant = "primary", href, disabled, title }: ButtonProps) {
+export function Button({ children, variant = "primary", href, onClick, disabled, title }: ButtonProps) {
   const className = `inline-flex h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petrol-600 disabled:cursor-not-allowed disabled:opacity-50 ${VARIANTS[variant]}`;
 
   if (href) {
@@ -28,7 +29,7 @@ export function Button({ children, variant = "primary", href, disabled, title }:
   }
 
   return (
-    <button type="button" className={className} disabled={disabled} title={title}>
+    <button type="button" className={className} onClick={onClick} disabled={disabled} title={title}>
       {children}
     </button>
   );

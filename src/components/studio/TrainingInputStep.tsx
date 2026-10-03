@@ -1,7 +1,4 @@
-"use client";
-
-import { useState } from "react";
-import { INPUT_KINDS, type AgentInputKind } from "@/modules/training-agent";
+import { INPUT_KINDS, MAX_INPUT_LENGTH, type AgentInputKind } from "@/modules/training-agent";
 import { Button } from "./Button";
 import { ChoiceCard } from "./ChoiceCard";
 import { Icon, type IconName } from "./Icon";
@@ -12,18 +9,31 @@ const ICONS: Record<AgentInputKind, IconName> = {
   casus: "case",
 };
 
-/**
- * Kies het startpunt en voer de input in. Slaat bewust nog niets op en
- * stuurt nog niets naar de agent.
- */
-export function NewTrainingForm({ initialKind }: { initialKind?: AgentInputKind }) {
-  const [kind, setKind] = useState<AgentInputKind | null>(initialKind ?? null);
-  const [text, setText] = useState("");
+interface TrainingInputStepProps {
+  kind: AgentInputKind | null;
+  text: string;
+  pending: boolean;
+  error: string | null;
+  onKindChange: (kind: AgentInputKind) => void;
+  onTextChange: (text: string) => void;
+  onSubmit: () => void;
+}
+
+/** Stap 1: soort input kiezen en de tekst invoeren. */
+export function TrainingInputStep({
+  kind,
+  text,
+  pending,
+  error,
+  onKindChange,
+  onTextChange,
+  onSubmit,
+}: TrainingInputStepProps) {
   const selected = INPUT_KINDS.find((option) => option.kind === kind);
 
   return (
     <div className="mt-12">
-      <fieldset>
+      <fieldset disabled={pending}>
         <legend className="sr-only">Startpunt kiezen</legend>
         <div className="grid gap-4 sm:grid-cols-3">
           {INPUT_KINDS.map((option) => (
@@ -35,7 +45,7 @@ export function NewTrainingForm({ initialKind }: { initialKind?: AgentInputKind 
               title={option.label}
               description={option.description}
               checked={kind === option.kind}
-              onSelect={(value) => setKind(value as AgentInputKind)}
+              onSelect={(value) => onKindChange(value as AgentInputKind)}
             />
           ))}
         </div>
@@ -57,15 +67,22 @@ export function NewTrainingForm({ initialKind }: { initialKind?: AgentInputKind 
           <textarea
             id="training-input"
             rows={selected.kind === "onderwerp" ? 4 : 10}
+            maxLength={MAX_INPUT_LENGTH}
             value={text}
-            onChange={(event) => setText(event.target.value)}
-            className="mt-4 block w-full resize-y rounded-lg border border-line bg-canvas px-5 py-4 text-[15px] leading-relaxed text-ink focus:border-petrol-600/50 focus:outline-none"
+            readOnly={pending}
+            onChange={(event) => onTextChange(event.target.value)}
+            className="mt-4 block w-full resize-y rounded-lg border border-line bg-canvas px-5 py-4 text-[15px] leading-relaxed text-ink focus:border-petrol-600/50 focus:outline-none read-only:bg-surface"
           />
 
-          <div className="mt-4 flex justify-end">
-            <Button disabled={text.trim().length === 0}>
-              Verder naar analyse
-              <Icon name="arrowRight" className="size-4" />
+          <div className="mt-4 flex flex-wrap items-center justify-end gap-4">
+            {error && (
+              <p role="alert" className="text-sm text-danger">
+                {error}
+              </p>
+            )}
+            <Button onClick={onSubmit} disabled={pending || text.trim().length === 0}>
+              {pending ? "Analyse wordt uitgevoerd…" : "Verder naar analyse"}
+              {!pending && <Icon name="arrowRight" className="size-4" />}
             </Button>
           </div>
         </section>
