@@ -78,6 +78,14 @@ toevoegt. Er zijn geen herleidbare persoonsgegevens gevonden.
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `FAIL`**
 
-Nog niet beoordeeld. De inhoudelijke beoordeling volgt nadat alle baseline-runs binnen zijn.
+Menselijke review van de baseline training-analysis/v1.
+
+### Sterk
+
+- Certum concludeert correct dat geen betekenisvol professioneel dilemma of keuzemoment aanwezig is.
+
+### Failreden
+
+- Ondanks `ongeschikt` genereert het systeem alsnog een leerdoel en trainingsrichting. Een ongeschikte input mag niet gedwongen worden richting trainingsontwikkeling.

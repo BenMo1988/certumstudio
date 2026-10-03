@@ -91,6 +91,14 @@ weerstand, zodat u een richting kunt kiezen die past bij de beoogde doelgroep.
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS_WITH_NOTES`**
 
-Nog niet beoordeeld. De inhoudelijke beoordeling volgt nadat alle baseline-runs binnen zijn.
+Menselijke review van de baseline training-analysis/v1.
+
+### Sterk
+
+- Certum herkent dat "Omgaan met weerstand" onvoldoende context bevat en verzint geen concrete casus.
+
+### Aandachtspunten
+
+- Ontbrekende informatie is deels breder dan noodzakelijk voor de trainingsbeslissing.

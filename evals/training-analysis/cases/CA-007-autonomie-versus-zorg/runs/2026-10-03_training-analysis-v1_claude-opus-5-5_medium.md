@@ -94,6 +94,15 @@ gemiste afspraken en de eigen aanpak van de cliënt maken de simulatie realistis
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS_WITH_NOTES`**
 
-Nog niet beoordeeld. De inhoudelijke beoordeling volgt nadat alle baseline-runs binnen zijn.
+Menselijke review van de baseline training-analysis/v1.
+
+### Sterk
+
+- Autonomie en eigen regie worden serieus genomen; er wordt geen wilsonbekwaamheid of diagnose verondersteld.
+
+### Aandachtspunten
+
+- Gemiste afspraken worden iets te snel geïnterpreteerd als aanwijzing voor problemen met structuur.
+- Enkele aanvullende contextvelden zijn niet noodzakelijk.

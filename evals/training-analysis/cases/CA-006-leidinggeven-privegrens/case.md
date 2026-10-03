@@ -6,7 +6,7 @@
 | **Domein** | Leidinggeven / organisatie |
 | **Inputsoort** | casus |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `PENDING_REVIEW` |
+| **Status (laatste run)** | `PASS_WITH_NOTES` |
 
 ## Doel van deze eval
 
@@ -52,4 +52,4 @@ Een teamleider merkt dat een medewerker de afgelopen maand meerdere deadlines he
 
 | Datum | promptVersion | Model | Effort | Status | Run |
 | --- | --- | --- | --- | --- | --- |
-| 2026-10-03 | training-analysis/v1 | claude-opus-5-5 | medium | `PENDING_REVIEW` | [run](runs/2026-10-03_training-analysis-v1_claude-opus-5-5_medium.md) |
+| 2026-10-03 | training-analysis/v1 | claude-opus-5-5 | medium | `PASS_WITH_NOTES` | [run](runs/2026-10-03_training-analysis-v1_claude-opus-5-5_medium.md) |

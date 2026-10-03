@@ -96,6 +96,15 @@ ondersteuning en richting het team. Aanvullende context over sector en gevolgen 
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS_WITH_NOTES`**
 
-Nog niet beoordeeld. De inhoudelijke beoordeling volgt nadat alle baseline-runs binnen zijn.
+Menselijke review van de baseline training-analysis/v1.
+
+### Sterk
+
+- Goede domeinoverdracht naar leidinggeven, zonder zorg- of jeugdhulptaal, diagnose of arbeidsrechtelijke conclusie.
+
+### Aandachtspunten
+
+- Sommige ontbrekende informatie is ruimer dan nodig.
+- Eén trainingsrichting introduceert nieuwe reacties van teamleden die niet in de broninput voorkomen.

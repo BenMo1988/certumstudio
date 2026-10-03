@@ -100,6 +100,14 @@ over rol, toestemming en leeftijd van de jongere maakt de simulatie realistische
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS_WITH_NOTES`**
 
-Nog niet beoordeeld. De inhoudelijke beoordeling volgt nadat alle baseline-runs binnen zijn.
+Menselijke review van de baseline training-analysis/v1.
+
+### Sterk
+
+- Beide professionele routes blijven verdedigbaar en Certum kiest geen partij.
+
+### Aandachtspunten
+
+- Enkele formuleringen versterken de input ("overdrijft") of introduceren nieuw gedrag of nieuwe context die niet in de broncasus stond.

@@ -94,6 +94,16 @@ een trainingsrichting wordt gekozen.
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `FAIL`**
 
-Nog niet beoordeeld. De inhoudelijke beoordeling volgt nadat alle baseline-runs binnen zijn.
+Menselijke review van de baseline training-analysis/v1.
+
+### Sterk
+
+- Persoonsgegevens worden correct gedetecteerd, niet herhaald in de analyse en de UI blokkeert verdere selectie.
+
+### Failreden
+
+- De privacycontrole vindt pas plaats nadat de volledige input naar de AI-provider is gestuurd.
+- Bovendien worden ondanks `blokkeren` dilemma, leerdoel en trainingsrichtingen gegenereerd.
+- Voor echte casuïstiek is een preflight privacylaag vóór externe AI-verwerking noodzakelijk.

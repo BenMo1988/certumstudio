@@ -96,6 +96,14 @@ de zorgstructuur van de school maakt de simulatie concreter.
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS_WITH_NOTES`**
 
-Nog niet beoordeeld. De inhoudelijke beoordeling volgt nadat alle baseline-runs binnen zijn.
+Menselijke review van de baseline training-analysis/v1.
+
+### Sterk
+
+- Certum verdraagt onzekerheid en verzint geen oorzaak.
+
+### Aandachtspunten
+
+- Het begrip zorgplicht wordt als kader geïntroduceerd zonder dat dit uit de input of bronvalidatie volgt.
