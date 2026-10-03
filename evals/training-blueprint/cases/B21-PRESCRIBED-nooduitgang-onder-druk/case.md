@@ -6,7 +6,7 @@
 | **Gebaseerd op** | CA-010 (Analysis V2.1, `ready`, menselijk beoordeeld) |
 | **Inputsoort** | casus |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `NOT_RUN` |
+| **Status (laatste run)** | `PENDING_REVIEW` |
 
 ## Doel van deze eval
 
@@ -59,3 +59,4 @@ Vastgelegd vóór de eerste run.
 
 | Datum | Versie | Generator | Status | Run |
 | --- | --- | --- | --- | --- |
+| 2026-10-03 | training-blueprint/v2.1 · blueprint-contract/v2 | claude-opus-5-5 · medium | `PENDING_REVIEW` | [run](runs/2026-10-03_training-blueprint-v2.1_claude-opus-5-5_medium.md) |

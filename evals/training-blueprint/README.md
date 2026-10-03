@@ -104,5 +104,5 @@ routebeleid van de gekozen Analysis V2.1-richting. Twee integratiecases op basis
 
 | Eval | Bron | Gekozen richting | Routebeleid | Verwachte ambiguïteit | Status |
 | --- | --- | --- | --- | --- | --- |
-| [B21-OPEN](cases/B21-OPEN-privegrens-open-keuze/case.md) | CA-006 | `grens-en-verantwoordelijkheid` | `open_choice` | `multiple_defensible_actions` | `NOT_RUN` |
-| [B21-PRESCRIBED](cases/B21-PRESCRIBED-nooduitgang-onder-druk/case.md) | CA-010 | `instructie-volgen-ondanks-verzoek` | `prescribed_action` | `single_best_action` | `NOT_RUN` |
+| [B21-OPEN](cases/B21-OPEN-privegrens-open-keuze/case.md) | CA-006 | `grens-en-verantwoordelijkheid` | `open_choice` | `multiple_defensible_actions` | [`PENDING_REVIEW`](cases/B21-OPEN-privegrens-open-keuze/runs/2026-10-03_training-blueprint-v2.1_claude-opus-5-5_medium.md) |
+| [B21-PRESCRIBED](cases/B21-PRESCRIBED-nooduitgang-onder-druk/case.md) | CA-010 | `instructie-volgen-ondanks-verzoek` | `prescribed_action` | `single_best_action` | [`PENDING_REVIEW`](cases/B21-PRESCRIBED-nooduitgang-onder-druk/runs/2026-10-03_training-blueprint-v2.1_claude-opus-5-5_medium.md) |
