@@ -2,6 +2,12 @@
 
 # Certum Studio
 
+## Harde projectregel: uitsluitend synthetische casuïstiek
+
+Totdat Bureau Certum expliciet een governance- en privacybesluit heeft genomen over de verwerking van echte
+casuïstiek door externe providers, werkt Certum Studio **uitsluitend met volledig synthetische testcasuïstiek**.
+Dat geldt ook met de Privacy Preflight: de preflight is een noodzakelijke voorwaarde, geen toestemming.
+
 ## Wat het is
 
 Certum Studio is de **interne cockpit van Bureau Certum** voor het ontwikkelen van professionele
@@ -34,7 +40,7 @@ Bron van waarheid in code: `src/knowledge/methodology.ts`. Definieer de stappen 
 
 Verwerkt drie soorten input: een **onderwerp**, een **praktijkvraag** of een **geanonimiseerde praktijkcasus**.
 
-Vaste flow: **Input → Certum Analyse → menselijke keuze/goedkeuring → Training**
+Vaste flow: **Input → lokale Privacy Preflight → Certum Analyse → menselijke keuze/goedkeuring → Training**
 
 ### Kernregels (niet onderhandelbaar)
 
@@ -73,12 +79,39 @@ Vaste flow: **Input → Certum Analyse → menselijke keuze/goedkeuring → Trai
 - Mock-scenario's testen: `#ongeschikt` in de tekst geeft een ongeschikte input; `#blokkeren` in een casus geeft een
   privacyblokkade.
 
+### Privacy Preflight (niet onderhandelbaar)
+
+Vóór iedere externe AI-aanroep voert Certum lokaal de Privacy Preflight uit (`src/modules/privacy/`,
+`privacy-preflight/v1`). Pure, deterministische TypeScript, zonder netwerk en zonder AI.
+
+- **Uitkomst:** `blocked`, `review_required` of `safe`.
+  - `blocked` (e-mail, telefoon, postcode, straat + huisnummer, BSN, IBAN, gelabeld ID, geboortedatum, social-media-
+    profiel) kan nooit worden bevestigd of weggeklikt; alleen de tekst aanpassen helpt.
+  - `review_required` (volledige datum zonder geboortecontext, URL, mogelijke persoonsnaam, mogelijke instelling)
+    vraagt per bevinding een bevestiging of een tekstwijziging.
+- **`safe` is geen anonimiteitsgarantie.** Het betekent alleen "geen direct herkenbare identificatoren gevonden".
+  Namen en combinaties van kenmerken zijn niet betrouwbaar automatisch te herkennen. Presenteer `safe` nooit als
+  "bevat geen persoonsgegevens".
+- **Casus:** altijd een anonimiseringsattestatie, ook bij `safe`.
+- **Binding aan de tekst:** bevestigingen en attestatie zijn via een SHA-256-hash gebonden aan exact dezelfde
+  (getrimde) tekst. Elke wijziging maakt ze ongeldig.
+- **De server beslist.** De browser voert de preflight alleen uit voor directe feedback.
+  `runGatedAnalysis` (`src/app/trainings/new/gated-analysis.ts`) voert hem altijd opnieuw uit en maakt de
+  analyse-service pas aan als `evaluatePreflightGate` toestemming geeft.
+- Er wordt nooit iets automatisch verwijderd, geanonimiseerd of vervangen.
+- **Preflight-miss:** blokkeert de provider na een geslaagde preflight alsnog, dan wordt dat gelogd als
+  `certum.preflight_miss` met `preflightMiss: true` (alleen metadata).
+- Lokale NER of een lokaal model komt pas in beeld nadat een aparte synthetische Nederlandse privacy-evalset
+  aantoonbaar betere detectie laat zien met een werkbaar aantal valse treffers.
+
 ### Privacy in logs (niet onderhandelbaar)
 
 - Log **nooit** de inputtekst, prompts of providerresponses: niet naar de console, niet naar analytics en niet naar
   bestanden. Casussen kunnen herleidbare gegevens bevatten.
 - Alleen technische metadata mag gelogd worden: provider, model, effort, promptversie, soort input, lengte, duur,
-  uitkomst, fouttype, privacyniveau en oordeel. Model en effort staan erbij, zodat bij evaluaties altijd te zien is
+  uitkomst, fouttype, privacyniveau en oordeel. Voor de preflight (`certum.preflight`) alleen: versie, status,
+  aantallen per categorie, aantal bevestigingen, attestatie ja/nee en de beslissing. Nooit waarden, posities of
+  hashes. Model en effort staan erbij, zodat bij evaluaties altijd te zien is
   met welke configuratie een analyse is gemaakt. Zie `withAnalysisLogging` in `src/services/analysis/logging.ts`.
 - `logging.serverFunctions: false` in `next.config.ts` moet blijven staan. Zonder die instelling logt Next.js in dev de
   argumenten van Server Functions, en dat zijn de casusteksten.
@@ -111,6 +144,7 @@ src/
                        Button, Icon (inline SVG, geen icon-library)
   lib/                 Kleine generieke helpers (bijv. datumopmaak)
   modules/             Domein, per onderdeel
+    privacy/           Privacy Preflight V1 (lokaal, deterministisch) + gate-logica
     trainings/         Trainingsprojecten
     cases/             Praktijkcasussen
     training-agent/    Certum Training Agent (nu alleen types)
@@ -153,6 +187,8 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 3, de Training Workspace: klaar.
 - Stap 4, Certum Analyse: klaar.
 - Stap 5, de Claude-provider voor de analyse: klaar. Lokaal kies je tussen mock en claude via `.env.local` (zie hieronder).
+- Stap 6A, de lokale Privacy Preflight V1: klaar. De analyse zelf is nog `training-analysis/v1` (baseline-tag
+  `analysis-v1-baseline`).
 
 Routes:
 - `/`: dashboard.

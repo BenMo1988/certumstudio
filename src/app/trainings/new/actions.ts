@@ -1,11 +1,17 @@
 "use server";
 
 import {
+  parsePreflightAcknowledgement,
+  type GateRejection,
+  type PreflightResult,
+} from "@/modules/privacy";
+import {
   MAX_INPUT_LENGTH,
   parseInputKind,
   type InputAnalysis,
 } from "@/modules/training-agent";
 import { AnalysisError, getTrainingAnalysisService, type AnalysisErrorKind } from "@/services/analysis";
+import { runGatedAnalysis } from "./gated-analysis";
 
 const GENERIC_ERROR = "De analyse kon niet worden uitgevoerd. Probeer het opnieuw.";
 
@@ -19,37 +25,47 @@ const USER_MESSAGES: Partial<Record<AnalysisErrorKind, string>> = {
 };
 
 export type AnalyzeInputResult =
-  | { ok: true; analysis: InputAnalysis }
-  | { ok: false; error: string };
+  | { status: "analysis"; analysis: InputAnalysis }
+  | { status: "preflight"; reason: GateRejection; preflight: PreflightResult }
+  | { status: "error"; error: string };
 
 /**
- * Voert Certum Analyse uit op de ingevoerde tekst. Slaat niets op: het
- * resultaat gaat alleen terug naar de pagina.
+ * Voert Certum Analyse uit, maar alleen na de lokale Privacy Preflight. Slaat niets op.
  *
- * Server Functions zijn via een directe POST bereikbaar, dus de invoer wordt
- * hier opnieuw gevalideerd en niet blind vertrouwd.
+ * Server Functions zijn via een directe POST bereikbaar, dus alle invoer, inclusief de
+ * bevestigingen, wordt hier opnieuw gevalideerd en de preflight opnieuw uitgevoerd.
  */
-export async function analyzeInput(kind: unknown, text: unknown): Promise<AnalyzeInputResult> {
+export async function analyzeInput(
+  kind: unknown,
+  text: unknown,
+  acknowledgement: unknown,
+): Promise<AnalyzeInputResult> {
   const inputKind = parseInputKind(kind);
   if (!inputKind || typeof text !== "string") {
-    return { ok: false, error: "Ongeldige invoer." };
+    return { status: "error", error: "Ongeldige invoer." };
   }
 
   const trimmed = text.trim();
   if (trimmed.length === 0) {
-    return { ok: false, error: "Voer eerst een tekst in." };
+    return { status: "error", error: "Voer eerst een tekst in." };
   }
   if (trimmed.length > MAX_INPUT_LENGTH) {
-    return { ok: false, error: `De tekst is te lang (maximaal ${MAX_INPUT_LENGTH.toLocaleString("nl-NL")} tekens).` };
+    return {
+      status: "error",
+      error: `De tekst is te lang (maximaal ${MAX_INPUT_LENGTH.toLocaleString("nl-NL")} tekens).`,
+    };
   }
 
   try {
-    const analysis = await getTrainingAnalysisService().analyze({ kind: inputKind, text: trimmed });
-    return { ok: true, analysis };
+    return await runGatedAnalysis(
+      { kind: inputKind, text: trimmed },
+      parsePreflightAcknowledgement(acknowledgement),
+      { getService: getTrainingAnalysisService },
+    );
   } catch (error) {
     // Details staan al in de metadata-log van de service; hier alleen een veilige melding.
-    const kind = error instanceof AnalysisError ? error.kind : null;
-    if (kind === "config") console.error(`[certum.analysis] ${(error as AnalysisError).message}`);
-    return { ok: false, error: (kind && USER_MESSAGES[kind]) ?? GENERIC_ERROR };
+    const errorKind = error instanceof AnalysisError ? error.kind : null;
+    if (errorKind === "config") console.error(`[certum.analysis] ${(error as AnalysisError).message}`);
+    return { status: "error", error: (errorKind && USER_MESSAGES[errorKind]) ?? GENERIC_ERROR };
   }
 }

@@ -1,7 +1,9 @@
+import type { PreflightResult } from "@/modules/privacy";
 import { INPUT_KINDS, MAX_INPUT_LENGTH, type AgentInputKind } from "@/modules/training-agent";
 import { Button } from "./Button";
 import { ChoiceCard } from "./ChoiceCard";
 import { Icon, type IconName } from "./Icon";
+import { PrivacyPreflightPanel } from "./PrivacyPreflightPanel";
 
 const ICONS: Record<AgentInputKind, IconName> = {
   onderwerp: "topic",
@@ -14,19 +16,31 @@ interface TrainingInputStepProps {
   text: string;
   pending: boolean;
   error: string | null;
+  canSubmit: boolean;
+  preflight: PreflightResult;
+  acknowledgedIds: string[];
+  attested: boolean;
   onKindChange: (kind: AgentInputKind) => void;
   onTextChange: (text: string) => void;
+  onToggleAcknowledgement: (id: string) => void;
+  onAttestationChange: (attested: boolean) => void;
   onSubmit: () => void;
 }
 
-/** Stap 1: soort input kiezen en de tekst invoeren. */
+/** Stap 1: soort input kiezen, de tekst invoeren en de privacycontrole afronden. */
 export function TrainingInputStep({
   kind,
   text,
   pending,
   error,
+  canSubmit,
+  preflight,
+  acknowledgedIds,
+  attested,
   onKindChange,
   onTextChange,
+  onToggleAcknowledgement,
+  onAttestationChange,
   onSubmit,
 }: TrainingInputStepProps) {
   const selected = INPUT_KINDS.find((option) => option.kind === kind);
@@ -74,13 +88,26 @@ export function TrainingInputStep({
             className="mt-4 block w-full resize-y rounded-lg border border-line bg-canvas px-5 py-4 text-[15px] leading-relaxed text-ink focus:border-petrol-600/50 focus:outline-none read-only:bg-surface"
           />
 
+          {text.trim().length > 0 && (
+            <PrivacyPreflightPanel
+              text={text.trim()}
+              preflight={preflight}
+              isCasus={selected.kind === "casus"}
+              acknowledgedIds={acknowledgedIds}
+              attested={attested}
+              disabled={pending}
+              onToggleAcknowledgement={onToggleAcknowledgement}
+              onAttestationChange={onAttestationChange}
+            />
+          )}
+
           <div className="mt-4 flex flex-wrap items-center justify-end gap-4">
             {error && (
               <p role="alert" className="text-sm text-danger">
                 {error}
               </p>
             )}
-            <Button onClick={onSubmit} disabled={pending || text.trim().length === 0}>
+            <Button onClick={onSubmit} disabled={pending || !canSubmit}>
               {pending ? "Analyse wordt uitgevoerd…" : "Verder naar analyse"}
               {!pending && <Icon name="arrowRight" className="size-4" />}
             </Button>
