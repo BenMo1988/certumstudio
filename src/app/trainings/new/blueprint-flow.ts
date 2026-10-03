@@ -26,7 +26,18 @@ import {
   type TrainingBlueprint,
 } from "@/modules/training-blueprint";
 import { AnalysisError, type AnalysisErrorKind } from "@/services/analysis/errors";
-import type { BlockPlanService, TrainingBlueprintService } from "@/services/blueprint/services";
+import {
+  TRAINING_BLUEPRINT_V2_VERSION,
+  TrainingBlueprintV2Schema,
+  checkBlueprintV2Invariants,
+  type TrainingBlueprintV2,
+} from "@/modules/training-blueprint/v2";
+import type { ReadyOutcome, SourceSegment } from "@/modules/training-agent/v2";
+import type {
+  BlockPlanService,
+  TrainingBlueprintService,
+  TrainingBlueprintServiceV2,
+} from "@/services/blueprint/services";
 
 /** Waarom een Blueprint of Block Plan niet mag ontstaan. Bevat geen inhoud. */
 export type BlueprintFlowRejection =
@@ -39,9 +50,11 @@ export type BlueprintFlowRejection =
   | "blueprint_not_approved"
   | "invalid_block_plan";
 
-export type BlueprintFlowResult =
-  | { status: "blueprint"; blueprint: TrainingBlueprint }
+export type BlueprintFlowResult<B = TrainingBlueprint> =
+  | { status: "blueprint"; blueprint: B }
   | { status: "rejected"; reason: BlueprintFlowRejection };
+
+export type BlueprintFlowResultV2 = BlueprintFlowResult<TrainingBlueprintV2>;
 
 export type BlockPlanFlowResult =
   | { status: "block_plan"; blockPlan: BcOnlineBlockPlan }
@@ -74,12 +87,24 @@ export type BlueprintLogEntry =
 
 const defaultLog = (entry: BlueprintLogEntry) => console.info(JSON.stringify(entry));
 
+/** Wat een contractversie aan de flow levert: versie-id en de domeincontrole tegen de analyse. */
+interface BlueprintContract<B> {
+  version: string;
+  check: (blueprint: B, context: { analysis: ReadyOutcome; segments: SourceSegment[] }) => string[];
+}
+
+const V1_CONTRACT: BlueprintContract<TrainingBlueprint> = {
+  version: TRAINING_BLUEPRINT_VERSION,
+  check: checkBlueprintInvariants,
+};
+
+const V2_CONTRACT: BlueprintContract<TrainingBlueprintV2> = {
+  version: TRAINING_BLUEPRINT_V2_VERSION,
+  check: checkBlueprintV2Invariants,
+};
+
 /**
- * Blueprint Generation, alleen na:
- * 1. dezelfde poorten als de analyse (lokale preflight + synthetic_only, opnieuw op de tekst);
- * 2. een geldige V2-analyse met outcome `ready` en een werkelijk bestaande gekozen richting
- *    (getProceedBlockerV2 is de centrale poort; blocked/unsuitable/needs_adjustment stoppen hier);
- * 3. een Blueprint die het schema en de domeinregels doorstaat.
+ * Blueprint Generation (Blueprint Contract V1, baseline; niet meer aangesloten op de UI). Zie runBlueprintFlowV2.
  */
 export async function runBlueprintFlow(
   input: AgentInput,
@@ -88,11 +113,43 @@ export async function runBlueprintFlow(
   selectedDirectionId: string,
   deps: { getService: () => TrainingBlueprintService; log?: (entry: BlueprintLogEntry) => void },
 ): Promise<BlueprintFlowResult> {
+  return runGatedBlueprintFlow(V1_CONTRACT, input, acknowledgement, analysisCandidate, selectedDirectionId, deps);
+}
+
+/**
+ * Blueprint Generation volgens Blueprint Contract V2 (actief). Dezelfde poorten als V1, alleen na:
+ * 1. dezelfde poorten als de analyse (lokale preflight + synthetic_only, opnieuw op de tekst);
+ * 2. een geldige V2-analyse met outcome `ready` en een werkelijk bestaande gekozen richting
+ *    (getProceedBlockerV2 is de centrale poort; blocked/unsuitable/needs_adjustment stoppen hier);
+ * 3. een Blueprint die het schema en de domeinregels van V2 doorstaat.
+ */
+export async function runBlueprintFlowV2(
+  input: AgentInput,
+  acknowledgement: PreflightAcknowledgement | null,
+  analysisCandidate: unknown,
+  selectedDirectionId: string,
+  deps: { getService: () => TrainingBlueprintServiceV2; log?: (entry: BlueprintLogEntry) => void },
+): Promise<BlueprintFlowResultV2> {
+  return runGatedBlueprintFlow(V2_CONTRACT, input, acknowledgement, analysisCandidate, selectedDirectionId, deps);
+}
+
+/** De gedeelde poorten voor iedere contractversie. De provider wordt pas na alle poorten aangemaakt. */
+async function runGatedBlueprintFlow<B extends { ambiguity: TrainingBlueprint["ambiguity"]; sourceNeeds: unknown[] }>(
+  contract: BlueprintContract<B>,
+  input: AgentInput,
+  acknowledgement: PreflightAcknowledgement | null,
+  analysisCandidate: unknown,
+  selectedDirectionId: string,
+  deps: {
+    getService: () => { generate: (request: { input: AgentInput; analysis: ReadyOutcome; segments: SourceSegment[]; selectedDirectionId: string }) => Promise<B> };
+    log?: (entry: BlueprintLogEntry) => void;
+  },
+): Promise<BlueprintFlowResult<B>> {
   const log = deps.log ?? defaultLog;
-  const reject = (reason: BlueprintFlowRejection, errorKind?: AnalysisErrorKind | "unknown"): BlueprintFlowResult => {
+  const reject = (reason: BlueprintFlowRejection, errorKind?: AnalysisErrorKind | "unknown"): BlueprintFlowResult<B> => {
     log({
       event: "certum.blueprint",
-      version: TRAINING_BLUEPRINT_VERSION,
+      version: contract.version,
       outcome: "rejected",
       reason,
       ...(errorKind && { errorKind }),
@@ -118,7 +175,7 @@ export async function runBlueprintFlow(
   if (blocker !== null) return reject("unknown_direction");
 
   // Pas hier, na alle poorten, wordt de provider aangemaakt. Een providerfout blijft een fout: geen terugval naar mock.
-  let blueprint: TrainingBlueprint;
+  let blueprint: B;
   try {
     blueprint = await deps.getService().generate({ input, analysis, segments, selectedDirectionId });
   } catch (error) {
@@ -126,11 +183,11 @@ export async function runBlueprintFlow(
     return reject("provider_error", error instanceof AnalysisError ? error.kind : "unknown");
   }
   // Ook na een provider die zelf controleert: de flow is de poort voor iedere implementatie.
-  if (checkBlueprintInvariants(blueprint, { analysis, segments }).length > 0) return reject("invalid_blueprint");
+  if (contract.check(blueprint, { analysis, segments }).length > 0) return reject("invalid_blueprint");
 
   log({
     event: "certum.blueprint",
-    version: TRAINING_BLUEPRINT_VERSION,
+    version: contract.version,
     outcome: "success",
     ambiguity: blueprint.ambiguity,
     sourceNeeds: blueprint.sourceNeeds.length,
@@ -139,7 +196,10 @@ export async function runBlueprintFlow(
   return { status: "blueprint", blueprint };
 }
 
-/** Block Plan Generation, alleen uit een geldige én door een mens goedgekeurde Blueprint. */
+/**
+ * Block Plan Generation, alleen uit een geldige én door een mens goedgekeurde Blueprint (V2, of de V1-baseline).
+ * Het Block Plan leest alleen titel, leerdoel, ambiguïteit en prestatiesoort; het is onafhankelijk van de versie.
+ */
 export async function runBlockPlanFlow(
   blueprintCandidate: unknown,
   approval: ApprovalState,
@@ -152,7 +212,8 @@ export async function runBlockPlanFlow(
   };
 
   if (getBlockPlanGenerationBlocker(approval) !== null) return reject("blueprint_not_approved");
-  const parsed = TrainingBlueprintSchema.safeParse(blueprintCandidate);
+  const v2 = TrainingBlueprintV2Schema.safeParse(blueprintCandidate);
+  const parsed = v2.success ? v2 : TrainingBlueprintSchema.safeParse(blueprintCandidate);
   if (!parsed.success) return reject("invalid_blueprint");
 
   const blockPlan = await deps.getService().generate(parsed.data);

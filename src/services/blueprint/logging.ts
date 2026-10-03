@@ -1,7 +1,7 @@
-import { TRAINING_BLUEPRINT_VERSION, type TrainingBlueprint } from "@/modules/training-blueprint/schema";
+import { TRAINING_BLUEPRINT_VERSION, type Ambiguity } from "@/modules/training-blueprint/schema";
 import type { AgentInput } from "@/modules/training-agent";
 import { AnalysisError, type AnalysisErrorKind } from "../analysis/errors";
-import type { TrainingBlueprintService } from "./services";
+import type { BlueprintRequest } from "./services";
 
 export interface BlueprintServiceInfo {
   provider: "mock" | "claude";
@@ -9,6 +9,16 @@ export interface BlueprintServiceInfo {
   effort?: string;
   /** Alleen bij een provider met prompt. */
   promptVersion?: string;
+  /** Contractversie van de gegenereerde Blueprint; standaard blueprint-contract/v1. */
+  contractVersion?: string;
+}
+
+/** Wat de logging van een Blueprint leest: alleen de ambiguïteit en aantallen, nooit inhoud. */
+interface LoggableBlueprint {
+  ambiguity: Ambiguity;
+  successCriteria: unknown[];
+  assumptions: unknown[];
+  sourceNeeds: unknown[];
 }
 
 /**
@@ -27,7 +37,7 @@ export interface BlueprintGenerationLogEntry {
   durationMs: number;
   outcome: "success" | "error";
   errorKind?: AnalysisErrorKind | "unknown";
-  ambiguity?: TrainingBlueprint["ambiguity"];
+  ambiguity?: Ambiguity;
   successCriteria?: number;
   assumptions?: number;
   sourceNeeds?: number;
@@ -42,11 +52,11 @@ const defaultLogger: Logger = (entry) => {
 };
 
 /** Wikkelt iedere Blueprint-implementatie in dezelfde metadata-logging. */
-export function withBlueprintLogging(
-  service: TrainingBlueprintService,
+export function withBlueprintLogging<B extends LoggableBlueprint>(
+  service: { generate(request: BlueprintRequest): Promise<B> },
   info: BlueprintServiceInfo,
   log: Logger = defaultLogger,
-): TrainingBlueprintService {
+): { generate(request: BlueprintRequest): Promise<B> } {
   return {
     async generate(request) {
       const startedAt = performance.now();
@@ -56,7 +66,7 @@ export function withBlueprintLogging(
         ...(info.model && { model: info.model }),
         ...(info.effort && { effort: info.effort }),
         ...(info.promptVersion && { promptVersion: info.promptVersion }),
-        blueprintContractVersion: TRAINING_BLUEPRINT_VERSION,
+        blueprintContractVersion: info.contractVersion ?? TRAINING_BLUEPRINT_VERSION,
         inputKind: request.input.kind,
       };
       try {

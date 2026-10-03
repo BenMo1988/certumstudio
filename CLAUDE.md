@@ -191,7 +191,22 @@ Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
   - De Blueprint kiest geen BC Online-blokken; de invariant `uitvoeringsblok-gekozen` bewaakt dat voor eenduidige namen.
   - Logging: `certum.blueprint_generation` met alleen provider, model, effort, versies, inputsoort, duur, uitkomst,
     ambiguïteit en aantallen. Geen inhoud en geen richting-id.
-- Het Block Plan is nog mock-only. Er is geen BC Online-adapter, API, database, MCP of export.
+- **Blueprint Contract V2 (stap 8C, actief):** `blueprint-contract/v2` (`modules/training-blueprint/v2/`) en prompt
+  `training-blueprint/v2`. V1 (contract, prompt, runs) blijft ongewijzigd als baseline (tag `blueprint-v1-baseline`) en
+  is niet meer aangesloten. V2 repareert alleen wat de V1-review aantoonde:
+  - **Ambiguïteit bestuurt de structuur.** `decisionPoint` is `{ task, routePolicy }` en `actie` heeft `routePolicy`.
+    De server leidt `routePolicy` af uit `ambiguity` (`open_choice` bij meerdere routes, anders `prescribed_action`);
+    de provider genereert het niet. Feedback en Toets hebben `evaluationBasis` (vaste categorieën);
+    `voorgeschreven_handeling` is bij meerdere routes ongeldig.
+  - **`sourceNeeds` is de enige kenniswaarheid.** Elke sourceNeed heeft een id (`SN1`…); Bron is
+    `{ learningIntent, sourceNeedRefs }` zonder eigen kennisvragen. Invarianten: bestaande, unieke refs, elke sourceNeed
+    gebruikt, geen vraagteken in `learningIntent`.
+  - **Aannames vullen onbekenden in en halen geen trusted context uit de situatie.** Focus vernauwt de leeropdracht,
+    context blijft. Invariant `aanname-sluit-context-uit` (bewust smal); de prompt en evals dragen de rest.
+  - Vaste velden (versie, doelgroep, richting, leerdoel, dilemma, sourceRefs) blijven server-side samengesteld.
+- Het Block Plan is nog mock-only. Het leest alleen titel, leerdoel, ambiguïteit en prestatiesoort
+  (`BlockPlanBlueprintSource`) en werkt daardoor met V1 en V2. Er is geen BC Online-adapter, API, database, MCP of
+  export.
 
 ### Privacy in logs (niet onderhandelbaar)
 
@@ -238,12 +253,12 @@ src/
     trainings/         Trainingsprojecten
     cases/             Praktijkcasussen
     training-agent/    Certum Training Agent: v1-contract (historisch) en v2/ (actief contract)
-    training-blueprint/ Training Blueprint V1: contract, invarianten, goedkeuringsgates
+    training-blueprint/ Training Blueprint: V1-contract (baseline), v2/ (actief), invarianten, goedkeuringsgates
     block-plan/        BC Online Block Plan V1: contract en invarianten
   knowledge/           Certum-kennis en methodiek; platform/ bevat de BC Online-blokcatalogus
   services/            Externe koppelingen, elk achter een interface, alleen server-side
     analysis/          TrainingAnalysisService(V2): mock + Claude; v1 historisch naast v2
-    blueprint/         TrainingBlueprintService (mock + Claude) en BlockPlanService (alleen mock)
+    blueprint/         TrainingBlueprintService V1 en v2/ (mock + Claude), BlockPlanService (alleen mock)
 ```
 
 Regels:
@@ -283,7 +298,9 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 6A, de lokale Privacy Preflight V1 en `synthetic_only`: klaar.
 - Stap 6B+C, Analysis Contract V2 en `training-analysis/v2`: klaar, met een V2-baseline met Claude (zie evals).
 - Stap 7, Training Blueprint V1 en BC Online Block Plan V1: fundering klaar, alleen met mocks.
-- Stap 8A, Claude-provider voor de Training Blueprint: gebouwd en getest zonder API-aanroepen. Nog geen BP-baseline.
+- Stap 8A, Claude-provider voor de Training Blueprint: klaar.
+- Stap 8B, BP-baseline met `training-blueprint/v1`: klaar en beoordeeld (1 PASS, 1 PASS_WITH_NOTES, 1 FAIL).
+- Stap 8C, Blueprint Contract V2 en `training-blueprint/v2`: gebouwd en getest met mocks. Nog geen V2-baseline.
 
 Routes:
 - `/`: dashboard.
@@ -304,7 +321,7 @@ Workspace doet nog niets. Er wordt nergens iets opgeslagen.
 Er zijn drie evalsets, elk met een eigen README:
 - `evals/training-analysis/` (CA-001 t/m CA-008): de inhoud van de analyse door een AI-provider.
 - `evals/privacy-preflight/` (PP-001 t/m PP-003): de lokale Privacy Preflight, zonder externe AI.
-- `evals/training-blueprint/` (BP-001 t/m BP-003): verwachtingen voor Blueprint en Block Plan (nog niet met AI gedraaid).
+- `evals/training-blueprint/` (BP-001 t/m BP-003): Blueprint en Block Plan; V1-baseline beoordeeld, V2-verwachtingen vastgelegd.
 
 Kwaliteitsbasis voor Certum Analyse staat in `evals/training-analysis/`. Er staat alleen
 synthetische data in en het is geen productiecode. Elke run wordt vastgelegd met promptVersion, model en effort.

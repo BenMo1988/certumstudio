@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { METHODOLOGY_STEPS } from "@/knowledge";
-import type { TrainingBlueprint } from "@/modules/training-blueprint/schema";
+import type { EvaluationBasis, RoutePolicy, TrainingBlueprintV2 as TrainingBlueprint } from "@/modules/training-blueprint/v2";
 import { Button } from "./Button";
 import { Icon } from "./Icon";
 
@@ -16,6 +16,23 @@ const PERFORMANCE_LABEL: Record<TrainingBlueprint["learningArc"]["actie"]["perfo
   schriftelijk_formuleren: "Schriftelijk formuleren",
 };
 
+const ROUTE_POLICY_LABEL: Record<RoutePolicy, string> = {
+  open_choice: "Open keuze: meerdere verdedigbare routes",
+  prescribed_action: "Eén normatief gewenste handeling",
+};
+
+const EVALUATION_BASIS_LABEL: Record<EvaluationBasis, string> = {
+  afweging: "afweging",
+  aansluiting_op_situatie: "aansluiting op de situatie",
+  onderbouwing: "onderbouwing",
+  proportionaliteit: "proportionaliteit",
+  consequenties: "consequenties",
+  uitvoering: "uitvoering",
+  voorgeschreven_handeling: "voorgeschreven handeling",
+};
+
+const bases = (items: EvaluationBasis[]) => items.map((b) => EVALUATION_BASIS_LABEL[b]).join(" · ");
+
 interface BlueprintReviewProps {
   blueprint: TrainingBlueprint;
   pending: boolean;
@@ -23,7 +40,7 @@ interface BlueprintReviewProps {
   onBack: () => void;
 }
 
-/** Review van de Training Blueprint: het didactisch ontwerp. Geen edit-interface in V1. */
+/** Review van de Training Blueprint (Blueprint Contract V2): het didactisch ontwerp. Geen edit-interface. */
 export function BlueprintReview({ blueprint, pending, onApprove, onBack }: BlueprintReviewProps) {
   const arc = blueprint.learningArc;
   const phaseContent: Record<string, ReactNode> = {
@@ -37,6 +54,7 @@ export function BlueprintReview({ blueprint, pending, onApprove, onBack }: Bluep
     actie: (
       <>
         <Line label="De deelnemer moet">{arc.actie.participantMust}</Line>
+        <Line label="Routes">{ROUTE_POLICY_LABEL[arc.actie.routePolicy]}</Line>
         <Line label="Soort prestatie">{PERFORMANCE_LABEL[arc.actie.performanceType]}</Line>
       </>
     ),
@@ -50,6 +68,7 @@ export function BlueprintReview({ blueprint, pending, onApprove, onBack }: Bluep
       <>
         <Line label="Reageert op">{arc.feedback.respondsTo}</Line>
         <Line label="Dimensies">{arc.feedback.dimensions.join(" · ")}</Line>
+        <Line label="Beoordeelt">{bases(arc.feedback.evaluationBasis)}</Line>
         {arc.feedback.multipleDefensibleHandling && (
           <Line label="Meerdere verdedigbare keuzes">{arc.feedback.multipleDefensibleHandling}</Line>
         )}
@@ -57,8 +76,9 @@ export function BlueprintReview({ blueprint, pending, onApprove, onBack }: Bluep
     ),
     bron: (
       <>
-        <Line label="Te valideren kennisvragen">
-          {arc.bron.knowledgeQuestions.length > 0 ? arc.bron.knowledgeQuestions.join(" · ") : "Geen"}
+        <Line label="Leerintentie">{arc.bron.learningIntent}</Line>
+        <Line label="Gebruikt kennisbehoeften">
+          {arc.bron.sourceNeedRefs.length > 0 ? arc.bron.sourceNeedRefs.join(", ") : "Geen"}
         </Line>
       </>
     ),
@@ -67,6 +87,7 @@ export function BlueprintReview({ blueprint, pending, onApprove, onBack }: Bluep
         <Line label="Opnieuw aantonen">{arc.toets.demonstrate}</Line>
         <Line label="Transfer zichtbaar door">{arc.toets.transferEvidence}</Line>
         <Line label="Nieuw keuzemoment">{arc.toets.newDecisionPoint}</Line>
+        <Line label="Beoordeelt">{bases(arc.toets.evaluationBasis)}</Line>
       </>
     ),
   };
@@ -80,7 +101,12 @@ export function BlueprintReview({ blueprint, pending, onApprove, onBack }: Bluep
         </Fact>
         <Fact label="Leerdoel">{blueprint.learningGoal}</Fact>
         <Fact label="Professioneel dilemma">{blueprint.professionalDilemma}</Fact>
-        <Fact label="Hoofdkeuzemoment">{blueprint.decisionPoint}</Fact>
+        <Fact label="Hoofdkeuzemoment">
+          {blueprint.decisionPoint.task}
+          <span className="mt-1 block text-sm text-muted" data-testid="route-policy" data-value={blueprint.decisionPoint.routePolicy}>
+            {ROUTE_POLICY_LABEL[blueprint.decisionPoint.routePolicy]}
+          </span>
+        </Fact>
         <Fact label="Ambiguïteit">
           <span data-testid="ambiguity" data-value={blueprint.ambiguity}>
             {AMBIGUITY_LABEL[blueprint.ambiguity]}
@@ -98,7 +124,7 @@ export function BlueprintReview({ blueprint, pending, onApprove, onBack }: Bluep
         </Fact>
         <Fact label="Te valideren kennis (source needs)">
           {blueprint.sourceNeeds.length > 0 ? (
-            <List items={blueprint.sourceNeeds.map((n) => n.question)} />
+            <List items={blueprint.sourceNeeds.map((n) => `${n.id} · ${n.question}`)} />
           ) : (
             "Geen"
           )}

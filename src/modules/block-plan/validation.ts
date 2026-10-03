@@ -1,4 +1,4 @@
-import { CERTUM_PHASES, type TrainingBlueprint } from "@/modules/training-blueprint/schema";
+import { CERTUM_PHASES, type Ambiguity, type PerformanceType } from "@/modules/training-blueprint/schema";
 import { BcOnlineBlockPlanSchema, type BcOnlineBlockPlan } from "./schema";
 
 /** Codes voor overtreden Block Plan-regels. Bevatten bewust geen inhoud. */
@@ -13,6 +13,18 @@ export type BlockPlanViolation =
   | "juist-antwoord-bij-meerdere-routes";
 
 /**
+ * Het deel van een goedgekeurde Blueprint dat het Block Plan leest. Blueprint V1 en V2 voldoen allebei; het Block Plan
+ * is daarmee onafhankelijk van de Blueprint-contractversie.
+ */
+export interface BlockPlanBlueprintSource {
+  version: string;
+  title: string;
+  learningGoal: string;
+  ambiguity: Ambiguity;
+  learningArc: { actie: { performanceType: PerformanceType } };
+}
+
+/**
  * Domeincontrole van een Block Plan tegen de goedgekeurde Blueprint.
  * - alleen bekende, planbare catalogusblokken (via het schema: een onbekend type faalt);
  * - sequence is 1..n zonder gaten, id's uniek;
@@ -22,7 +34,7 @@ export type BlockPlanViolation =
  *
  * Bewust NIET afgedwongen: een formeel Toetsblok in de fase Toets, sleutelwoorden in een Chat simulatie.
  */
-export function checkBlockPlanInvariants(candidate: unknown, blueprint: TrainingBlueprint): BlockPlanViolation[] {
+export function checkBlockPlanInvariants(candidate: unknown, blueprint: BlockPlanBlueprintSource): BlockPlanViolation[] {
   const parsed = BcOnlineBlockPlanSchema.safeParse(candidate);
   if (!parsed.success) return ["schema"];
   const plan: BcOnlineBlockPlan = parsed.data;

@@ -1,5 +1,5 @@
 import { BC_ONLINE_BLOCK_PLAN_VERSION, type BcOnlineBlockPlan, type PlannedBlock } from "@/modules/block-plan/schema";
-import type { TrainingBlueprint } from "@/modules/training-blueprint/schema";
+import type { BlockPlanBlueprintSource } from "@/modules/block-plan/validation";
 import type { BlockPlanService } from "../services";
 
 type Draft = Omit<PlannedBlock, "id" | "sequence">;
@@ -16,7 +16,7 @@ type Draft = Omit<PlannedBlock, "id" | "sequence">;
  * - Route-afhankelijke vervolgstappen bij meerdere routes worden een capabilityGap (geen branching in BC Online).
  */
 export class MockBlockPlanService implements BlockPlanService {
-  async generate(blueprint: TrainingBlueprint): Promise<BcOnlineBlockPlan> {
+  async generate(blueprint: BlockPlanBlueprintSource): Promise<BcOnlineBlockPlan> {
     const conversation = blueprint.learningArc.actie.performanceType === "gesprek_voeren";
     const multiple = blueprint.ambiguity === "multiple_defensible_actions";
     const drafts: Draft[] = [];

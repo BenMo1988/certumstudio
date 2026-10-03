@@ -5,7 +5,7 @@ import { analyzeInput } from "@/app/trainings/new/actions";
 import { generateBlockPlan, generateBlueprint } from "@/app/trainings/new/blueprint-actions";
 import type { BlueprintFlowRejection } from "@/app/trainings/new/blueprint-flow";
 import type { BcOnlineBlockPlan } from "@/modules/block-plan/schema";
-import type { TrainingBlueprint } from "@/modules/training-blueprint/schema";
+import type { TrainingBlueprintV2 as TrainingBlueprint } from "@/modules/training-blueprint/v2";
 import type { InputGateRejection } from "@/app/trainings/new/gated-analysis";
 import { ACTIVE_DATA_POLICY, evaluateDataPolicy } from "@/modules/governance";
 import { evaluatePreflightGate, hashPreflightText, runPrivacyPreflight } from "@/modules/privacy";

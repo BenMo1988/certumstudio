@@ -5,4 +5,4 @@ export {
   type CapabilityGap,
   type PlannedBlock,
 } from "./schema";
-export { checkBlockPlanInvariants, type BlockPlanViolation } from "./validation";
+export { checkBlockPlanInvariants, type BlockPlanBlueprintSource, type BlockPlanViolation } from "./validation";
