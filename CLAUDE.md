@@ -184,7 +184,7 @@ Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
     `maxRetries: 0`: een SDK-retry (time-out, verbinding, 408/409/429/5xx) kan een onzichtbare tweede generatie zijn.
   - **Vaste velden genereert de provider niet.** Claude ontwerpt alleen `BlueprintDesignSchema`
     (`services/blueprint/design.ts`, = `TrainingBlueprintSchema.omit(...)`). `composeTrainingBlueprint` voegt
-    contractversie, gekozen richting, leerdoel, dilemma en sourceRefs server-side toe uit de gevalideerde context.
+    contractversie, doelgroep, gekozen richting, leerdoel, dilemma en sourceRefs server-side toe uit de gevalideerde context.
   - Geldig pas na structured output (`messages.parse` + `zodOutputFormat(BlueprintDesignSchema)`), Zod op het ontwerp,
     samenstellen, Zod op de volledige Blueprint en `checkBlueprintInvariants`. Geen reparatie of tweede aanroep;
     ongeldig is `invalid-output`.

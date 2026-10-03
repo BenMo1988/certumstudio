@@ -34,7 +34,6 @@ export class MockTrainingBlueprintService implements TrainingBlueprintService {
 
     return composeTrainingBlueprint({
       title: direction.title,
-      targetAudience: core.targetAudience,
       participantRole: "De deelnemer is de professional uit de beschreven situatie.",
       scenarioPremise: core.summary,
       decisionPoint: direction.focus,

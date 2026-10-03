@@ -45,7 +45,7 @@ async function validBlueprint(bp: keyof typeof BP): Promise<TrainingBlueprint> {
   return new MockTrainingBlueprintService().generate(requestFor(bp));
 }
 
-const TRUSTED_FIELDS = ["version", "selectedDirectionId", "learningGoal", "professionalDilemma", "sourceRefs"] as const;
+const TRUSTED_FIELDS = ["version", "targetAudience", "selectedDirectionId", "learningGoal", "professionalDilemma", "sourceRefs"] as const;
 
 /** Wat Claude teruggeeft: alleen het ontwerp, zonder de vaste velden. */
 function designOf(blueprint: TrainingBlueprint): BlueprintDesign {
@@ -135,6 +135,8 @@ describe("prompt training-blueprint/v1", () => {
     expect(p).toMatch(/bindende context/);
     expect(p).toMatch(/door het systeem aan de Blueprint toegevoegd/);
     expect(p).not.toMatch(/teken voor teken/);
+    expect(p).not.toMatch(/"targetAudience" neem je over/);
+    expect(p).toMatch(/Ontwerp passend bij de doelgroep/);
     expect(p).toMatch(/Geen nieuwe bronfeiten/);
     expect(p).toMatch(/"single_best_action" alleen als de gekozen richting werkelijk één normatief gewenste/);
     expect(p).toMatch(/Een lege lijst is toegestaan/);
@@ -267,6 +269,24 @@ describe("vaste velden worden server-side samengesteld", () => {
     expect(blueprint.learningGoal).toBe(direction.proposedLearningGoal);
     expect(blueprint.professionalDilemma).toBe(r.analysis.professionalDilemma);
     expect(blueprint.sourceRefs).toEqual(direction.sourceRefs);
+    expect(blueprint.targetAudience).toBe(r.analysis.targetAudience);
+  });
+
+  it.each(["BP-001", "BP-002", "BP-003"] as const)("%s behoudt exact de doelgroep uit de analyse", async (bp) => {
+    const r = requestFor(bp);
+    const design = await validOutput(bp);
+    expect(Object.keys(design)).not.toContain("targetAudience");
+    const { service } = claudeReturning(ok(design));
+    const blueprint = await service.generate(r);
+    expect(r.analysis.targetAudience).not.toBeNull();
+    expect(blueprint.targetAudience).toBe(r.analysis.targetAudience);
+  });
+
+  it("een null-doelgroep uit de analyse blijft null; er wordt geen doelgroep verzonnen", async () => {
+    const r = requestFor("BP-002");
+    const request = { ...r, analysis: { ...r.analysis, targetAudience: null } };
+    const { service } = claudeReturning(ok(await validOutput("BP-002")));
+    expect((await service.generate(request)).targetAudience).toBeNull();
   });
 
   it.each<[string, Record<string, unknown>]>([
@@ -275,6 +295,7 @@ describe("vaste velden worden server-side samengesteld", () => {
     ["richting", { selectedDirectionId: "meeluisterend-kind" }],
     ["sourceRefs", { sourceRefs: ["S1"] }],
     ["contractversie", { version: "blueprint-contract/v0" }],
+    ["doelgroep", { targetAudience: "Een andere doelgroep." }],
   ])("Claude kan %s niet via de output meesturen of wijzigen", async (_, extra) => {
     const { service } = claudeReturning(ok({ ...(await validOutput("BP-001")), ...extra }));
     expect(await errorKindOf(service.generate(requestFor("BP-001")))).toBe("invalid-output");
