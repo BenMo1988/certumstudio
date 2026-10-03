@@ -31,9 +31,9 @@ Kwaliteitsbasis voor de stap ná Certum Analyse: van een gekozen trainingsrichti
 
 | Eval | Bron | Gekozen richting | Onderwerp | Laatste run | Status |
 | --- | --- | --- | --- | --- | --- |
-| [BP-001](cases/BP-001-ouderconflict-begrenzen/case.md) | CA-001 | `escalatie-begrenzen` | Escalerend ouderconflict: begrenzen of voortzetten | [2026-10-03](cases/BP-001-ouderconflict-begrenzen/runs/2026-10-03_training-blueprint-v1_claude-opus-5-5_medium.md) | `PASS_WITH_NOTES` |
-| [BP-002](cases/BP-002-privegrens-werk-bespreken/case.md) | CA-006 | `grens-respecteren-en-werk-bespreken` | Privégrens respecteren en werk bespreekbaar houden | [2026-10-03](cases/BP-002-privegrens-werk-bespreken/runs/2026-10-03_training-blueprint-v1_claude-opus-5-5_medium.md) | `FAIL` |
-| [BP-003](cases/BP-003-volgorde-vervolgcontact/case.md) | CA-008 | `volgorde-vervolgcontact` | Volgorde van vervolgcontacten bij uiteenlopende perspectieven | [2026-10-03](cases/BP-003-volgorde-vervolgcontact/runs/2026-10-03_training-blueprint-v1_claude-opus-5-5_medium.md) | `PASS` |
+| [BP-001](cases/BP-001-ouderconflict-begrenzen/case.md) | CA-001 | `escalatie-begrenzen` | Escalerend ouderconflict: begrenzen of voortzetten | [2026-10-03 (v2)](cases/BP-001-ouderconflict-begrenzen/runs/2026-10-03_training-blueprint-v2_claude-opus-5-5_medium.md) | `PENDING_REVIEW` |
+| [BP-002](cases/BP-002-privegrens-werk-bespreken/case.md) | CA-006 | `grens-respecteren-en-werk-bespreken` | Privégrens respecteren en werk bespreekbaar houden | [2026-10-03 (v2)](cases/BP-002-privegrens-werk-bespreken/runs/2026-10-03_training-blueprint-v2_claude-opus-5-5_medium.md) | `PENDING_REVIEW` |
+| [BP-003](cases/BP-003-volgorde-vervolgcontact/case.md) | CA-008 | `volgorde-vervolgcontact` | Volgorde van vervolgcontacten bij uiteenlopende perspectieven | [2026-10-03 (v2)](cases/BP-003-volgorde-vervolgcontact/runs/2026-10-03_training-blueprint-v2_claude-opus-5-5_medium.md) | `PENDING_REVIEW` |
 
 ## Baseline conclusions — training-blueprint/v1
 
