@@ -6,7 +6,7 @@
 | **Domein** | Sociaal werk |
 | **Inputsoort** | casus |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `NOT_RUN` |
+| **Status (laatste run)** | `PENDING_REVIEW` |
 
 ## Doel van deze eval
 
@@ -49,7 +49,6 @@ Een sociaal werker vertelt een cliënt dat de openingstijden van het wijkcentrum
 
 ## Runs
 
-Nog geen runs. Een runbestand wordt pas aangemaakt nadat de analyse daadwerkelijk is uitgevoerd.
-
 | Datum | promptVersion | Model | Effort | Status | Run |
 | --- | --- | --- | --- | --- | --- |
+| 2026-10-03 | training-analysis/v1 | claude-opus-5-5 | medium | `PENDING_REVIEW` | [run](runs/2026-10-03_training-analysis-v1_claude-opus-5-5_medium.md) |
