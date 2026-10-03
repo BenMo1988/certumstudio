@@ -6,7 +6,7 @@
 | **Gebaseerd op** | CA-008 (training-analysis/v2, `ready`) |
 | **Inputsoort** | casus |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `PENDING_REVIEW` |
+| **Status (laatste run)** | `PASS` |
 
 ## Bron van deze eval
 
@@ -82,4 +82,4 @@ Niet gekozen richtingen in dezelfde analyse: `perspectieven-open-bespreken`, `ve
 
 | Datum | Versie | Generator | Status | Run |
 | --- | --- | --- | --- | --- |
-| 2026-10-03 | training-blueprint/v1 · blueprint-contract/v1 | claude-opus-5-5 · medium | `PENDING_REVIEW` | [run](runs/2026-10-03_training-blueprint-v1_claude-opus-5-5_medium.md) |
+| 2026-10-03 | training-blueprint/v1 · blueprint-contract/v1 | claude-opus-5-5 · medium | `PASS` | [run](runs/2026-10-03_training-blueprint-v1_claude-opus-5-5_medium.md) |

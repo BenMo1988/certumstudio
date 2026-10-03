@@ -8,7 +8,7 @@ bestaande synthetische input van CA-001, de bestaande V2-analyse (`ready`) uit d
 vastgelegde richting. Alle server-side poorten (preflight, `synthetic_only`, attestatie, analyse-invarianten,
 `getProceedBlockerV2`) zijn doorlopen. Er is geen nieuwe analyse gedaan.
 
-**Status: `PENDING_REVIEW`** (nog geen menselijke beoordeling; geen PASS/FAIL).
+**Status: `PASS_WITH_NOTES`** (menselijk beoordeeld; zie "Menselijke evaluatie").
 
 ## Configuratie en metadata
 
@@ -248,6 +248,23 @@ Controle: deze waarden zijn identiek aan de V2-analyse en de gekozen richting (j
 | Casus: geen kaders als waarheid | Ja, niet aangetroffen. |
 | Casus: geen nieuw conflictgedrag van ouders | Niet in de casus. Toets beschrijft als nieuwe situatie een escalatie die "na een eerdere begrenzing opnieuw oplaait": een variatie voor de transfer, geen bronfeit. |
 
-## Beoordeling
+## Menselijke evaluatie
 
-Nog niet beoordeeld. Status `PENDING_REVIEW`.
+**Status: `PASS_WITH_NOTES`**
+
+Menselijke review van de baseline training-blueprint/v1.
+
+### Sterk
+
+- Helder professioneel keuzemoment.
+- Meerdere routes blijven verdedigbaar.
+- Reflectie en Feedback sluiten aan op de gemaakte keuze.
+- Toets richt zich op transfer.
+- Geen concrete BC Online-blokken of ongevalideerde bronnen.
+
+### Aandachtspunt
+
+- Assumption 2 scoped het partij-kiezen-verzoek en het meeluisteren van de dochter uit het daadwerkelijke ontwerp,
+  terwijl deze elementen wel onderdeel zijn van de trusted professionele kern.
+- Een gekozen trainingsrichting mag focus aanbrengen, maar assumptions mogen trusted context niet stil buiten werking
+  stellen wanneer die context betekenisvol blijft voor dilemma of leerdoel.

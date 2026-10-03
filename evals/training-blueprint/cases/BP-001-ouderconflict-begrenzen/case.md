@@ -6,7 +6,7 @@
 | **Gebaseerd op** | CA-001 (training-analysis/v2, `ready`) |
 | **Inputsoort** | casus |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `PENDING_REVIEW` |
+| **Status (laatste run)** | `PASS_WITH_NOTES` |
 
 ## Bron van deze eval
 
@@ -81,4 +81,4 @@ Niet gekozen richtingen in dezelfde analyse: `meeluisterend-kind`, `verzoek-part
 
 | Datum | Versie | Generator | Status | Run |
 | --- | --- | --- | --- | --- |
-| 2026-10-03 | training-blueprint/v1 · blueprint-contract/v1 | claude-opus-5-5 · medium | `PENDING_REVIEW` | [run](runs/2026-10-03_training-blueprint-v1_claude-opus-5-5_medium.md) |
+| 2026-10-03 | training-blueprint/v1 · blueprint-contract/v1 | claude-opus-5-5 · medium | `PASS_WITH_NOTES` | [run](runs/2026-10-03_training-blueprint-v1_claude-opus-5-5_medium.md) |

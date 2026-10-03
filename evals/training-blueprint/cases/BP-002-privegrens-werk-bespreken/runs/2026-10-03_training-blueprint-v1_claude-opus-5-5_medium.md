@@ -8,7 +8,7 @@ bestaande synthetische input van CA-006, de bestaande V2-analyse (`ready`) uit d
 vastgelegde richting. Alle server-side poorten (preflight, `synthetic_only`, attestatie, analyse-invarianten,
 `getProceedBlockerV2`) zijn doorlopen. Er is geen nieuwe analyse gedaan.
 
-**Status: `PENDING_REVIEW`** (nog geen menselijke beoordeling; geen PASS/FAIL).
+**Status: `FAIL`** (menselijk beoordeeld; zie "Menselijke evaluatie").
 
 ## Configuratie en metadata
 
@@ -230,6 +230,28 @@ Controle: deze waarden zijn identiek aan de V2-analyse en de gekozen richting (j
 | Casus: privégrens én verantwoordelijkheid behouden | Ja. Beide in tensionArises, explicitTradeOff en successCriteria. |
 | Casus: geen diagnose, bedrijfsarts of arbeidsrecht | Niet aangetroffen. |
 
-## Beoordeling
+## Menselijke evaluatie
 
-Nog niet beoordeeld. Status `PENDING_REVIEW`.
+**Status: `FAIL`**
+
+Menselijke review van de baseline training-blueprint/v1.
+
+### Sterk
+
+- De Blueprint herkent expliciet dat meerdere professionele routes verdedigbaar zijn.
+- Reflectie en Feedback behandelen meerdere routes.
+- Geen diagnoses of ongevalideerde juridische feiten.
+
+### Failreden
+
+- Het decisionPoint schrijft al voor dat de deelnemer de privégrens erkent en vervolgens het gesprek terugbrengt naar
+  werkgedrag en deadlines.
+- Daarmee wordt één handelingsroute in het hoofdkeuzemoment ingebouwd, terwijl ambiguity terecht
+  `multiple_defensible_actions` is.
+- De Actie-fase verzacht dit gedeeltelijk met "hoe en wanneer", maar daardoor ontstaat interne inconsistentie in de
+  Blueprint.
+
+### Tweede structurele bevinding
+
+- BP-002 bevat 2 sourceNeeds, terwijl `learningArc.bron` 3 zelfstandige kennisvragen bevat.
+- Daardoor bestaan kennisbehoeften op twee plaatsen en kunnen ze inhoudelijk uiteenlopen.

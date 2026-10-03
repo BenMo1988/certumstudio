@@ -8,7 +8,7 @@ bestaande synthetische input van CA-008, de bestaande V2-analyse (`ready`) uit d
 vastgelegde richting. Alle server-side poorten (preflight, `synthetic_only`, attestatie, analyse-invarianten,
 `getProceedBlockerV2`) zijn doorlopen. Er is geen nieuwe analyse gedaan.
 
-**Status: `PENDING_REVIEW`** (nog geen menselijke beoordeling; geen PASS/FAIL).
+**Status: `PASS`** (menselijk beoordeeld; zie "Menselijke evaluatie").
 
 ## Configuratie en metadata
 
@@ -247,6 +247,17 @@ Controle: deze waarden zijn identiek aan de V2-analyse en de gekozen richting (j
 | Casus: geen branching- of BC Online-logica | Niet aangetroffen. |
 | Casus: meerdere routes blijven mogelijk | Ja. |
 
-## Beoordeling
+## Menselijke evaluatie
 
-Nog niet beoordeeld. Status `PENDING_REVIEW`.
+**Status: `PASS`**
+
+Menselijke review van de baseline training-blueprint/v1.
+
+### Sterk
+
+- Beide professionele routes blijven zichtbaar en verdedigbaar.
+- Perspectieven worden niet als feiten behandeld.
+- Reflectie en Feedback sluiten rechtstreeks aan op de keuze.
+- Bron formuleert kennisbehoeften zonder een concrete bron te verzinnen.
+- Toets gebruikt een nieuw professioneel keuzemoment en richt zich op transfer.
+- Geen concrete BC Online-blokken.
