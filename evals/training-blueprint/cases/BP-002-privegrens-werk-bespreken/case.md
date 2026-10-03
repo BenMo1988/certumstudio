@@ -6,7 +6,7 @@
 | **Gebaseerd op** | CA-006 (training-analysis/v2, `ready`) |
 | **Inputsoort** | casus |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `NOT_RUN` |
+| **Status (laatste run)** | `PENDING_REVIEW` |
 
 ## Bron van deze eval
 
@@ -78,7 +78,6 @@ Niet vooraf vastgelegd: zowel `single_best_action` als `multiple_defensible_acti
 
 ## Runs
 
-Nog geen runs. Een runbestand wordt pas aangemaakt nadat de evaluatie daadwerkelijk is uitgevoerd.
-
 | Datum | Versie | Generator | Status | Run |
 | --- | --- | --- | --- | --- |
+| 2026-10-03 | training-blueprint/v1 · blueprint-contract/v1 | claude-opus-5-5 · medium | `PENDING_REVIEW` | [run](runs/2026-10-03_training-blueprint-v1_claude-opus-5-5_medium.md) |
