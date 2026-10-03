@@ -112,6 +112,10 @@ Geen bestaande `ready`-case heeft aantoonbaar één normatief gewenste handeling
 CA-005 t/m CA-008 beschrijven een afweging). `prescribed_action` wordt daarom niet aan een bestaande case opgelegd, maar
 met een kleine synthetische unit-testfixture aangetoond.
 
+Aanvulling vóór de V2.1-baseline: CA-009 is een nieuwe synthetische evalcase waarin de input zelf één vaste
+handelingslijn bevat. Daarmee wordt `prescribed_action` ook in een echte run getoetst; de unit-testfixture blijft het
+contractgedrag bewijzen.
+
 ## Baseline conclusions — training-analysis/v2
 
 Menselijke review van de baseline (Analysis Contract V2, claude-opus-5-5, medium, 2026-10-03) over CA-001 t/m CA-008.
@@ -164,3 +168,4 @@ Evalset V1. Baseline van training-analysis/v2 (Analysis Contract V2, claude-opus
 | [CA-006](cases/CA-006-leidinggeven-privegrens/case.md) | casus | Leidinggeven | Dilemma buiten het sociaal domein; geen diagnose of arbeidsrecht | `PASS_WITH_NOTES` | `PASS_WITH_NOTES` |
 | [CA-007](cases/CA-007-autonomie-versus-zorg/case.md) | casus | Ambulante begeleiding | Autonomie versus professionele zorg; niet paternalistisch | `PASS_WITH_NOTES` | `PASS` |
 | [CA-008](cases/CA-008-twee-verdedigbare-routes/case.md) | casus | Jeugdhulp | Twee verdedigbare routes; niet zelf kiezen wie gelijk heeft | `PASS_WITH_NOTES` | `PASS` |
+| [CA-009](cases/CA-009-vaste-handelingslijn-nooduitgang/case.md) | casus | Facilitair | Eén vaste handelingslijn in de input; `prescribed_action` (vanaf v2.1) | – | – |
