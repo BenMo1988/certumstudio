@@ -8,7 +8,7 @@ export interface InputKindOption {
   description: string;
   /** Vraag boven het invoerveld zodra deze soort is gekozen. */
   prompt: string;
-  /** Verplichte aandachtsregel bij de invoer, bijv. over anonimiseren. */
+  /** Aandachtsregel bij de invoer, bijv. over privacy en de huidige ontwikkelfase. */
   notice?: string;
 }
 
@@ -29,9 +29,11 @@ export const INPUT_KINDS: InputKindOption[] = [
   {
     kind: "casus",
     label: "Casus",
-    description: "Een geanonimiseerde situatie die zich echt heeft voorgedaan.",
-    prompt: "Beschrijf de geanonimiseerde praktijkcasus die je als basis wilt gebruiken.",
-    notice: "Gebruik geen namen of andere direct herleidbare persoonsgegevens.",
+    // Copy volgt de tijdelijke governance-policy (zie modules/governance/data-policy.ts).
+    description: "Een fictieve of synthetische beroepssituatie die je wilt gebruiken als basis voor een praktijksimulatie.",
+    prompt: "Beschrijf de fictieve of synthetische praktijkcasus die je als basis wilt gebruiken.",
+    notice:
+      "In deze ontwikkelfase mag Certum Studio geen gegevens uit echte casuïstiek verwerken. Gebruik geen namen of andere direct herleidbare persoonsgegevens.",
   },
 ];
 

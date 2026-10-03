@@ -25,7 +25,7 @@ export default async function DashboardPage() {
           href="/trainings/new?input=casus"
           icon="case"
           title="Casus invoeren"
-          description="Leg een geanonimiseerde praktijksituatie vast."
+          description="Leg een fictieve of synthetische praktijksituatie vast."
         />
         <ActionCard
           href="/trainings"
