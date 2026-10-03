@@ -154,7 +154,13 @@ export class MockBlockPlanService implements BlockPlanService {
                 certumPhase: "feedback",
                 need: "Route-afhankelijke vervolgstappen na de gekozen route (branching).",
                 whyNeeded: "Bij meerdere verdedigbare routes zou de vervolgsituatie per route kunnen verschillen.",
-                workaround: "Conditionele logica voor een korte, route-afhankelijke toelichting, plus AI Feedback op de onderbouwing.",
+                workaround: {
+                  type: "partial",
+                  description:
+                    "Conditionele logica toont een korte tekst die afhangt van een eerder antwoord; AI Feedback reageert op de onderbouwing.",
+                  limitation:
+                    "Conditionele logica is alleen conditionele tekstweergave: geen alternatieve routes of vervolgblokken. Iedere deelnemer doorloopt dezelfde blokken; branching blijft niet ondersteund.",
+                },
               },
             ]
           : [],

@@ -6,7 +6,8 @@ import type { BlueprintRequest, TrainingBlueprintService } from "../services";
  * kern, leerdoel en sourceRefs komen letterlijk uit de analyse en de gekozen richting.
  *
  * Mock-heuristieken (alleen om de flow te kunnen testen):
- * - ambiguïteit: multiple_defensible_actions als de focus van de richting een keuze tussen opties noemt (" of ");
+ * - ambiguïteit: multiple_defensible_actions als de focus van de richting een keuze tussen opties (" of ") of een open
+ *   handelwijze ("kiest hoe") noemt; single_best_action alleen als de richting geen open keuze laat;
  * - prestatie: gesprek_voeren als de focus over reageren of een gesprek gaat, anders keuze_maken_en_onderbouwen;
  * - sourceNeeds: afgeleid van de (interne) sourceCandidates, als te valideren kennisvraag; nooit als bron.
  */
@@ -15,7 +16,9 @@ export class MockTrainingBlueprintService implements TrainingBlueprintService {
     const direction = analysis.trainingDirections.find((d) => d.id === selectedDirectionId);
     if (!direction) throw new Error("Onbekende richting.");
 
-    const multiple = / of /i.test(direction.focus);
+    // Open keuze: opties (" of ") of een open handelwijze ("kiest hoe", "bepalen hoe"). Eén beste route alleen als de
+    // richting zelf geen open keuze laat.
+    const multiple = / of |\b(kiest|kiezen|bepaalt|bepalen) hoe\b/i.test(direction.focus);
     // Hele woorden: "gezinsgesprek" (een geplande afspraak) is geen handelen in een gesprek.
     const conversational = /\b(reageert|reageren|gesprek|zegt|vraagt)\b/i.test(direction.focus);
 

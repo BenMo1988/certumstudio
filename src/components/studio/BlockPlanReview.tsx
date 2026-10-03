@@ -88,10 +88,16 @@ export function BlockPlanReview({ blockPlan, approved, onApprove, onBack }: Bloc
                 <p className="font-semibold text-attention-700">{gap.need}</p>
                 <p className="mt-0.5 text-ink">{gap.whyNeeded}</p>
                 {gap.workaround && (
-                  <p className="mt-0.5 text-ink">
-                    <span className="font-medium">Workaround: </span>
-                    {gap.workaround}
-                  </p>
+                  <>
+                    <p className="mt-0.5 text-ink" data-workaround={gap.workaround.type}>
+                      <span className="font-medium">Beperkt alternatief (het gat blijft bestaan): </span>
+                      {gap.workaround.description}
+                    </p>
+                    <p className="mt-0.5 text-ink">
+                      <span className="font-medium">Beperking: </span>
+                      {gap.workaround.limitation}
+                    </p>
+                  </>
                 )}
               </li>
             ))}

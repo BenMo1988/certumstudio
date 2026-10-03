@@ -106,12 +106,30 @@ describe("Training Blueprint: BP-001 t/m BP-003 via de mockflow", () => {
     expect(checkBlueprintInvariants(blueprint, { analysis: c.analysis, segments: c.segments })).toEqual([]);
   });
 
-  it("behoudt ambiguïteit: BP-001 en BP-003 meerdere verdedigbare routes, BP-002 één beste handelwijze", async () => {
+  it("behoudt ambiguïteit: BP-001, BP-002 en BP-003 hebben meerdere verdedigbare routes", async () => {
     expect((await blueprintFor("BP-001")).blueprint.ambiguity).toBe("multiple_defensible_actions");
-    expect((await blueprintFor("BP-002")).blueprint.ambiguity).toBe("single_best_action");
+    // BP-002: de richting laat open hoe de teamleider reageert; bron en richting dragen geen enkele normatieve route.
+    const bp2 = (await blueprintFor("BP-002")).blueprint;
+    expect(bp2.ambiguity).toBe("multiple_defensible_actions");
+    expect(bp2.learningArc.feedback.multipleDefensibleHandling).toMatch(/niet welke route/);
     const bp3 = (await blueprintFor("BP-003")).blueprint;
     expect(bp3.ambiguity).toBe("multiple_defensible_actions");
     expect(bp3.learningArc.feedback.multipleDefensibleHandling).toMatch(/niet welke route/);
+  });
+
+  it("single_best_action alleen als de richting geen open keuze laat", async () => {
+    const c = CASES["CA-006"];
+    const direction = c.analysis.trainingDirections.find((d) => d.id === BP["BP-002"].direction)!;
+    const closed = { ...direction, focus: "De teamleider erkent de grens en bespreekt daarna de gemiste deadlines." };
+    const analysis = { ...c.analysis, trainingDirections: [closed] };
+    const blueprint = await new MockTrainingBlueprintService().generate({
+      input: { kind: c.kind, text: c.input },
+      analysis,
+      segments: c.segments,
+      selectedDirectionId: closed.id,
+    });
+    expect(blueprint.ambiguity).toBe("single_best_action");
+    expect(blueprint.learningArc.feedback.multipleDefensibleHandling).toBeNull();
   });
 
   it("source needs zijn te valideren kennisvragen, geen bronnen", async () => {
@@ -240,8 +258,37 @@ describe("BC Online Block Plan", () => {
     const { plan } = await planFor("BP-003");
     expect(plan.capabilityGaps).toHaveLength(1);
     expect(plan.capabilityGaps[0].need).toMatch(/branching/);
-    expect(plan.capabilityGaps[0].workaround).toMatch(/Conditionele logica/);
+    expect(plan.capabilityGaps[0].workaround?.type).toBe("partial");
+    expect(plan.capabilityGaps[0].workaround?.description).toMatch(/Conditionele logica/);
     expect(plan.plannedBlocks.every((b) => getCatalogBlock(b.catalogBlockId))).toBe(true);
+  });
+
+  it("regressie: een workaround maakt branching niet ondersteund en laat het gat bestaan", async () => {
+    // Branching blijft unsupported; Conditionele logica blijft conditionele tekstweergave.
+    expect(NOT_EVIDENCED_CAPABILITIES.map((c) => c.id)).toContain("branching_routing");
+    expect(getCatalogBlock("certum.bco.conditionele-logica")!.observedCapabilities).toEqual(["conditionele_tekstweergave"]);
+
+    const { plan, blueprint } = await planFor("BP-003");
+    const gap = plan.capabilityGaps.find((g) => /branching/.test(g.need))!;
+    // Het gat bestaat óók met workaround, en de workaround is expliciet gedeeltelijk.
+    expect(gap.workaround).not.toBeNull();
+    expect(gap.workaround!.type).toBe("partial");
+    expect(gap.workaround!.limitation).toMatch(/conditionele tekstweergave/);
+    expect(gap.workaround!.limitation).toMatch(/branching blijft niet ondersteund/);
+    // Geen blok claimt branching: Conditionele logica komt niet als route-vervanger in het plan.
+    expect(plan.plannedBlocks.some((b) => b.catalogBlockId === "certum.bco.conditionele-logica")).toBe(false);
+    expect(checkBlockPlanInvariants(plan, blueprint)).toEqual([]);
+
+    // Het contract kent geen "volledige" workaround en geen workaround als losse tekst.
+    const full = structuredClone(plan);
+    (full.capabilityGaps[0].workaround as { type: string }).type = "full";
+    expect(BcOnlineBlockPlanSchema.safeParse(full).success).toBe(false);
+    const freeText = structuredClone(plan) as unknown as { capabilityGaps: { workaround: unknown }[] };
+    freeText.capabilityGaps[0].workaround = "Conditionele logica lost dit op.";
+    expect(BcOnlineBlockPlanSchema.safeParse(freeText).success).toBe(false);
+    const noLimitation = structuredClone(plan) as unknown as { capabilityGaps: { workaround: Record<string, unknown> }[] };
+    delete noLimitation.capabilityGaps[0].workaround.limitation;
+    expect(BcOnlineBlockPlanSchema.safeParse(noLimitation).success).toBe(false);
   });
 
   it("chatsimulatie zonder sleutelwoorddoel en Toets zonder formeel Toetsblok zijn geldig (BP-001)", async () => {

@@ -36,7 +36,15 @@ export const CapabilityGapSchema = z.strictObject({
   certumPhase: z.enum(CERTUM_PHASES),
   need: intent("Didactisch gewenste capability die niet aantoonbaar in BC Online bestaat."),
   whyNeeded: intent("Waarom dit nodig is voor de Blueprint."),
-  workaround: z.string().min(1).max(MAX_INTENT_LENGTH).nullable().describe("Eventuele workaround met bestaande blokken."),
+  workaround: z
+    .strictObject({
+      // Een workaround is per definitie gedeeltelijk: hij laat het gat bestaan en maakt de capability niet ondersteund.
+      type: z.literal("partial"),
+      description: intent("Wat er met bestaande blokken wél kan."),
+      limitation: intent("Wat de workaround níét biedt; het gat blijft bestaan."),
+    })
+    .nullable()
+    .describe("Eventueel beperkt alternatief met bestaande blokken; sluit het gat nooit."),
 });
 
 export const BcOnlineBlockPlanSchema = z.strictObject({
