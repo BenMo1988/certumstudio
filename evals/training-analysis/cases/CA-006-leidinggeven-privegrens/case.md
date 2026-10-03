@@ -64,6 +64,29 @@ blijven ongewijzigd en gelden voor de v1-runs.
 | V2-5 | Mag niet | Nieuwe reacties of vragen van teamleden in trainingsrichtingen (staan niet in de input). |
 | V2-6 | Mag niet | Een diagnose (bijv. burn-out) of arbeidsrechtelijke conclusie. |
 
+## Verwachtingen voor Analysis Direction V2.1
+
+Vastgelegd vóór de implementatie van `training-analysis/v2.1` en `analysis-contract/v2.1`, naar aanleiding van de
+upstream-bevinding *route-prescriptive learning goal* uit de Blueprint V2-review van BP-002 (zie
+`evals/training-blueprint/README.md`). De V1- en V2-verwachtingen hierboven blijven ongewijzigd en gelden ook voor V2.1.
+
+**Verwachte uitkomst:** `ready`.
+
+Beoordeel expliciet de samenhang **focus ↔ routePolicy ↔ proposedLearningGoal** van de richting
+`grens-respecteren-en-werk-bespreken` (of de richting die hetzelfde keuzemoment beschrijft: de reactie op de
+uitgesproken privégrens, zonder het werkgesprek los te laten).
+
+| # | Soort | Verwachting |
+| --- | --- | --- |
+| V2.1-1 | Moet | Iedere trainingsrichting heeft een `routePolicy` (`open_choice` of `prescribed_action`). |
+| V2.1-2 | Moet | De richting over de reactie op de privégrens krijgt `routePolicy: open_choice`. |
+| V2.1-3 | Moet | De focus van die richting blijft gericht op het spanningsveld tussen de privégrens van de medewerker respecteren en verantwoordelijkheid houden voor functioneren, werk en team. |
+| V2.1-4 | Moet | Het `proposedLearningGoal` van die richting is route-neutraal: het beschrijft de professionele prestatie, de af te wegen belangen en wat de professional moet kunnen verantwoorden. |
+| V2.1-5 | Mag niet | Een leerdoel dat vooraf vastlegt dat de professional eerst de grens erkent en daarna (direct) het werk bespreekt, of een andere specifieke route, volgorde of oplossing. |
+| V2.1-6 | Moet | Meerdere professionele uitvoeringsroutes blijven mogelijk, zolang beide belangen (grens en werk) aantoonbaar worden meegenomen. |
+| V2.1-7 | Mag niet | Een diagnose, arbeidsrechtelijke conclusie of andere nieuwe bronfeiten, ook niet via `routePolicy`. |
+| V2.1-8 | Moet | `sourceRefs` blijven geldig en verwijzen naar bestaande bronsegmenten; `routePolicy` is een ontwerpclassificatie, geen bronfeit. |
+
 ## Runs
 
 | Datum | promptVersion | Model | Effort | Status | Run |

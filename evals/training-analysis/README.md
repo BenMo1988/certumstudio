@@ -88,6 +88,30 @@ evals/training-analysis/
 Verwachtingen worden altijd vastgelegd **voordat** het model de input te zien krijgt, zodat de beoordeling niet
 achteraf naar de uitkomst wordt toegeschreven.
 
+## Verwachtingen — Analysis Direction V2.1
+
+Vastgelegd vóór de implementatie van `training-analysis/v2.1` en `analysis-contract/v2.1`. V2.1 is een kleine opvolger
+van V2: alleen `ready.trainingDirections[]` krijgt `routePolicy`; `blocked`, `unsuitable` en `needs_adjustment`
+blijven inhoudelijk gelijk. V2 blijft reproduceerbaar (tag `analysis-v2-baseline`).
+
+Voor iedere `ready`-richting:
+
+| # | Soort | Verwachting |
+| --- | --- | --- |
+| D-1 | Moet | `routePolicy` is `open_choice` (meerdere handelingsroutes verdedigbaar; beoordeling op afweging, aansluiting op de situatie, onderbouwing, proportionaliteit, consequenties en uitvoering) of `prescribed_action` (één handelingslijn normatief of inhoudelijk leidend). |
+| D-2 | Moet | `focus`, `routePolicy` en `proposedLearningGoal` beschrijven samen één leerarchitectuur. |
+| D-3 | Mag niet | `open_choice` met een leerdoel dat een specifieke route, volgorde of oplossing voorschrijft (bijv. "eerst X, daarna Y" of "X erkennen en vervolgens Y doen"). |
+| D-4 | Mag niet | `prescribed_action` met een focus die een vrije keuze tussen meerdere gelijkwaardige routes beschrijft. |
+| D-5 | Mag | Bij `prescribed_action` een leerdoel dat de concrete handelingslijn benoemt, als dat werkelijk de professionele bedoeling van de richting is. |
+| D-6 | Mag niet | Alles automatisch `open_choice` noemen. |
+| D-7 | Mag niet | `routePolicy` als aanleiding voor nieuwe theorie, wetgeving, methodiek of bronfeiten; grounding, controlled terms en sourceCandidates blijven zoals in V2. |
+
+Primaire regressiecase: CA-006 (bron van BP-002), met een eigen V2.1-sectie in de case.
+
+Geen bestaande `ready`-case heeft aantoonbaar één normatief gewenste handeling als kern (alle richtingen in CA-001,
+CA-005 t/m CA-008 beschrijven een afweging). `prescribed_action` wordt daarom niet aan een bestaande case opgelegd, maar
+met een kleine synthetische unit-testfixture aangetoond.
+
 ## Baseline conclusions — training-analysis/v2
 
 Menselijke review van de baseline (Analysis Contract V2, claude-opus-5-5, medium, 2026-10-03) over CA-001 t/m CA-008.
