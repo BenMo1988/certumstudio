@@ -1,19 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
 import { hashPreflightText, runPrivacyPreflight } from "@/modules/privacy";
-import type { AgentInput, InputAnalysis } from "@/modules/training-agent";
-import {
-  MOCK_ANALYSIS_CASUS,
-  MOCK_ANALYSIS_CASUS_BLOCKED,
-} from "@/services/analysis/mock/mock-analyses";
+import { segmentInput, type AnalysisOutcome } from "@/modules/training-agent/v2";
+import type { AnalysisRequestV2 } from "@/services/analysis/training-analysis-service-v2";
+import { MOCK_V2_BLOCKED, mockV2Ready } from "@/services/analysis/mock/v2/mock-outcomes";
 import { evalInput } from "../../../../test/eval-inputs";
-import { runGatedAnalysis, type PreflightLogEntry } from "./gated-analysis";
+import { runGatedAnalysis, type GateLogEntry } from "./gated-analysis";
 
-/** Spion: telt of de service wordt aangemaakt en of analyze() wordt aangeroepen. */
-function spyDeps(result: InputAnalysis = MOCK_ANALYSIS_CASUS) {
-  const analyze = vi.fn<(input: AgentInput) => Promise<InputAnalysis>>(async () => structuredClone(result));
+/** Spion: telt of de service wordt aangemaakt en of analyze() wordt aangeroepen. Standaard: ready. */
+function spyDeps(result?: AnalysisOutcome) {
+  const analyze = vi.fn<(request: AnalysisRequestV2) => Promise<AnalysisOutcome>>(async ({ segments }) =>
+    structuredClone(result ?? mockV2Ready(segments)),
+  );
   const getService = vi.fn(() => ({ analyze }));
-  const logs: PreflightLogEntry[] = [];
-  return { deps: { getService, log: (e: PreflightLogEntry) => logs.push(e) }, analyze, getService, logs };
+  const logs: GateLogEntry[] = [];
+  return { deps: { getService, log: (e: GateLogEntry) => logs.push(e) }, analyze, getService, logs };
 }
 
 async function ackFor(text: string, ids: string[], syntheticDataAttested: boolean) {
@@ -141,7 +141,10 @@ describe("runGatedAnalysis: geldige doorgang", () => {
       );
       expect(result.status).toBe("analysis");
       expect(analyze).toHaveBeenCalledTimes(1);
-      expect(analyze).toHaveBeenCalledWith({ kind, text: CASE_LIKE_TEXT });
+      expect(analyze).toHaveBeenCalledWith({
+        input: { kind, text: CASE_LIKE_TEXT },
+        segments: segmentInput(CASE_LIKE_TEXT),
+      });
     },
   );
 
@@ -200,19 +203,47 @@ describe("runGatedAnalysis: logging", () => {
     });
   });
 
-  it("logt preflightMiss als de provider na een geslaagde preflight alsnog blokkeert", async () => {
+  it("logt preflightMiss: true als de provider na een geslaagde preflight alsnog blokkeert", async () => {
     const text = evalInput("PP-001");
-    const { deps, logs } = spyDeps(MOCK_ANALYSIS_CASUS_BLOCKED);
+    const { deps, logs } = spyDeps(MOCK_V2_BLOCKED);
     const result = await runGatedAnalysis({ kind: "casus", text }, await ackFor(text, [], true), deps);
 
-    expect(result.status).toBe("analysis");
-    expect(logs.map((l) => l.event)).toEqual(["certum.preflight", "certum.preflight_miss"]);
+    expect(result).toMatchObject({ status: "analysis", analysis: { outcome: "blocked" } });
+    expect(logs.map((l) => l.event)).toEqual(["certum.preflight", "certum.analysis_result"]);
     expect(logs[1]).toEqual({
-      event: "certum.preflight_miss",
-      preflightMiss: true,
+      event: "certum.analysis_result",
+      contractVersion: "analysis-contract/v2",
+      analysisOutcome: "blocked",
       preflightVersion: "privacy-preflight/v1",
       preflightStatus: "safe",
+      preflightMiss: true,
+      epistemicFlags: 0,
       inputKind: "casus",
+      segmentCount: segmentInput(text).length,
+    });
+  });
+
+  it("logt het aantal epistemische markeringen, niet de begrippen, segmenten of refs", async () => {
+    const text = "Een docent twijfelt of hij moet doorvragen bij een stille leerling.";
+    const { deps, logs } = spyDeps(mockV2Ready(segmentInput(text), true));
+    const result = await runGatedAnalysis({ kind: "praktijkvraag", text }, await ackFor(text, [], true), deps);
+
+    expect(result.status === "analysis" && result.epistemicFlags.map((f) => f.term)).toEqual(["zorgplicht"]);
+    expect(logs[1]).toMatchObject({ preflightMiss: false, epistemicFlags: 1, analysisOutcome: "ready" });
+    const logged = JSON.stringify(logs);
+    for (const content of ["zorgplicht", "meldcode", "sourceRefs", '"S1"', "docent twijfelt"]) {
+      expect(logged).not.toContain(content);
+    }
+  });
+
+  it("geeft segmenten en de poortstatus terug aan de UI", async () => {
+    const text = evalInput("CA-001");
+    const { deps } = spyDeps();
+    const result = await runGatedAnalysis({ kind: "casus", text }, await ackFor(text, [], true), deps);
+    expect(result).toMatchObject({
+      status: "analysis",
+      segments: segmentInput(text),
+      gate: { preflightStatus: "safe", syntheticDataAttested: true },
     });
   });
 });

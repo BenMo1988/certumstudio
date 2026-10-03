@@ -50,46 +50,78 @@ Bron van waarheid in code: `src/knowledge/methodology.ts`. Definieer de stappen 
 
 ## Certum Training Agent
 
-Verwerkt drie soorten input: een **onderwerp**, een **praktijkvraag** of een **geanonimiseerde praktijkcasus**.
+Verwerkt drie soorten input: een **onderwerp**, een **praktijkvraag** of een **praktijkcasus**. Onder de huidige
+policy `synthetic_only` is alle input fictief of synthetisch.
 
-Vaste flow: **Input → lokale Privacy Preflight → Certum Analyse → menselijke keuze/goedkeuring → Training**
+Vaste flow:
+**Input → lokale Privacy Preflight → data-policy → Certum Analyse → menselijke keuze → (later) Training Generation**
 
 ### Kernregels (niet onderhandelbaar)
 
 - **Een input wordt nooit rechtstreeks een training.** Iedere training doorloopt eerst Certum Analyse en daarna
   de menselijke selectie en goedkeuring van een trainingsrichting.
-- **Privacyblokkades worden nooit omzeild, niet door AI en niet door de UI.** Een analyse met
-  `privacyAssessment.level === "blokkeren"` (of met de beoordeling `ongeschikt`) kan niet door naar de volgende fase.
-  De regel staat op één plek: `getProceedBlocker()` in `modules/training-agent/analysis-rules.ts`. De UI gebruikt
-  die regel. Elke toekomstige server-side stap ("training opbouwen") moet dezelfde check opnieuw uitvoeren en
-  mag niet vertrouwen op wat de client stuurt.
+- **Alleen `ready` mag door.** `getProceedBlockerV2()` (`modules/training-agent/v2/rules.ts`) is de centrale poort:
+  alleen `outcome === "ready"` met een werkelijk bestaande, gekozen richting, na een geslaagde preflight en een
+  geldige synthetic-only-attestatie. `blocked`, `unsuitable` en `needs_adjustment` stoppen altijd. Elke toekomstige
+  server-side stap ("training opbouwen") moet deze regel opnieuw toepassen en mag niet op de client vertrouwen.
+- **Privacyblokkades worden nooit omzeild, niet door AI en niet door de UI.**
+- **De Analyse beschrijft wat er professioneel gebeurt.** Welke theorie, methodiek, richtlijn of wetgeving erbij
+  hoort, bepaalt later de Bron-fase.
 
-### Analysecontract
+### Analysecontract V2 (actief)
 
-- **Eén runtime-schema**: `InputAnalysisSchema` (Zod) in `src/modules/training-agent/analysis-schema.ts`. Daaruit volgen
-  de TypeScript-types (`types.ts`), de structured output van de provider en de validatie. Definieer de vorm van een
-  analyse nergens anders.
-- **Vorm en betekenis zijn gescheiden.** Het schema bewaakt de vorm. `checkAnalysisInvariants()` bewaakt de
-  businessregels, zoals unieke richting-id's en een omschrijving bij elke privacybevinding. Elke provider roept
-  die check aan voordat een analyse de app in gaat.
-- Engine: `TrainingAnalysisService` in `src/services/analysis/`. Er zijn twee implementaties: `MockTrainingAnalysisService`
-  en `ClaudeTrainingAnalysisService`. Welke wordt gebruikt, volgt uit `CERTUM_ANALYSIS_PROVIDER` (zie `config.ts`).
-  Bij een fout valt Claude nooit automatisch terug op de mock.
+- **Contract:** `analysis-contract/v2`, een discriminated union op `outcome`. Zie `src/modules/training-agent/v2/`.
+  - `blocked`: alleen het provider-vangnet ná een geslaagde lokale preflight. Het resultaat bevat alleen een reden,
+    soorten gegevens en een vervolgstap, nooit waarden.
+  - `unsuitable`: geen dilemma of keuzemoment. Geen leerdoel, doelgroep of richtingen.
+  - `needs_adjustment`: potentie, maar te breed. Alleen afbakeningen en beslisrelevante vragen, géén richtingen.
+    De gebruiker past de input aan en doorloopt opnieuw preflight en analyse.
+  - `ready`: een concreet keuzemoment. Alleen deze uitkomst levert 1–3 trainingsrichtingen.
+- **Eén runtime-schema:** de Zod-schema's in `v2/schema.ts` zijn de bron voor types, structured output en
+  validatie.
+  - De provider krijgt `{ result: AnalysisOutcome }`, een object als root.
+  - De API dwingt de veldsets per variant af (`anyOf` + `additionalProperties: false`).
+  - De SDK geeft `literal`/`enum` en maxima alleen als beschrijving door; Zod controleert ze na ontvangst.
+- **Vorm en betekenis zijn gescheiden.** `checkOutcomeInvariants()` controleert onder meer:
+  - unieke id's;
+  - dat elke `sourceRef` bestaat in de werkelijk aangeleverde segmenten, zonder dubbelingen;
+  - geen lege teksten;
+  - dat een provider-`blocked` geen direct herkenbare waarde herhaalt.
+- **Grounding:** `segmentInput()` (`source-segments/v1`) splitst de input server-side in segmenten S1, S2, … (alinea's +
+  `Intl.Segmenter`, met een kleine afkortingenlijst). Elke trainingsrichting verwijst via `sourceRefs` naar minimaal
+  één bestaand segment. Segmenten en refs worden nooit gelogd.
+- **Ontbrekende informatie:** alleen `decisionRelevantGaps` (max. 3), elk met `affects` (geschiktheid, dilemma,
+  leerdoel, doelgroep, richtingkeuze) en `howItChangesTheDecision`.
+- **Keuzelijsten:** maximaal 3 items voor gaps, afbakeningen, richtingen, abstraction notes en sourceCandidates.
+- **`abstractionNotes`:** kenmerken die bij trainingsontwikkeling algemener moeten. Geen privacygate; blokkeert niets.
+- **`sourceCandidates`:** interne kandidaten voor de latere Bron-fase. **Niet zichtbaar in de UI** en nooit als
+  gevalideerde bron of feit gepresenteerd.
+- **Epistemische discipline:** `src/knowledge/controlled-terms.ts` (`controlled-terms/v1`, niet uitputtend).
+  - Een gecontroleerd begrip (wet, meldcode, zorgplicht, beroepscode, kindbescherming, methodiek, diagnose,
+    wilsbekwaamheid, vakterm) mag in gebruikersgerichte velden alleen staan als het letterlijk in de input staat.
+  - `findEpistemicFlags()` markeert overtredingen.
+  - **Zacht in het product:** zichtbaar gemarkeerd ("Niet uit je invoer") en als aantal gelogd, maar de analyse wordt
+    niet ongeldig.
+  - **Hard in de evals:** een treffer is daar een kwaliteitsbevinding.
+- **Prompt:** `src/knowledge/prompts/training-analysis-v2.ts` (`training-analysis/v2`). Verhoog de versie bij elke
+  inhoudelijke wijziging.
+- **Engine:** `TrainingAnalysisServiceV2` (`MockTrainingAnalysisServiceV2`, `ClaudeTrainingAnalysisServiceV2`), gekozen
+  via `CERTUM_ANALYSIS_PROVIDER`. Geen automatische terugval naar de mock en geen model-fallback.
+  - Mock-scenario's: `#blokkeren`, `#ongeschikt`, `#afbakenen` en `#kader` sturen de uitkomst.
+  - Zonder marker geldt per inputsoort: onderwerp → `needs_adjustment`; praktijkvraag → `ready`; casus → `ready` bij
+    een keuzemoment-woord, anders `unsuitable`.
 - Model, effort en limieten staan alleen in `CLAUDE_ANALYSIS_DEFAULTS` (`src/services/analysis/config.ts`). De effort
-  staat voorlopig op `medium`; of `high` aantoonbaar betere analyses geeft, wordt later met een vaste evalset getest.
-- Structured output loopt via de stabiele SDK-route: `client.messages.parse()` met `zodOutputFormat`.
-- **Geen model-fallback.** Weigert Claude een analyse, dan wordt dat een `refusal`-fout via de gewone foutafhandeling;
-  er is geen automatische overstap naar een ander model. Zo staat vast welk model elke analyse maakte. Een fallback
-  (bijv. `fallbacks: "default"`) kan later bewust worden toegevoegd, nadat kwaliteit, privacy en providerbeleid
-  zijn geëvalueerd.
-- Prompt: `src/knowledge/prompts/training-analysis.ts`, provider-onafhankelijk en met een versienummer. Verhoog
-  `TRAINING_ANALYSIS_PROMPT_VERSION` bij elke inhoudelijke wijziging.
-- De UI roept alleen de Server Action `analyzeInput` aan (`src/app/trainings/new/actions.ts`). De UI kent geen
-  provider. Code als `if (provider === "claude")` hoort nergens buiten `services/` te staan.
-- De analyse wordt niet opgeslagen: die leeft alleen in de state van de pagina.
-- `rationale` is een korte uitleg voor de gebruiker, geen opgeslagen interne redenering van een model.
-- Mock-scenario's testen: `#ongeschikt` in de tekst geeft een ongeschikte input; `#blokkeren` in een casus geeft een
-  privacyblokkade.
+  staat voorlopig op `medium`. Structured output loopt via `client.messages.parse()` met `zodOutputFormat`.
+- **Geen model-fallback.** Een refusal wordt een providerneutrale `refusal`-fout. Een fallback kan later bewust
+  worden toegevoegd, nadat kwaliteit, privacy en providerbeleid zijn geëvalueerd.
+- De UI roept alleen de Server Action `analyzeInput` aan. De UI kent geen provider. De analyse wordt niet opgeslagen.
+- `rationale` is een korte uitleg voor de gebruiker, geen opgeslagen interne redenering.
+
+### Analysecontract V1 (historisch, niet meer aangesloten)
+
+`training-analysis/v1` met `InputAnalysisSchema` (`analysis-schema.ts`), de v1-prompt (`training-analysis.ts`) en de
+v1-services staat ongewijzigd in de code en is vastgezet met de git-tag `analysis-v1-baseline`. Het dient als
+referentie voor de baseline-evals. Wijzig deze bestanden niet.
 
 ### Privacy Preflight (niet onderhandelbaar)
 
@@ -165,10 +197,10 @@ src/
     governance/        Tijdelijke data-policy (nu: synthetic_only)
     trainings/         Trainingsprojecten
     cases/             Praktijkcasussen
-    training-agent/    Certum Training Agent (nu alleen types)
+    training-agent/    Certum Training Agent: v1-contract (historisch) en v2/ (actief contract)
   knowledge/           Certum-kennis en methodiek
   services/            Externe koppelingen, elk achter een interface, alleen server-side
-    analysis/          TrainingAnalysisService + mock (later: echte AI-provider)
+    analysis/          TrainingAnalysisService(V2): mock + Claude; v1 historisch naast v2
 ```
 
 Regels:
@@ -205,8 +237,9 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 3, de Training Workspace: klaar.
 - Stap 4, Certum Analyse: klaar.
 - Stap 5, de Claude-provider voor de analyse: klaar. Lokaal kies je tussen mock en claude via `.env.local` (zie hieronder).
-- Stap 6A, de lokale Privacy Preflight V1: klaar. De analyse zelf is nog `training-analysis/v1` (baseline-tag
-  `analysis-v1-baseline`).
+- Stap 6A, de lokale Privacy Preflight V1 en `synthetic_only`: klaar.
+- Stap 6B+C, Analysis Contract V2 en `training-analysis/v2`: gebouwd en getest met mocks. Er is nog geen V2-baseline
+  met Claude.
 
 Routes:
 - `/`: dashboard.

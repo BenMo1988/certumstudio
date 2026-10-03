@@ -5,7 +5,8 @@ import { analyzeInput } from "@/app/trainings/new/actions";
 import type { InputGateRejection } from "@/app/trainings/new/gated-analysis";
 import { ACTIVE_DATA_POLICY, evaluateDataPolicy } from "@/modules/governance";
 import { evaluatePreflightGate, hashPreflightText, runPrivacyPreflight } from "@/modules/privacy";
-import type { AgentInput, AgentInputKind, InputAnalysis } from "@/modules/training-agent";
+import type { AgentInput, AgentInputKind } from "@/modules/training-agent";
+import type { GatedAnalysisResult } from "@/app/trainings/new/gated-analysis";
 import { AnalysisReview } from "./AnalysisReview";
 import { FlowSteps } from "./FlowSteps";
 import { PageHeader } from "./PageHeader";
@@ -29,7 +30,10 @@ export function NewTrainingFlow({ initialKind }: { initialKind?: AgentInputKind 
   const [text, setText] = useState("");
   const [acknowledgedIds, setAcknowledgedIds] = useState<string[]>([]);
   const [syntheticDataAttested, setSyntheticDataAttested] = useState(false);
-  const [result, setResult] = useState<{ input: AgentInput; analysis: InputAnalysis } | null>(null);
+  const [result, setResult] = useState<{
+    input: AgentInput;
+    response: Extract<GatedAnalysisResult, { status: "analysis" }>;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -70,7 +74,7 @@ export function NewTrainingFlow({ initialKind }: { initialKind?: AgentInputKind 
         setError(PREFLIGHT_MESSAGES[response.reason]);
         return;
       }
-      setResult({ input, analysis: response.analysis });
+      setResult({ input, response });
       window.scrollTo({ top: 0 });
     });
   }
@@ -87,9 +91,16 @@ export function NewTrainingFlow({ initialKind }: { initialKind?: AgentInputKind 
         <PageHeader
           eyebrow="Certum Analyse"
           title="Beoordeel de analyse"
-          description="Controleer de analyse en kies een trainingsrichting. Pas daarna wordt de training opgebouwd."
+          description="Controleer de analyse. Alleen een analyse die gereed is levert trainingsrichtingen op; pas na jouw keuze wordt de training opgebouwd."
         />
-        <AnalysisReview input={result.input} analysis={result.analysis} onBack={backToInput} />
+        <AnalysisReview
+          input={result.input}
+          analysis={result.response.analysis}
+          segments={result.response.segments}
+          epistemicFlags={result.response.epistemicFlags}
+          gate={{ preflightPassed: true, syntheticDataAttested: result.response.gate.syntheticDataAttested }}
+          onBack={backToInput}
+        />
       </>
     );
   }

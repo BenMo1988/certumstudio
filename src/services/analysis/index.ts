@@ -1,15 +1,16 @@
 import "server-only";
-import { createTrainingAnalysisService } from "./factory";
-import type { TrainingAnalysisService } from "./training-analysis-service";
+import { createTrainingAnalysisServiceV2 } from "./factory";
+import type { TrainingAnalysisServiceV2 } from "./training-analysis-service-v2";
 
 export { AnalysisError, type AnalysisErrorKind } from "./errors";
 export type { TrainingAnalysisService } from "./training-analysis-service";
+export type { AnalysisRequestV2, TrainingAnalysisServiceV2 } from "./training-analysis-service-v2";
 
 /**
- * De analyse-engine voor de app. Welke implementatie (mock of claude) volgt
- * uit CERTUM_ANALYSIS_PROVIDER; zie config.ts. De rest van de app kent alleen
- * het contract.
+ * De actieve analyse-engine van de app: Analysis Contract V2 (training-analysis/v2).
+ * Welke implementatie (mock of claude) volgt uit CERTUM_ANALYSIS_PROVIDER; zie config.ts.
+ * De v1-implementaties blijven bestaan (createTrainingAnalysisService) maar zijn niet meer aangesloten.
  */
-export function getTrainingAnalysisService(): TrainingAnalysisService {
-  return createTrainingAnalysisService();
+export function getTrainingAnalysisService(): TrainingAnalysisServiceV2 {
+  return createTrainingAnalysisServiceV2();
 }

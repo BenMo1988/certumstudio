@@ -1,13 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { hashPreflightText } from "@/modules/privacy";
-import { MOCK_ANALYSIS_PRAKTIJKVRAAG } from "@/services/analysis/mock/mock-analyses";
+import type { AnalysisRequestV2 } from "@/services/analysis/training-analysis-service-v2";
+import { mockV2Ready } from "@/services/analysis/mock/v2/mock-outcomes";
 import { evalInput } from "../../../../test/eval-inputs";
 
 /*
  * Test op de Server Action zelf (de route die de browser aanroept), met een spion in plaats
  * van de echte analyse-service. Bewijst dat de server de poorten afdwingt, ongeacht de UI.
  */
-const analyze = vi.fn(async () => structuredClone(MOCK_ANALYSIS_PRAKTIJKVRAAG));
+const analyze = vi.fn(async ({ segments }: AnalysisRequestV2) => mockV2Ready(segments));
 const getTrainingAnalysisService = vi.fn(() => ({ analyze }));
 
 vi.mock("@/services/analysis", async () => {

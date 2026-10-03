@@ -14,18 +14,34 @@ import {
   type PreflightCategory,
   type PreflightResult,
 } from "@/modules/privacy";
-import type { AgentInput, InputAnalysis } from "@/modules/training-agent";
-import type { TrainingAnalysisService } from "@/services/analysis/training-analysis-service";
+import type { AgentInput } from "@/modules/training-agent";
+import {
+  ANALYSIS_CONTRACT_VERSION,
+  findEpistemicFlags,
+  segmentInput,
+  type AnalysisOutcome,
+  type AnalysisOutcomeKind,
+  type EpistemicFlag,
+  type SourceSegment,
+} from "@/modules/training-agent/v2";
+import type { TrainingAnalysisServiceV2 } from "@/services/analysis/training-analysis-service-v2";
 
 /** Waarom een invoer niet naar de externe analyse mag: privacypoort of data-policy. */
 export type InputGateRejection = GateRejection | DataPolicyRejection;
 
 export type GatedAnalysisResult =
-  | { status: "analysis"; analysis: InputAnalysis }
+  | {
+      status: "analysis";
+      analysis: AnalysisOutcome;
+      /** Voor weergave van de grounding in de eigen UI van de gebruiker; nooit loggen. */
+      segments: SourceSegment[];
+      epistemicFlags: EpistemicFlag[];
+      gate: { preflightStatus: PreflightResult["status"]; syntheticDataAttested: true };
+    }
   | { status: "preflight"; reason: InputGateRejection; preflight: PreflightResult };
 
-/** Privacyveilige metadata: aantallen per categorie, nooit tekst, waarden, posities of hashes. */
-export type PreflightLogEntry =
+/** Privacyveilige metadata: aantallen en versies, nooit tekst, waarden, posities, hashes, segmenten of refs. */
+export type GateLogEntry =
   | {
       event: "certum.preflight";
       preflightVersion: string;
@@ -41,14 +57,19 @@ export type PreflightLogEntry =
       decision: "allowed" | InputGateRejection;
     }
   | {
-      event: "certum.preflight_miss";
-      preflightMiss: true;
+      event: "certum.analysis_result";
+      contractVersion: string;
+      analysisOutcome: AnalysisOutcomeKind;
       preflightVersion: string;
       preflightStatus: PreflightResult["status"];
+      /** true als de provider blokkeert nadat de lokale preflight doorgang gaf. */
+      preflightMiss: boolean;
+      epistemicFlags: number;
       inputKind: AgentInput["kind"];
+      segmentCount: number;
     };
 
-const defaultLog = (entry: PreflightLogEntry) => console.info(JSON.stringify(entry));
+const defaultLog = (entry: GateLogEntry) => console.info(JSON.stringify(entry));
 
 /**
  * De bindende poorten vóór iedere externe AI-aanroep, in vaste volgorde:
@@ -56,14 +77,14 @@ const defaultLog = (entry: PreflightLogEntry) => console.info(JSON.stringify(ent
  * 2. de actieve data-policy (nu: synthetic_only, voor iedere inputsoort).
  *
  * Beide worden hier altijd opnieuw beoordeeld, ongeacht wat de browser al controleerde.
- * Alleen als beide toestemming geven, wordt de analyse-service aangemaakt en aangeroepen.
+ * Alleen als beide toestemming geven, wordt de input gesegmenteerd en de analyse-service aangemaakt.
  */
 export async function runGatedAnalysis(
   input: AgentInput,
   acknowledgement: PreflightAcknowledgement | null,
   deps: {
-    getService: () => TrainingAnalysisService;
-    log?: (entry: PreflightLogEntry) => void;
+    getService: () => TrainingAnalysisServiceV2;
+    log?: (entry: GateLogEntry) => void;
     policy?: DataProcessingPolicy;
   },
 ): Promise<GatedAnalysisResult> {
@@ -102,17 +123,27 @@ export async function runGatedAnalysis(
     return { status: "preflight", reason: rejection, preflight };
   }
 
-  const analysis = await deps.getService().analyze(input);
+  const segments = segmentInput(input.text);
+  const analysis = await deps.getService().analyze({ input, segments });
+  const epistemicFlags = findEpistemicFlags(analysis, input.text);
 
-  // De provider vond alsnog direct herleidbare gegevens die de lokale preflight miste.
-  if (analysis.privacyAssessment.level === "blokkeren") {
-    log({
-      event: "certum.preflight_miss",
-      preflightMiss: true,
-      preflightVersion: PRIVACY_PREFLIGHT_VERSION,
-      preflightStatus: preflight.status,
-      inputKind: input.kind,
-    });
-  }
-  return { status: "analysis", analysis };
+  log({
+    event: "certum.analysis_result",
+    contractVersion: ANALYSIS_CONTRACT_VERSION,
+    analysisOutcome: analysis.outcome,
+    preflightVersion: PRIVACY_PREFLIGHT_VERSION,
+    preflightStatus: preflight.status,
+    preflightMiss: analysis.outcome === "blocked",
+    epistemicFlags: epistemicFlags.length,
+    inputKind: input.kind,
+    segmentCount: segments.length,
+  });
+
+  return {
+    status: "analysis",
+    analysis,
+    segments,
+    epistemicFlags,
+    gate: { preflightStatus: preflight.status, syntheticDataAttested: true },
+  };
 }
