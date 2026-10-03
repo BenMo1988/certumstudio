@@ -1,4 +1,3 @@
-import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { hashPreflightText, runPrivacyPreflight } from "@/modules/privacy";
 import type { AgentInput, InputAnalysis } from "@/modules/training-agent";
@@ -6,14 +5,8 @@ import {
   MOCK_ANALYSIS_CASUS,
   MOCK_ANALYSIS_CASUS_BLOCKED,
 } from "@/services/analysis/mock/mock-analyses";
+import { evalInput } from "../../../../test/eval-inputs";
 import { runGatedAnalysis, type PreflightLogEntry } from "./gated-analysis";
-
-function evalInput(id: string): string {
-  const dir = "evals/training-analysis/cases";
-  const d = readdirSync(dir).find((x) => x.startsWith(id + "-"))!;
-  const md = readFileSync(`${dir}/${d}/case.md`, "utf8").replace(/\r\n/g, "\n");
-  return md.match(/```text\n([\s\S]*?)\n```/)![1];
-}
 
 /** Spion: telt of de service wordt aangemaakt en of analyze() wordt aangeroepen. */
 function spyDeps(result: InputAnalysis = MOCK_ANALYSIS_CASUS) {
@@ -42,7 +35,7 @@ describe("runGatedAnalysis: blocked input bereikt de provider nooit", () => {
   });
 
   it("review_required zonder bevestiging: geen provider-aanroep", async () => {
-    const text = evalInput("CA-011");
+    const text = evalInput("PP-003");
     const { deps, analyze, getService } = spyDeps();
     const result = await runGatedAnalysis({ kind: "casus", text }, null, deps);
     expect(result).toMatchObject({ status: "preflight", reason: "review_required" });
@@ -51,7 +44,7 @@ describe("runGatedAnalysis: blocked input bereikt de provider nooit", () => {
   });
 
   it("review bevestigd maar casus zonder attestatie: geen provider-aanroep", async () => {
-    const text = evalInput("CA-011");
+    const text = evalInput("PP-003");
     const { deps, analyze } = spyDeps();
     const result = await runGatedAnalysis(
       { kind: "casus", text },
@@ -63,7 +56,7 @@ describe("runGatedAnalysis: blocked input bereikt de provider nooit", () => {
   });
 
   it("bevestiging van een eerdere versie van de tekst is ongeldig: geen provider-aanroep", async () => {
-    const original = evalInput("CA-011");
+    const original = evalInput("PP-003");
     const changed = original.replace("broertje", "zusje");
     const { deps, analyze } = spyDeps();
     const result = await runGatedAnalysis(
@@ -75,17 +68,17 @@ describe("runGatedAnalysis: blocked input bereikt de provider nooit", () => {
     expect(analyze).not.toHaveBeenCalled();
   });
 
-  it("CA-009 (safe) zonder attestatie: geen provider-aanroep", async () => {
+  it("PP-001 (safe) zonder attestatie: geen provider-aanroep", async () => {
     const { deps, analyze } = spyDeps();
-    const result = await runGatedAnalysis({ kind: "casus", text: evalInput("CA-009") }, null, deps);
+    const result = await runGatedAnalysis({ kind: "casus", text: evalInput("PP-001") }, null, deps);
     expect(result).toMatchObject({ status: "preflight", reason: "attestation_required" });
     expect(analyze).not.toHaveBeenCalled();
   });
 });
 
 describe("runGatedAnalysis: geldige doorgang", () => {
-  it("CA-011 met bevestiging en attestatie: precies één aanroep met exact de tekst", async () => {
-    const text = evalInput("CA-011");
+  it("PP-003 met bevestiging en attestatie: precies één aanroep met exact de tekst", async () => {
+    const text = evalInput("PP-003");
     const { deps, analyze } = spyDeps();
     const result = await runGatedAnalysis(
       { kind: "casus", text },
@@ -97,8 +90,8 @@ describe("runGatedAnalysis: geldige doorgang", () => {
     expect(analyze).toHaveBeenCalledWith({ kind: "casus", text });
   });
 
-  it("CA-010 (praktijkvraag) na bevestiging van de datum: door, zonder attestatie", async () => {
-    const text = evalInput("CA-010");
+  it("PP-002 (praktijkvraag) na bevestiging van de datum: door, zonder attestatie", async () => {
+    const text = evalInput("PP-002");
     const { deps, analyze } = spyDeps();
     const result = await runGatedAnalysis(
       { kind: "praktijkvraag", text },
@@ -134,7 +127,7 @@ describe("runGatedAnalysis: logging", () => {
   });
 
   it("logt preflightMiss als de provider na een geslaagde preflight alsnog blokkeert", async () => {
-    const text = evalInput("CA-009");
+    const text = evalInput("PP-001");
     const { deps, logs } = spyDeps(MOCK_ANALYSIS_CASUS_BLOCKED);
     const result = await runGatedAnalysis({ kind: "casus", text }, await ackFor(text, [], true), deps);
 

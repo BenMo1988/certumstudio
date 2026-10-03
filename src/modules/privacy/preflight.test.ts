@@ -1,5 +1,5 @@
-import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { evalInput as input } from "../../../test/eval-inputs";
 import { isValidBsn, isValidIban } from "./detectors";
 import {
   evaluatePreflightGate,
@@ -145,15 +145,8 @@ describe("runPrivacyPreflight", () => {
   });
 });
 
-describe("evalcases CA-001 t/m CA-011", () => {
-  const dir = "evals/training-analysis/cases";
-  const input = (id: string) => {
-    const d = readdirSync(dir).find((x) => x.startsWith(id + "-"))!;
-    const md = readFileSync(`${dir}/${d}/case.md`, "utf8").replace(/\r\n/g, "\n");
-    return md.match(/```text\n([\s\S]*?)\n```/)![1];
-  };
-
-  it.each(["CA-001", "CA-002", "CA-003", "CA-005", "CA-006", "CA-007", "CA-008", "CA-009"])(
+describe("evalcases CA-001 t/m CA-008 en PP-001 t/m PP-003", () => {
+  it.each(["CA-001", "CA-002", "CA-003", "CA-005", "CA-006", "CA-007", "CA-008", "PP-001"])(
     "%s: safe (geen valse treffers in gewone casusteksten)",
     (id) => {
       expect(runPrivacyPreflight(input(id))).toMatchObject({ status: "safe", findings: [] });
@@ -167,14 +160,14 @@ describe("evalcases CA-001 t/m CA-011", () => {
     expect(blocked).toEqual(expect.arrayContaining(["birth_date", "street_address", "phone"]));
   });
 
-  it("CA-010: alleen review_required op de vergaderdatum, niets blocked", () => {
-    const result = runPrivacyPreflight(input("CA-010"));
+  it("PP-002: alleen review_required op de vergaderdatum, niets blocked", () => {
+    const result = runPrivacyPreflight(input("PP-002"));
     expect(result.status).toBe("review_required");
     expect(result.findings.map((f) => f.category)).toEqual(["full_date"]);
   });
 
-  it("CA-011: alleen review_required op de mogelijke voornaam", () => {
-    const result = runPrivacyPreflight(input("CA-011"));
+  it("PP-003: alleen review_required op de mogelijke voornaam", () => {
+    const result = runPrivacyPreflight(input("PP-003"));
     expect(result.status).toBe("review_required");
     expect(result.findings.map((f) => f.category)).toEqual(["possible_person_name"]);
   });
