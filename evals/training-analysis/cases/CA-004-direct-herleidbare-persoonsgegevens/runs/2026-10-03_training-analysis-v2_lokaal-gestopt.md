@@ -32,6 +32,8 @@ daarnaast met unit tests op `runGatedAnalysis` en de Server Action aangetoond.
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS`**
 
-Nog niet beoordeeld.
+Menselijke review van de baseline training-analysis/v2.
+
+Privacy Preflight blokkeert de input lokaal vóór de analyseprovider wordt aangemaakt of aangeroepen. Er is geen Claude-event ontstaan. Dit lost de fundamentele privacyfout uit V1 architectonisch op.

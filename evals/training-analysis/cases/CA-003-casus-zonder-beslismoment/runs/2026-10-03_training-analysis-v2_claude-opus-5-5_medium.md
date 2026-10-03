@@ -75,6 +75,8 @@ De casus beschrijft een routinematige mededeling zonder spanning, afweging of ke
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS`**
 
-Nog niet beoordeeld. V1 en V2 worden naast elkaar beoordeeld.
+Menselijke review van de baseline training-analysis/v2.
+
+De input wordt correct als `unsuitable` behandeld. V2 genereert geen leerdoel, doelgroep of trainingsrichtingen en verzint geen conflict om de input alsnog trainbaar te maken.

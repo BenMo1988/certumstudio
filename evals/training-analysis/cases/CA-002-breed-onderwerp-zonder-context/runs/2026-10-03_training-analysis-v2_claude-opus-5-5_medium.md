@@ -94,6 +94,8 @@ Omgaan met weerstand heeft duidelijke leerpotentie, maar de input is nu een los 
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS`**
 
-Nog niet beoordeeld. V1 en V2 worden naast elkaar beoordeeld.
+Menselijke review van de baseline training-analysis/v2.
+
+De brede input wordt correct geclassificeerd als `needs_adjustment`. Er worden geen trainingsrichtingen gegenereerd. De afbakeningen zijn expliciet voorstellen en worden niet als feiten over de oorspronkelijke situatie gepresenteerd. Daarmee doet deze outcome wat het contract beoogt.

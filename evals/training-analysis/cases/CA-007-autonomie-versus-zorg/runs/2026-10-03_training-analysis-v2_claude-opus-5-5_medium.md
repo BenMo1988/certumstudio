@@ -110,6 +110,8 @@ Niet zichtbaar in de UI. Kandidaten voor de latere Bron-fase; **geen gevalideerd
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS`**
 
-Nog niet beoordeeld. V1 en V2 worden naast elkaar beoordeeld.
+Menselijke review van de baseline training-analysis/v2.
+
+De autonomie van de cliënt blijft leidend zonder paternalistische of diagnostische aannames. Gemiste afspraken worden feitelijk benoemd en niet gebruikt als bewijs van onvermogen of een structuurprobleem.

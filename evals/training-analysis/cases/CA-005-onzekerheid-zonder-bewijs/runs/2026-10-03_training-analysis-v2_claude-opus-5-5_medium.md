@@ -112,6 +112,8 @@ Niet zichtbaar in de UI. Kandidaten voor de latere Bron-fase; **geen gevalideerd
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS`**
 
-Nog niet beoordeeld. V1 en V2 worden naast elkaar beoordeeld.
+Menselijke review van de baseline training-analysis/v2.
+
+De analyse bewaart de onzekerheid uit de input, introduceert geen oorzaak en gebruikt zorgplicht niet als ongefundeerd kader. Aanvullende mogelijkheden worden als vragen geformuleerd in plaats van als feiten.

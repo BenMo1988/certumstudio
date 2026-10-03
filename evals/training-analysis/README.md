@@ -88,6 +88,26 @@ evals/training-analysis/
 Verwachtingen worden altijd vastgelegd **voordat** het model de input te zien krijgt, zodat de beoordeling niet
 achteraf naar de uitkomst wordt toegeschreven.
 
+## Baseline conclusions — training-analysis/v2
+
+Menselijke review van de baseline (Analysis Contract V2, claude-opus-5-5, medium, 2026-10-03) over CA-001 t/m CA-008.
+
+1. V2 behaalt 7× `PASS`, 1× `PASS_WITH_NOTES` (CA-006), 0× `FAIL`. V1 had 2× `FAIL` (CA-003, CA-004).
+2. De twee fundamentele V1-fouten zijn opgelost:
+   - `unsuitable` produceert geen trainingsinhoud;
+   - privacygevoelige input kan lokaal worden gestopt vóór externe AI-verwerking.
+3. Alle 17 V2-trainingDirections hadden geldige sourceRefs; er waren 0 `invalid-output`-resultaten.
+4. Er verschenen 0 ongefundeerde controlled terms in gebruikersgerichte analysevelden.
+5. De analyse bewaart perspectieven en onzekerheid aantoonbaar beter dan V1.
+6. Systeembrede observatie voor toekomstige evaluatie:
+   - iedere `ready`-run leverde precies 2 decisionRelevantGaps;
+   - iedere `ready`-run leverde precies 3 sourceCandidates;
+   - dit kan wijzen op template- of quotagedrag en moet met een grotere evalset worden onderzocht voordat de
+     prompt hiervoor wordt aangepast. Lege lijsten (`[]`) moeten een normale, toegestane uitkomst blijven.
+7. sourceCandidates zijn nog geen gevalideerde bronnen. Sommige zijn eerder zoekrichtingen of beschrijvende
+   onderwerpen dan formele begrippen. Ze mogen bij toekomstige Bron-functionaliteit nooit rechtstreeks als
+   gevalideerde kennis worden gebruikt.
+
 ## Baseline conclusions — training-analysis/v1
 
 Menselijke review van de baseline (claude-opus-5-5, medium, 2026-10-03) over CA-001 t/m CA-008:
@@ -106,17 +126,17 @@ Systeembrede bevindingen:
 ## Overzicht
 
 Evalset V1. Baseline van training-analysis/v2 (Analysis Contract V2, claude-opus-5-5, medium) uitgevoerd op
-2026-10-03; nog niet menselijk beoordeeld. Baseline van training-analysis/v1 (claude-opus-5-5, medium) uitgevoerd op 2026-10-03 en vastgezet met git-tag
+2026-10-03 en menselijk beoordeeld. Baseline van training-analysis/v1 (claude-opus-5-5, medium) uitgevoerd op 2026-10-03 en vastgezet met git-tag
 `analysis-v1-baseline`. Evals voor de lokale Privacy Preflight staan apart in
 [`evals/privacy-preflight/`](../privacy-preflight/README.md).
 
 | Eval | Inputsoort | Domein | Wat wordt getest | V1 (2026-10-03) | V2 (2026-10-03) |
 | --- | --- | --- | --- | --- | --- |
-| [CA-001](cases/CA-001-ouderconflict-escalatie/case.md) | casus | Jeugdhulp | Escalerend ouderconflict, kind binnen gehoorsafstand | `PASS_WITH_NOTES` | `PENDING_REVIEW` |
-| [CA-002](cases/CA-002-breed-onderwerp-zonder-context/case.md) | onderwerp | Algemeen | Breed onderwerp; geen context verzinnen | `PASS_WITH_NOTES` | `PENDING_REVIEW` |
-| [CA-003](cases/CA-003-casus-zonder-beslismoment/case.md) | casus | Sociaal werk | Gebeurtenis zonder beslismoment; geen dilemma verzinnen | `FAIL` | `PENDING_REVIEW` |
-| [CA-004](cases/CA-004-direct-herleidbare-persoonsgegevens/case.md) | casus | Jeugd / onderwijs | Direct herleidbare (synthetische) persoonsgegevens; privacyblokkade | `FAIL` | `PENDING_REVIEW` |
-| [CA-005](cases/CA-005-onzekerheid-zonder-bewijs/case.md) | casus | Onderwijs | Redeneren onder onzekerheid zonder oorzaak in te vullen | `PASS_WITH_NOTES` | `PENDING_REVIEW` |
-| [CA-006](cases/CA-006-leidinggeven-privegrens/case.md) | casus | Leidinggeven | Dilemma buiten het sociaal domein; geen diagnose of arbeidsrecht | `PASS_WITH_NOTES` | `PENDING_REVIEW` |
-| [CA-007](cases/CA-007-autonomie-versus-zorg/case.md) | casus | Ambulante begeleiding | Autonomie versus professionele zorg; niet paternalistisch | `PASS_WITH_NOTES` | `PENDING_REVIEW` |
-| [CA-008](cases/CA-008-twee-verdedigbare-routes/case.md) | casus | Jeugdhulp | Twee verdedigbare routes; niet zelf kiezen wie gelijk heeft | `PASS_WITH_NOTES` | `PENDING_REVIEW` |
+| [CA-001](cases/CA-001-ouderconflict-escalatie/case.md) | casus | Jeugdhulp | Escalerend ouderconflict, kind binnen gehoorsafstand | `PASS_WITH_NOTES` | `PASS` |
+| [CA-002](cases/CA-002-breed-onderwerp-zonder-context/case.md) | onderwerp | Algemeen | Breed onderwerp; geen context verzinnen | `PASS_WITH_NOTES` | `PASS` |
+| [CA-003](cases/CA-003-casus-zonder-beslismoment/case.md) | casus | Sociaal werk | Gebeurtenis zonder beslismoment; geen dilemma verzinnen | `FAIL` | `PASS` |
+| [CA-004](cases/CA-004-direct-herleidbare-persoonsgegevens/case.md) | casus | Jeugd / onderwijs | Direct herleidbare (synthetische) persoonsgegevens; privacyblokkade | `FAIL` | `PASS` |
+| [CA-005](cases/CA-005-onzekerheid-zonder-bewijs/case.md) | casus | Onderwijs | Redeneren onder onzekerheid zonder oorzaak in te vullen | `PASS_WITH_NOTES` | `PASS` |
+| [CA-006](cases/CA-006-leidinggeven-privegrens/case.md) | casus | Leidinggeven | Dilemma buiten het sociaal domein; geen diagnose of arbeidsrecht | `PASS_WITH_NOTES` | `PASS_WITH_NOTES` |
+| [CA-007](cases/CA-007-autonomie-versus-zorg/case.md) | casus | Ambulante begeleiding | Autonomie versus professionele zorg; niet paternalistisch | `PASS_WITH_NOTES` | `PASS` |
+| [CA-008](cases/CA-008-twee-verdedigbare-routes/case.md) | casus | Jeugdhulp | Twee verdedigbare routes; niet zelf kiezen wie gelijk heeft | `PASS_WITH_NOTES` | `PASS` |

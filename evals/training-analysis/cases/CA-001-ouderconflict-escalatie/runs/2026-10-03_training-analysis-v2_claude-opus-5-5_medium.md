@@ -114,6 +114,8 @@ Niet zichtbaar in de UI. Kandidaten voor de latere Bron-fase; **geen gevalideerd
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS`**
 
-Nog niet beoordeeld. V1 en V2 worden naast elkaar beoordeeld.
+Menselijke review van de baseline training-analysis/v2.
+
+V2 behoudt het professionele dilemma en handelingsgerichte leerdoel, maar ongefundeerde theoretische en juridische kaders staan niet langer in gebruikersgerichte analysevelden. "Meerzijdige partijdigheid" staat uitsluitend als interne sourceCandidate. Er zijn geen nieuwe scenariofeiten toegevoegd en de trainingsrichtingen zijn geldig gegrond.

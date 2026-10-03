@@ -111,6 +111,12 @@ Niet zichtbaar in de UI. Kandidaten voor de latere Bron-fase; **geen gevalideerd
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS_WITH_NOTES`**
 
-Nog niet beoordeeld. V1 en V2 worden naast elkaar beoordeeld.
+Menselijke review van de baseline training-analysis/v2.
+
+De analyse blijft correct in het domein van leidinggeven, zonder diagnose, arbeidsrechtelijke conclusie of verzonnen teamreacties.
+
+### Aandachtspunt
+
+- Eén trainingsrichting verschuift enigszins naar een vervolgfase van de situatie (het breder aankaarten/communiceren) in plaats van uitsluitend het bestaande beslismoment te verdiepen. Dit is geen reden om V2 nu aan te passen, maar moet bij toekomstige scenario-ontwikkeling worden bewaakt.
