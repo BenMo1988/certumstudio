@@ -10,6 +10,11 @@ import { ClaudeTrainingAnalysisServiceV2 } from "./claude/claude-training-analys
 import { withAnalysisLoggingV2 } from "./logging-v2";
 import { MockTrainingAnalysisServiceV2 } from "./mock/v2/mock-training-analysis-service-v2";
 import type { TrainingAnalysisServiceV2 } from "./training-analysis-service-v2";
+import { TRAINING_ANALYSIS_V21_PROMPT_VERSION } from "@/knowledge/prompts/training-analysis-v2-1";
+import { ANALYSIS_CONTRACT_V21_VERSION } from "@/modules/training-agent/v2-1";
+import { ClaudeTrainingAnalysisServiceV21 } from "./claude/claude-training-analysis-service-v2-1";
+import { MockTrainingAnalysisServiceV21 } from "./mock/v2-1/mock-training-analysis-service-v2-1";
+import type { TrainingAnalysisServiceV21 } from "./training-analysis-service-v2-1";
 
 /**
  * Kiest de implementatie op basis van de configuratie. Gooit een
@@ -51,6 +56,29 @@ export function createTrainingAnalysisServiceV2(env?: Record<string, string | un
         provider: "claude",
         model: settings.model,
         effort: settings.effort,
+      });
+    }
+  }
+}
+
+/**
+ * Analysis Contract V2.1: zelfde configuratie (CERTUM_ANALYSIS_PROVIDER, CLAUDE_ANALYSIS_DEFAULTS), eigen prompt en
+ * contractversie. Ook hier geen automatische terugval van Claude naar mock.
+ */
+export function createTrainingAnalysisServiceV21(env?: Record<string, string | undefined>): TrainingAnalysisServiceV21 {
+  const config = readAnalysisConfig(env);
+  const versions = { promptVersion: TRAINING_ANALYSIS_V21_PROMPT_VERSION, contractVersion: ANALYSIS_CONTRACT_V21_VERSION };
+  switch (config.provider) {
+    case "mock":
+      return withAnalysisLoggingV2(new MockTrainingAnalysisServiceV21(), { provider: "mock", ...versions });
+    case "claude": {
+      const { apiKey, ...settings } = config.claude;
+      const client = createClaudeClient({ apiKey, ...settings });
+      return withAnalysisLoggingV2(new ClaudeTrainingAnalysisServiceV21(client, settings), {
+        provider: "claude",
+        model: settings.model,
+        effort: settings.effort,
+        ...versions,
       });
     }
   }

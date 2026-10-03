@@ -1,9 +1,9 @@
 import { TRAINING_ANALYSIS_V2_PROMPT_VERSION } from "@/knowledge/prompts/training-analysis-v2";
 import type { AgentInput } from "@/modules/training-agent";
-import { ANALYSIS_CONTRACT_VERSION, type AnalysisOutcomeKind } from "@/modules/training-agent/v2";
+import { ANALYSIS_CONTRACT_VERSION, type AnalysisOutcome, type AnalysisOutcomeKind } from "@/modules/training-agent/v2";
 import { AnalysisError, type AnalysisErrorKind } from "./errors";
 import type { AnalysisServiceInfo } from "./logging";
-import type { TrainingAnalysisServiceV2 } from "./training-analysis-service-v2";
+import type { AnalysisRequestV2 } from "./training-analysis-service-v2";
 
 /**
  * Privacyveilige logregel voor een V2-analyse-aanroep: alleen technische metadata.
@@ -23,6 +23,26 @@ export interface AnalysisLogEntryV2 {
   outcome: "success" | "error";
   errorKind?: AnalysisErrorKind | "unknown";
   analysisOutcome?: AnalysisOutcomeKind;
+  /** Alleen bij V2.1: aantal ready-richtingen per routebeleid. Nooit titels, focus of leerdoelen. */
+  openChoiceDirections?: number;
+  prescribedActionDirections?: number;
+}
+
+/** Versies van de engine; standaard Analysis Contract V2 met training-analysis/v2. */
+export interface AnalysisVersionInfo {
+  promptVersion?: string;
+  contractVersion?: string;
+}
+
+/** Telt het routebeleid van ready-richtingen (V2.1); undefined als de richtingen geen routebeleid hebben. */
+function countRoutePolicies(outcome: AnalysisOutcome) {
+  if (outcome.outcome !== "ready") return {};
+  const policies = outcome.trainingDirections.map((d) => (d as { routePolicy?: string }).routePolicy);
+  if (policies.some((p) => p === undefined)) return {};
+  return {
+    openChoiceDirections: policies.filter((p) => p === "open_choice").length,
+    prescribedActionDirections: policies.filter((p) => p === "prescribed_action").length,
+  };
 }
 
 type Logger = (entry: AnalysisLogEntryV2) => void;
@@ -33,12 +53,12 @@ const defaultLogger: Logger = (entry) => {
   else console.info(line);
 };
 
-/** Wikkelt iedere V2-implementatie in dezelfde metadata-logging. */
-export function withAnalysisLoggingV2(
-  service: TrainingAnalysisServiceV2,
-  info: AnalysisServiceInfo,
+/** Wikkelt iedere V2- en V2.1-implementatie in dezelfde metadata-logging. */
+export function withAnalysisLoggingV2<O extends AnalysisOutcome>(
+  service: { analyze(request: AnalysisRequestV2): Promise<O> },
+  info: AnalysisServiceInfo & AnalysisVersionInfo,
   log: Logger = defaultLogger,
-): TrainingAnalysisServiceV2 {
+): { analyze(request: AnalysisRequestV2): Promise<O> } {
   return {
     async analyze(request) {
       const startedAt = performance.now();
@@ -47,8 +67,8 @@ export function withAnalysisLoggingV2(
         provider: info.provider,
         ...(info.model && { model: info.model }),
         ...(info.effort && { effort: info.effort }),
-        promptVersion: TRAINING_ANALYSIS_V2_PROMPT_VERSION,
-        contractVersion: ANALYSIS_CONTRACT_VERSION,
+        promptVersion: info.promptVersion ?? TRAINING_ANALYSIS_V2_PROMPT_VERSION,
+        contractVersion: info.contractVersion ?? ANALYSIS_CONTRACT_VERSION,
         inputKind: request.input.kind,
         inputLength: request.input.text.length,
         segmentCount: request.segments.length,
@@ -60,6 +80,7 @@ export function withAnalysisLoggingV2(
           durationMs: Math.round(performance.now() - startedAt),
           outcome: "success",
           analysisOutcome: outcome.outcome,
+          ...countRoutePolicies(outcome),
         });
         return outcome;
       } catch (error) {

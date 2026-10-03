@@ -86,6 +86,8 @@ export async function runGatedAnalysis(
     getService: () => TrainingAnalysisServiceV2;
     log?: (entry: GateLogEntry) => void;
     policy?: DataProcessingPolicy;
+    /** Contractversie van de engine voor de metadata-log; standaard analysis-contract/v2. */
+    contractVersion?: string;
   },
 ): Promise<GatedAnalysisResult> {
   const log = deps.log ?? defaultLog;
@@ -129,7 +131,7 @@ export async function runGatedAnalysis(
 
   log({
     event: "certum.analysis_result",
-    contractVersion: ANALYSIS_CONTRACT_VERSION,
+    contractVersion: deps.contractVersion ?? ANALYSIS_CONTRACT_VERSION,
     analysisOutcome: analysis.outcome,
     preflightVersion: PRIVACY_PREFLIGHT_VERSION,
     preflightStatus: preflight.status,

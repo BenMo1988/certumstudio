@@ -33,6 +33,7 @@ import {
   type TrainingBlueprintV2,
 } from "@/modules/training-blueprint/v2";
 import type { ReadyOutcome, SourceSegment } from "@/modules/training-agent/v2";
+import { AnalysisOutcomeV21Schema, toV2Outcome } from "@/modules/training-agent/v2-1";
 import type {
   BlockPlanService,
   TrainingBlueprintService,
@@ -164,9 +165,12 @@ async function runGatedBlueprintFlow<B extends { ambiguity: TrainingBlueprint["a
   const syntheticDataAttested = evaluateDataPolicy(ACTIVE_DATA_POLICY, ackForThisText?.syntheticDataAttested === true).allowed;
   if (!preflightPassed || !syntheticDataAttested) return reject("input_gate");
 
-  const parsed = AnalysisOutcomeSchema.safeParse(analysisCandidate);
+  // Een V2.1-analyse (actief) of een V2-analyse; V2.1 is V2 plus routePolicy, dat de Blueprint (nog) niet leest.
+  const v21 = AnalysisOutcomeV21Schema.safeParse(analysisCandidate);
+  const parsed = v21.success ? v21 : AnalysisOutcomeSchema.safeParse(analysisCandidate);
   if (!parsed.success) return reject("invalid_analysis");
-  const analysis = parsed.data;
+  // De poort en de Blueprint werken met de V2-weergave (zonder routePolicy); dezelfde V2-invarianten gelden.
+  const analysis = v21.success ? toV2Outcome(v21.data) : parsed.data;
   const segments = segmentInput(input.text);
   if (checkOutcomeInvariants(analysis, segments).length > 0) return reject("invalid_analysis");
 

@@ -2,6 +2,7 @@
 
 import { parsePreflightAcknowledgement } from "@/modules/privacy";
 import { MAX_INPUT_LENGTH, parseInputKind } from "@/modules/training-agent";
+import { ANALYSIS_CONTRACT_V21_VERSION } from "@/modules/training-agent/v2-1";
 import { AnalysisError, getTrainingAnalysisService, type AnalysisErrorKind } from "@/services/analysis";
 import { runGatedAnalysis, type GatedAnalysisResult } from "./gated-analysis";
 
@@ -19,7 +20,7 @@ const USER_MESSAGES: Partial<Record<AnalysisErrorKind, string>> = {
 export type AnalyzeInputResult = GatedAnalysisResult | { status: "error"; error: string };
 
 /**
- * Voert Certum Analyse (Analysis Contract V2) uit, maar alleen na de lokale Privacy Preflight en
+ * Voert Certum Analyse (Analysis Contract V2.1) uit, maar alleen na de lokale Privacy Preflight en
  * de actieve data-policy (synthetic_only). Slaat niets op.
  *
  * Server Functions zijn via een directe POST bereikbaar, dus alle invoer, inclusief de
@@ -50,7 +51,7 @@ export async function analyzeInput(
     return await runGatedAnalysis(
       { kind: inputKind, text: trimmed },
       parsePreflightAcknowledgement(acknowledgement),
-      { getService: getTrainingAnalysisService },
+      { getService: getTrainingAnalysisService, contractVersion: ANALYSIS_CONTRACT_V21_VERSION },
     );
   } catch (error) {
     // Details staan al in de metadata-log van de service; hier alleen een veilige melding.

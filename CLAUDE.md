@@ -68,7 +68,24 @@ Vaste flow:
 - **De Analyse beschrijft wat er professioneel gebeurt.** Welke theorie, methodiek, richtlijn of wetgeving erbij
   hoort, bepaalt later de Bron-fase.
 
-### Analysecontract V2 (actief)
+### Analysis Direction V2.1 (actief)
+
+Kleine opvolger van V2: `analysis-contract/v2.1` (`modules/training-agent/v2-1/`) en prompt `training-analysis/v2.1`.
+V2 blijft ongewijzigd en reproduceerbaar (tag `analysis-v2-baseline`), maar is niet meer aangesloten.
+
+- **Enige wijziging:** iedere `ready.trainingDirections[]` heeft `routePolicy`: `open_choice` (meerdere
+  handelingsroutes verdedigbaar; beoordeling op afweging, aansluiting op de situatie, onderbouwing, proportionaliteit,
+  consequenties en uitvoering) of `prescribed_action` (één handelingslijn normatief of inhoudelijk leidend). Zelfde
+  waarden en betekenis als het routebeleid in Blueprint Contract V2. Een ontwerpclassificatie, geen bronfeit.
+- **Schema:** afgeleid van V2 met `.extend()`; blocked, unsuitable en needs_adjustment zijn exact de V2-schema's.
+  `checkOutcomeInvariantsV21` controleert het V2.1-schema en draait daarna exact de V2-invarianten.
+- **Prompt:** exact de v2-tekst plus één ingevoegde sectie over routebeleid en de samenhang focus ↔ routePolicy ↔
+  leerdoel (bij `open_choice` een route-neutraal leerdoel). Het voorbeeld is bewust domeinneutraal.
+- **Geen taallinter:** de semantische samenhang wordt via prompt en evals beoordeeld, niet met regexes.
+- Logging: `certum.analysis` heeft bij V2.1 alleen de aantallen `openChoiceDirections` en `prescribedActionDirections`.
+- De Blueprint leest `routePolicy` (nog) niet; de Blueprint-flow accepteert een V2.1- of V2-analyse.
+
+### Analysecontract V2 (baseline, niet meer aangesloten)
 
 - **Contract:** `analysis-contract/v2`, een discriminated union op `outcome`. Zie `src/modules/training-agent/v2/`.
   - `blocked`: alleen het provider-vangnet ná een geslaagde lokale preflight. Het resultaat bevat alleen een reden,
@@ -252,7 +269,7 @@ src/
     governance/        Tijdelijke data-policy (nu: synthetic_only)
     trainings/         Trainingsprojecten
     cases/             Praktijkcasussen
-    training-agent/    Certum Training Agent: v1-contract (historisch) en v2/ (actief contract)
+    training-agent/    Certum Training Agent: v1-contract (historisch), v2/ (baseline) en v2-1/ (actief)
     training-blueprint/ Training Blueprint: V1-contract (baseline), v2/ (actief), invarianten, goedkeuringsgates
     block-plan/        BC Online Block Plan V1: contract en invarianten
   knowledge/           Certum-kennis en methodiek; platform/ bevat de BC Online-blokcatalogus
@@ -300,7 +317,8 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 7, Training Blueprint V1 en BC Online Block Plan V1: fundering klaar, alleen met mocks.
 - Stap 8A, Claude-provider voor de Training Blueprint: klaar.
 - Stap 8B, BP-baseline met `training-blueprint/v1`: klaar en beoordeeld (1 PASS, 1 PASS_WITH_NOTES, 1 FAIL).
-- Stap 8C, Blueprint Contract V2 en `training-blueprint/v2`: gebouwd en getest met mocks. Nog geen V2-baseline.
+- Stap 8C, Blueprint Contract V2 en `training-blueprint/v2`: klaar en beoordeeld (2 PASS, 1 PASS_WITH_NOTES); gesloten.
+- Analysis Direction V2.1 (`routePolicy` op trainingsrichtingen): gebouwd en getest met mocks. Nog geen V2.1-baseline.
 
 Routes:
 - `/`: dashboard.
