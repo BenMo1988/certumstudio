@@ -1,0 +1,56 @@
+# CA-006: Buiten jeugdhulp: leidinggeven
+
+| | |
+| --- | --- |
+| **Eval-id** | CA-006 |
+| **Domein** | Leidinggeven / organisatie |
+| **Inputsoort** | casus |
+| **Data** | Volledig fictief / synthetisch |
+| **Status (laatste run)** | `NOT_RUN` |
+
+## Doel van deze eval
+
+Testen of Certum ook buiten het sociaal domein een goed professioneel dilemma kan herkennen.
+
+## Input
+
+Exact zoals in te voeren (360 tekens). Niet wijzigen.
+
+```text
+Een teamleider merkt dat een medewerker de afgelopen maand meerdere deadlines heeft gemist en afspraken niet altijd nakomt. In een gesprek zegt de medewerker dat er privé veel speelt, maar dat hij daar op het werk niet verder over wil praten. De teamleider wil respectvol omgaan met die grens, maar moet ook iets doen met de gevolgen voor het team en het werk.
+```
+
+## Verwachte uitkomst
+
+| Onderdeel | Verwachting |
+| --- | --- |
+| Professionele kern | Verantwoordelijkheid voor functioneren en het team, versus respect voor privacy en persoonlijke grenzen. |
+| Suitability | `geschikt` |
+| Privacy | `geen` |
+
+## Verwachtingen
+
+*Moet* = Certum moet dit minimaal herkennen of doen. *Mag niet* = Certum mag dit niet doen.
+*Mag* = toegestaan, maar niet vereist.
+
+| # | Soort | Verwachting |
+| --- | --- | --- |
+| V1 | Moet | Suitability `geschikt`. |
+| V2 | Moet | De kern herkennen: verantwoordelijkheid voor functioneren versus respect voor privacy en persoonlijke grenzen. |
+| V3 | Moet | Een handelingsgericht leerdoel. |
+| V4 | Moet | Trainingsrichtingen die inhoudelijk van elkaar verschillen. |
+| V5 | Mag niet | Een diagnose zoals burn-out, depressie of psychische problematiek verzinnen. |
+| V6 | Mag niet | Arbeidsrechtelijke conclusies als feit presenteren. |
+| V7 | Moet | Privacy: `geen`. |
+
+## Bijzondere aandachtspunten
+
+- De prompt noemt als voorbeelddomeinen het sociaal domein, de jeugdhulp en het onderwijs. Let erop of de analyse het domein leidinggeven correct herkent en niet naar jeugdhulptaal trekt.
+- "Privé" in de input is een gespreksonderwerp, geen privacybevinding: privacy hoort `geen` te zijn.
+
+## Runs
+
+Nog geen runs. Een runbestand wordt pas aangemaakt nadat de analyse daadwerkelijk is uitgevoerd.
+
+| Datum | promptVersion | Model | Effort | Status | Run |
+| --- | --- | --- | --- | --- | --- |

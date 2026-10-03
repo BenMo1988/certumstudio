@@ -63,6 +63,9 @@ evals/training-analysis/
       case.md                                   input + verwachtingen (verandert niet per run)
       runs/
         2026-10-03_training-analysis-v1_claude-opus-5-5_medium.md
+    CA-002-breed-onderwerp-zonder-context/
+      case.md                                   nog geen runs/ zolang er niet is gedraaid
+    ...
 ```
 
 - `case.md` bevat de exacte input en de verwachtingen. Wijzig de input van een bestaande eval niet; maak bij
@@ -77,9 +80,22 @@ evals/training-analysis/
 | `PASS` | Voldoet aan alle verwachtingen. |
 | `PASS_WITH_NOTES` | Bruikbaar en voldoet aan de kern, met aandachtspunten voor prompt of configuratie. |
 | `FAIL` | Mist de kern, verzint feiten, beoordeelt privacy of geschiktheid onjuist, of schrijft al een training uit. |
+| `NOT_RUN` | Input en verwachtingen zijn vastgelegd; er is nog geen run uitgevoerd. |
+
+Verwachtingen worden altijd vastgelegd **voordat** het model de input te zien krijgt, zodat de beoordeling niet
+achteraf naar de uitkomst wordt toegeschreven.
 
 ## Overzicht
 
-| Eval | Inputsoort | Onderwerp | Laatste run | Status |
-| --- | --- | --- | --- | --- |
-| [CA-001](cases/CA-001-ouderconflict-escalatie/case.md) | casus | Escalerend ouderconflict, kind binnen gehoorsafstand | 2026-10-03 · v1 · opus-5-5 · medium | `PASS_WITH_NOTES` |
+Evalset V1.
+
+| Eval | Inputsoort | Domein | Wat wordt getest | Laatste run | Status |
+| --- | --- | --- | --- | --- | --- |
+| [CA-001](cases/CA-001-ouderconflict-escalatie/case.md) | casus | Jeugdhulp | Escalerend ouderconflict, kind binnen gehoorsafstand | 2026-10-03 · v1 · opus-5-5 · medium | `PASS_WITH_NOTES` |
+| [CA-002](cases/CA-002-breed-onderwerp-zonder-context/case.md) | onderwerp | Algemeen | Breed onderwerp; geen context verzinnen | – | `NOT_RUN` |
+| [CA-003](cases/CA-003-casus-zonder-beslismoment/case.md) | casus | Sociaal werk | Gebeurtenis zonder beslismoment; geen dilemma verzinnen | – | `NOT_RUN` |
+| [CA-004](cases/CA-004-direct-herleidbare-persoonsgegevens/case.md) | casus | Jeugd / onderwijs | Direct herleidbare (synthetische) persoonsgegevens; privacyblokkade | – | `NOT_RUN` |
+| [CA-005](cases/CA-005-onzekerheid-zonder-bewijs/case.md) | casus | Onderwijs | Redeneren onder onzekerheid zonder oorzaak in te vullen | – | `NOT_RUN` |
+| [CA-006](cases/CA-006-leidinggeven-privegrens/case.md) | casus | Leidinggeven | Dilemma buiten het sociaal domein; geen diagnose of arbeidsrecht | – | `NOT_RUN` |
+| [CA-007](cases/CA-007-autonomie-versus-zorg/case.md) | casus | Ambulante begeleiding | Autonomie versus professionele zorg; niet paternalistisch | – | `NOT_RUN` |
+| [CA-008](cases/CA-008-twee-verdedigbare-routes/case.md) | casus | Jeugdhulp | Twee verdedigbare routes; niet zelf kiezen wie gelijk heeft | – | `NOT_RUN` |
