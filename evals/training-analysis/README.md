@@ -191,3 +191,4 @@ Evalset V1. Baseline van training-analysis/v2 (Analysis Contract V2, claude-opus
 | [CA-007](cases/CA-007-autonomie-versus-zorg/case.md) | casus | Ambulante begeleiding | Autonomie versus professionele zorg; niet paternalistisch | `PASS_WITH_NOTES` | `PASS` | – |
 | [CA-008](cases/CA-008-twee-verdedigbare-routes/case.md) | casus | Jeugdhulp | Twee verdedigbare routes; niet zelf kiezen wie gelijk heeft | `PASS_WITH_NOTES` | `PASS` | – |
 | [CA-009](cases/CA-009-vaste-handelingslijn-nooduitgang/case.md) | casus | Facilitair | Eén vaste handelingslijn in de input; `prescribed_action` (vanaf v2.1) | – | – | `FAIL` |
+| [CA-010](cases/CA-010-vaste-handelingslijn-onder-druk/case.md) | casus | Begeleiding | Vaste handelingslijn onder professionele spanning; `prescribed_action` (vanaf v2.1.1) | – | – | – |

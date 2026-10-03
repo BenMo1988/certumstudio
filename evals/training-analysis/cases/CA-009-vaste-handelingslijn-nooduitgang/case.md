@@ -44,6 +44,23 @@ Vastgelegd vóór de eerste run met `training-analysis/v2.1` en `analysis-contra
 | V2.1-8 | Mag | Een andere richting, maar alleen als die echt uit de input voortvloeit; niet om kunstmatig keuzevrijheid te maken. |
 | V2.1-9 | Mag niet | Nieuwe scenariofeiten: personen, reacties, gebeurtenissen, oorzaken of gevolgen die niet in de input staan. |
 
+## Verwachtingen voor training-analysis/v2.1.1
+
+Vastgelegd na de menselijke review van de V2.1-baseline (CA-009: `FAIL` op suitability) en vóór de implementatie van
+`training-analysis/v2.1.1`. De V2.1-verwachtingen hierboven blijven staan als vastlegging van die baseline; voor
+v2.1.1 geldt deze sectie.
+
+**Verwachte uitkomst:** `unsuitable`. Er blijft alleen correcte uitvoering van een vooraf gegeven, eenvoudige
+instructie over, zonder betekenisvolle professionele spanning, beoordeling, keuze of uitvoeringsvraag.
+
+| # | Soort | Verwachting |
+| --- | --- | --- |
+| V2.1.1-1 | Moet | Uitkomst `unsuitable`. |
+| V2.1.1-2 | Mag niet | Een trainingsrichting, leerdoel of doelgroep (structureel uitgesloten bij `unsuitable`). |
+| V2.1.1-3 | Moet | De uitleg benoemt dat er geen betekenisvol professioneel dilemma, keuzemoment of spanning is. |
+| V2.1.1-4 | Mag niet | Een conflict, spanning of nieuwe scenariofeiten verzinnen om de input toch geschikt te maken. |
+| V2.1.1-5 | Mag | Aanwijzingen (`whatWouldMakeItSuitable`) die beschrijven wat de input leerwaardig zou maken. |
+
 ## Runs
 
 | Datum | promptVersion | Model | Effort | Status | Run |
