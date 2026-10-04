@@ -324,8 +324,17 @@ Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
   `approval_integrity_required_before_export` geldt hier evengoed.
 - **Provider:** `CERTUM_BLOCK_CONTENT_PROVIDER` (standaard `mock`, los van de andere providers, geen terugval).
   `CLAUDE_BLOCK_CONTENT_DEFAULTS`: `claude-opus-5-5`, `medium`, `maxRetries: 0`.
-  - Prompt `training-block-content/v1` (`src/knowledge/prompts/training-block-content-v1.ts`): een gedeelde kern plus
-    een korte aanwijzing per bloktype.
+  - Actieve prompt `training-block-content/v1.1` (`src/knowledge/prompts/training-block-content-v1-1.ts`): de v1-kern
+    plus korte aanwijzingen per bloktype. v1 (`training-block-content-v1.ts`) blijft ongewijzigd voor de
+    reproduceerbare V1-baseline. v1.1 voegt drie semantische regels toe uit de baseline-review (bewaakt via prompt,
+    eval en human review; **geen** regex, woordenlijst of tekstvalidator):
+    - deelnemergerichte inhoud claimt geen onbewezen downstream-gebruik van output (bijv. "je melding wordt later
+      gebruikt bij de feedback"), tenzij de catalogus dat aantoonbaar ondersteunt;
+    - geen verzonnen kwantitatieve deelnemereisen (woorden, zinnen, tijdslimiet, aantallen);
+    - Chat `scenarioContext` ontvanger-neutraal (de catalogus bewijst niet of BC Online het aan de deelnemer, de
+      persona of beide geeft).
+  - `Productie.minimumWords` is in V1 trusted `null`: het zit niet in het ontwerpschema van Claude en `compose` zet het
+    server-side, tot er een expliciete trusted bron voor bestaat.
   - Het ontwerpschema wordt per doelblok gebouwd (`services/block-content/design.ts`): alleen toegestane statussen en
     de velden van dat bloktype.
   - Mock en Claude delen dezelfde weg: ontwerp → compose → Zod → invarianten (`finalize.ts`).

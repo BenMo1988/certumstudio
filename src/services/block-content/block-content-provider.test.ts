@@ -1,6 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  BLOCK_GUIDANCE_V1_1,
+  TRAINING_BLOCK_CONTENT_V1_1_INSTRUCTIONS,
+  TRAINING_BLOCK_CONTENT_V1_1_PROMPT_VERSION,
+  buildTrainingBlockContentV1_1Request,
+} from "@/knowledge/prompts/training-block-content-v1-1";
+import {
   BLOCK_GUIDANCE,
+  buildTrainingBlockContentV1Request,
   TRAINING_BLOCK_CONTENT_PROMPT_VERSION,
   TRAINING_BLOCK_CONTENT_V1_INSTRUCTIONS,
 } from "@/knowledge/prompts/training-block-content-v1";
@@ -43,6 +50,7 @@ function designOf(result: BlockContentResult): { result: BlockContentDesign } {
       void catalogBlockId;
       delete content.availableContext;
       delete content.unavailableContext;
+      delete content.minimumWords;
       return { result: { status: "generated", accreditation, content } as BlockContentDesign };
     }
     case "needs_asset": {
@@ -186,7 +194,7 @@ describe("Claude-provider (zonder echte aanroepen)", () => {
     expect(await service.generate(request("BLP-003", "blok-8"))).toEqual(expected);
     expect(parse).toHaveBeenCalledTimes(1);
     const sent = parse.mock.calls[0][0] as { model: string; system: string; output_config: { effort: string } };
-    expect(sent).toMatchObject({ model: "claude-opus-5-5", system: TRAINING_BLOCK_CONTENT_V1_INSTRUCTIONS, output_config: { effort: "medium" } });
+    expect(sent).toMatchObject({ model: "claude-opus-5-5", system: TRAINING_BLOCK_CONTENT_V1_1_INSTRUCTIONS, output_config: { effort: "medium" } });
   });
 
   it("de provider krijgt geen oorspronkelijke invoer, analyse of bronsegment-ids", async () => {
@@ -312,5 +320,86 @@ describe("orchestrator en logging", () => {
     const serialized = JSON.stringify(entries);
     const texts = [ctx.blueprint.title, ctx.blueprint.learningGoal, ctx.blueprint.professionalDilemma, pkg.start.introduction, ...pkg.blocks.flatMap((b) => (b.body.status === "generated" ? [b.body.content.title] : []))];
     for (const t of texts) expect(serialized).not.toContain(t);
+  });
+});
+
+describe("grounding v1.1 (training-block-content/v1.1, contract block-content/v1)", () => {
+  const productieDesign = async () => designOf(await gen(request("BLP-002", "blok-3")));
+
+  it("Productie minimumWords komt niet van Claude en is server-side null", async () => {
+    const design = await productieDesign();
+    expect(Object.keys((design.result as { content: object }).content)).not.toContain("minimumWords");
+    const { service } = claudeReturning(design);
+    const block = await service.generate(request("BLP-002", "blok-3"));
+    if (block.body.status !== "generated" || block.body.content.catalogBlockId !== "certum.bco.productie") throw new Error();
+    expect(block.body.content.minimumWords).toBeNull();
+  });
+
+  it("Claude kan geen minimumWords injecteren: het ontwerpschema is strict", async () => {
+    const design = await productieDesign();
+    const injected = { result: { ...design.result, content: { ...(design.result as { content: object }).content, minimumWords: 40 } } };
+    const ctx = fixtureCase("BLP-002");
+    expect(buildBlockContentDesignSchema(resolveBlockTarget(ctx.blueprint, ctx.blockPlan, "blok-3")!).safeParse(injected).success).toBe(false);
+    const { service, parse } = claudeReturning(injected);
+    expect(await errorOf(service.generate(request("BLP-002", "blok-3")))).toMatchObject({ kind: "invalid-output", stage: "schema_validation" });
+    expect(parse).toHaveBeenCalledTimes(1);
+  });
+
+  it("trusted bloktype en routebeleid blijven ongewijzigd (BC-002)", async () => {
+    const { service } = claudeReturning(await productieDesign());
+    expect(await service.generate(request("BLP-002", "blok-3"))).toMatchObject({
+      catalogBlockId: "certum.bco.productie",
+      routePolicy: "prescribed_action",
+      body: { content: { catalogBlockId: "certum.bco.productie" } },
+    });
+  });
+
+  it("Chat scenarioContext blijft gewoon een (nullable) string: geen contractverbouwing", async () => {
+    const ctx = fixtureCase("BLP-001");
+    const schema = buildBlockContentDesignSchema(resolveBlockTarget(ctx.blueprint, ctx.blockPlan, "blok-2")!);
+    const chat = designOf(await gen(request("BLP-001", "blok-2")));
+    const withContext = (scenarioContext: unknown) => ({ result: { ...chat.result, content: { ...(chat.result as { content: object }).content, scenarioContext } } });
+    expect(schema.safeParse(withContext("De deelnemer is teamleider en voert een gesprek met een medewerker.")).success).toBe(true);
+    expect(schema.safeParse(withContext(null)).success).toBe(true);
+    expect(schema.safeParse(withContext({ participant: "x", persona: "y" })).success).toBe(false);
+  });
+
+  it("geen vrije-tekstheuristiek: een downstream-claim of 'Je bent …' maakt de output niet ongeldig", async () => {
+    // De regels zijn semantisch (prompt, eval, human review); de code valideert geen natuurlijke taal.
+    const design = await productieDesign();
+    const content = { ...(design.result as { content: object }).content, instructions: "Schrijf de melding. Je melding wordt later gebruikt bij de feedback." };
+    const { service } = claudeReturning({ result: { ...design.result, content } });
+    await expect(service.generate(request("BLP-002", "blok-3"))).resolves.toMatchObject({ body: { status: "generated" } });
+    const chat = designOf(await gen(request("BLP-001", "blok-2")));
+    const chatContent = { ...(chat.result as { content: object }).content, scenarioContext: "Je bent teamleider." };
+    await expect(claudeReturning({ result: { ...chat.result, content: chatContent } }).service.generate(request("BLP-001", "blok-2"))).resolves.toBeTruthy();
+  });
+
+  it("prompt v1.1 = v1 plus de drie regels; v1 blijft ongewijzigd en reproduceerbaar", () => {
+    expect(TRAINING_BLOCK_CONTENT_V1_1_PROMPT_VERSION).toBe("training-block-content/v1.1");
+    expect(TRAINING_BLOCK_CONTENT_PROMPT_VERSION).toBe("training-block-content/v1");
+    expect(TRAINING_BLOCK_CONTENT_V1_INSTRUCTIONS).not.toContain("Geen onbewezen gebruik van output");
+    expect(TRAINING_BLOCK_CONTENT_V1_1_INSTRUCTIONS).toContain("## Geen onbewezen gebruik van output");
+    expect(TRAINING_BLOCK_CONTENT_V1_1_INSTRUCTIONS).toContain("## Geen verzonnen kwantitatieve eisen");
+    expect(TRAINING_BLOCK_CONTENT_V1_1_INSTRUCTIONS.startsWith(TRAINING_BLOCK_CONTENT_V1_INSTRUCTIONS.slice(0, 500))).toBe(true);
+    expect(BLOCK_GUIDANCE_V1_1["certum.bco.chat-simulatie"]).toContain("ontvanger-neutraal");
+    expect(BLOCK_GUIDANCE["certum.bco.chat-simulatie"]).not.toContain("ontvanger-neutraal");
+    for (const id of CONTENT_BLOCK_IDS) {
+      if (id !== "certum.bco.chat-simulatie" && id !== "certum.bco.productie") expect(BLOCK_GUIDANCE_V1_1[id]).toBe(BLOCK_GUIDANCE[id]);
+    }
+    const ctx = fixtureCase("BLP-001");
+    const input = { ...buildBlockContentGenerationInput({ ...ctx, target: resolveBlockTarget(ctx.blueprint, ctx.blockPlan, "blok-3")!, approvedEarlierContent: [] }), contractVersion: "block-content/v1" };
+    // Voor een blok met ongewijzigde aanwijzing is het gebruikersbericht van v1 en v1.1 identiek.
+    expect(buildTrainingBlockContentV1_1Request(input)).toBe(buildTrainingBlockContentV1Request(input));
+  });
+
+  it("de Claude-provider gebruikt v1.1 en logt die promptversie", async () => {
+    const entries: BlockContentGenerationLogEntry[] = [];
+    const { service, parse } = claudeReturning(await productieDesign());
+    const logged = withBlockContentLogging(service, { provider: "claude", promptVersion: TRAINING_BLOCK_CONTENT_V1_1_PROMPT_VERSION }, (e) => entries.push(e));
+    await logged.generate(request("BLP-002", "blok-3"));
+    expect((parse.mock.calls[0][0] as { system: string }).system).toBe(TRAINING_BLOCK_CONTENT_V1_1_INSTRUCTIONS);
+    expect((parse.mock.calls[0][0] as { messages: { content: string }[] }).messages[0].content).toContain(BLOCK_GUIDANCE_V1_1["certum.bco.productie"]);
+    expect(entries[0]).toMatchObject({ promptVersion: "training-block-content/v1.1", contentContractVersion: "block-content/v1" });
   });
 });

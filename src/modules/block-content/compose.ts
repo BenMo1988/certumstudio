@@ -17,8 +17,11 @@ import type { BlockTarget } from "./target";
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 
-/** Trusted velden van de inhoud: het bloktype en (bij AI Feedback) de aantoonbare en niet-aangetoonde context. */
-type TrustedPayloadField = "catalogBlockId" | "availableContext" | "unavailableContext";
+/**
+ * Trusted velden van de inhoud: het bloktype, (bij AI Feedback) de aantoonbare en niet-aangetoonde context en (bij
+ * Productie) het minimum aantal woorden.
+ */
+type TrustedPayloadField = "catalogBlockId" | "availableContext" | "unavailableContext" | "minimumWords";
 export type BlockPayloadDesign = DistributiveOmit<BlockPayload, TrustedPayloadField>;
 
 export interface BlockAccreditationDesign {
@@ -43,7 +46,8 @@ export type BlockContentDesign = { accreditation: BlockAccreditationDesign } & (
  * Stelt een blokresultaat samen uit het ontwerp en het doelblok. Trusted, server-side en als laatste gezet:
  * versie, `plannedBlockId`, `sequence`, `certumPhase`, `catalogBlockId` (ook in de inhoud: een provider kan het
  * bloktype niet wijzigen), `routePolicy` (uit de Blueprint), werkvorm (catalogus), `reviewStatus: "draft"`, het
- * assettype van een mediablok en de AI Feedback-context. Daarna volgen Zod en `checkBlockContentInvariants`.
+ * assettype van een mediablok, de AI Feedback-context en `minimumWords: null` bij een Productie (V1: er is geen trusted
+ * bron voor een lengte-eis). Daarna volgen Zod en `checkBlockContentInvariants`.
  */
 export function composeBlockContent(design: BlockContentDesign, target: BlockTarget): BlockContentResult {
   const { block } = target;
@@ -72,6 +76,7 @@ function composeBody(design: BlockContentDesign, target: BlockTarget): BlockCont
             availableContext: target.provenContextBlockIds,
             unavailableContext: target.unprovenContextBlockIds,
           }),
+          ...(target.block.catalogBlockId === "certum.bco.productie" && { minimumWords: null }),
         } as BlockPayload,
       };
     case "needs_source":

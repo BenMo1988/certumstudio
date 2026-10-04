@@ -16,7 +16,8 @@ import {
 /**
  * Het ontwerpschema voor één doelblok, afgeleid uit het domeinschema `block-content/v1` en het doelblok. Per request:
  * - alleen de statussen die voor dit blok mogelijk zijn (media → needs_asset, Bron → needs_source, …);
- * - bij `generated` alleen de velden van dít bloktype, zonder trusted velden (`catalogBlockId`, AI-context);
+ * - bij `generated` alleen de velden van dít bloktype, zonder trusted velden (`catalogBlockId`, AI-context,
+ *   `minimumWords` van een Productie);
  * - bij `open_choice` een Chat simulatie zonder gespreksdoel (`goal: null`);
  * - bij Conditionele logica alleen eerdere vraagblokken als bron;
  * - sourceNeedRefs alleen uit de bestaande Blueprint-ids.
@@ -57,6 +58,8 @@ function contentSchema(target: BlockTarget): z.ZodObject {
     delete fields.availableContext;
     delete fields.unavailableContext;
   }
+  // V1: een lengte-eis is geen generatiekeuze; zonder trusted bron zet de server hem op null (compose).
+  if (id === "certum.bco.productie") delete fields.minimumWords;
   if (id === "certum.bco.chat-simulatie" && target.routePolicy === "open_choice") {
     fields.goal = z.null().describe("Geen gespreksdoel: bij meerdere verdedigbare routes dwingt een sleutelwoorddoel één route af.");
   }

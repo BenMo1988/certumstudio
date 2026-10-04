@@ -153,7 +153,6 @@ function contentFor(target: BlockTarget, blueprint: TrainingBlueprintV2): BlockP
         productType: "anders",
         instructions: fit(`${blueprint.decisionPoint.task} ${arc.actie.participantMust}`, 2000),
         template: null,
-        minimumWords: null,
       };
     case "certum.bco.toets":
       return {
