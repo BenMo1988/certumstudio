@@ -135,6 +135,11 @@ tekstchunks opgelost). Geen retry.
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS`** (beoordeeld 2026-10-04)
 
-Nog niet beoordeeld.
+Een operationeel bruikbare, technisch eerlijke feedbackinstructie. De instructie gebruikt uitsluitend de trusted
+`availableContext` (poll, onderbouwing, reflectie), sluit de Productie expliciet uit (en corrigeert daarmee de
+overclaim in de configuratie-intentie van het Block Plan), bewaart `open_choice` en beoordeelt op de vier
+`evaluationBasis`-punten zonder vakinhoudelijke claims.
+
+**Sterk bewijs** dat Block Content alleen aantoonbare AI Feedback-context gebruikt.

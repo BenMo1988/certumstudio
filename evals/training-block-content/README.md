@@ -34,13 +34,13 @@ persistence → preview → Accreditation Readiness. De BC Online Adapter blijft
 
 | Eval | Block Plan | Doelblok | Wat wordt getest | Status |
 | --- | --- | --- | --- | --- |
-| [BC-001](cases/BC-001-open-chat-simulatie/case.md) | BLP-001 | `blok-2` · `certum.bco.chat-simulatie` | Open Chat simulatie | [`PENDING_REVIEW`](cases/BC-001-open-chat-simulatie/runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium_vervanging.md) |
-| [BC-002](cases/BC-002-voorgeschreven-productie/case.md) | BLP-002 | `blok-3` · `certum.bco.productie` | Voorgeschreven Productie | [`PENDING_REVIEW`](cases/BC-002-voorgeschreven-productie/runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium.md) |
+| [BC-001](cases/BC-001-open-chat-simulatie/case.md) | BLP-001 | `blok-2` · `certum.bco.chat-simulatie` | Open Chat simulatie | [`PASS_WITH_NOTES`](cases/BC-001-open-chat-simulatie/runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium_vervanging.md) |
+| [BC-002](cases/BC-002-voorgeschreven-productie/case.md) | BLP-002 | `blok-3` · `certum.bco.productie` | Voorgeschreven Productie | [`FAIL`](cases/BC-002-voorgeschreven-productie/runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium.md) |
 | [BC-003](cases/BC-003-bron-zonder-gevalideerde-bron/case.md) | BLP-001 | `blok-5` · `certum.bco.tekst` | Bron zonder gevalideerde bron | [`PENDING_REVIEW`](cases/BC-003-bron-zonder-gevalideerde-bron/runs/2026-10-04_deterministisch.md) |
 | [BC-004](cases/BC-004-media-zonder-asset/case.md) | BLP-001-MEDIA | `blok-1` · `certum.bco.video` | Media zonder asset | [`PENDING_REVIEW`](cases/BC-004-media-zonder-asset/runs/2026-10-04_deterministisch.md) |
 | [BC-005](cases/BC-005-ai-feedback-onbewezen-context/case.md) | BLP-002-UNPROVEN-FEEDBACK | `blok-5` · `certum.bco.ai-feedback` | AI Feedback met uitsluitend onbewezen context (deterministisch) | [`PENDING_REVIEW`](cases/BC-005-ai-feedback-onbewezen-context/runs/2026-10-04_deterministisch.md) |
-| [BC-006](cases/BC-006-reflectieve-open-vraag/case.md) | BLP-001 | `blok-3` · `certum.bco.open-vraag` | Reflectieve Open vraag | [`PENDING_REVIEW`](cases/BC-006-reflectieve-open-vraag/runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium.md) |
-| [BC-007](cases/BC-007-ai-feedback-bewezen-context/case.md) | BLP-003 | `blok-8` · `certum.bco.ai-feedback` | AI Feedback met bewezen context | [`PENDING_REVIEW`](cases/BC-007-ai-feedback-bewezen-context/runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium_vervanging.md) |
+| [BC-006](cases/BC-006-reflectieve-open-vraag/case.md) | BLP-001 | `blok-3` · `certum.bco.open-vraag` | Reflectieve Open vraag | [`PASS_WITH_NOTES`](cases/BC-006-reflectieve-open-vraag/runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium.md) |
+| [BC-007](cases/BC-007-ai-feedback-bewezen-context/case.md) | BLP-003 | `blok-8` · `certum.bco.ai-feedback` | AI Feedback met bewezen context | [`PASS`](cases/BC-007-ai-feedback-bewezen-context/runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium_vervanging.md) |
 
 ## Betaald en deterministisch
 
@@ -101,3 +101,18 @@ Block Plan deden geen calls.
 | Capability overclaims | 1 (BC-002); BC-007 corrigeert juist een overclaim uit het Block Plan |
 | Capability-onzekerheid | 1 (BC-001: aan wie BC Online "Scenario/context" toont) |
 | Mogelijke content creep | 1 klein (BC-002: `minimumWords: 40`) |
+
+## Review baseline V1 (2026-10-04)
+
+| ID | Status | Kern |
+| --- | --- | --- |
+| BC-001 | `PASS_WITH_NOTES` | Geloofwaardige, route-neutrale simulatie; `scenarioContext` aan één ontvanger gericht |
+| BC-002 | `FAIL` | Capability overclaim (Productie "wordt gebruikt bij de feedback") en verzonnen `minimumWords: 40` |
+| BC-006 | `PASS_WITH_NOTES` | Inhoudelijke reflectie; **WATCH**: vier deelvragen in één veld |
+| BC-007 | `PASS` | Sterk bewijs dat alleen aantoonbare AI Feedback-context wordt gebruikt |
+
+BC-003, BC-004 en BC-005 (deterministisch, 0 providercreaties) zijn in deze review niet apart beoordeeld en blijven
+`PENDING_REVIEW`.
+
+Gevolg: één kleine, gerichte correctie (`fix: tighten block content grounding`, prompt `training-block-content/v1.1`,
+contract blijft `block-content/v1`), gevolgd door twee bevestigingsruns (BC-001, BC-002).

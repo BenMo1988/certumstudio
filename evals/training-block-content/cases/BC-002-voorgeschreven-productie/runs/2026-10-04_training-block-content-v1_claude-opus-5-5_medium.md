@@ -115,6 +115,15 @@ uit de fixtures en doelblok `blok-3`. Precies één poging (`maxRetries: 0`), ge
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `FAIL`** (beoordeeld 2026-10-04)
 
-Nog niet beoordeeld.
+De productieopdracht is bruikbaar en de voorgeschreven handeling blijft intact, maar de deelnemertekst bevat een
+**capability overclaim**: "Je melding wordt later gebruikt bij de feedback en bij het vergelijken met wat er van een
+melding wordt verwacht." Een Productie-uitwerking is niet aantoonbaar context voor AI Feedback. Daarnaast introduceert
+Claude een **verzonnen kwantitatieve eis** (`minimumWords: 40`) zonder grond in Blueprint of Block Plan.
+
+Gevolg (`fix: tighten block content grounding`):
+- gedeelde promptregel: deelnemergerichte inhoud claimt geen onbewezen downstream-gebruik (semantische regel, bewaakt
+  via prompt, eval en human review; geen regex of woordenlijst);
+- geen verzonnen numerieke deelnemereisen; `Productie.minimumWords` is in V1 server-side `null` en zit niet meer in
+  het ontwerpschema van Claude.

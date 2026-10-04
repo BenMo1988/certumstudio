@@ -130,6 +130,14 @@ tekstchunks opgelost). Geen retry.
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS_WITH_NOTES`** (beoordeeld 2026-10-04)
 
-Nog niet beoordeeld.
+Een geloofwaardige professionele simulatie: een herkenbare persona met een consequente grens, een opening op het
+keuzemoment, geen gespreksdoel, geen sleutelwoorden en geen tijdslimiet. Certum programmeert geen route als juist. Dat
+de persona reageert op de manier van vragen (opener bij respect, geslotener bij aandringen) is realistisch gedrag
+binnen het dilemma, geen verborgen sturing. Geen nieuwe feiten.
+
+**Note:** `scenarioContext` is aan de deelnemer gericht ("Je bent teamleider …"). De catalogus bewijst dat Chat
+simulatie een veld "Scenario/context" heeft, maar niet of het aan de deelnemer, aan de AI-persona of aan beide gaat.
+Gevolg: de Chat-guidance schrijft `scenarioContext` voortaan ontvanger-neutraal (`fix: tighten block content
+grounding`).

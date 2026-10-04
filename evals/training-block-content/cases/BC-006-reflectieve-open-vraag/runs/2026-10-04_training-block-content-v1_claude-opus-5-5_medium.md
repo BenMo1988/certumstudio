@@ -110,6 +110,10 @@ uit de fixtures en doelblok `blok-3`. Precies één poging (`maxRetries: 0`), ge
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS_WITH_NOTES`** (beoordeeld 2026-10-04)
 
-Nog niet beoordeeld.
+Een concrete, inhoudelijke reflectievraag op het eigen gesprek, route-neutraal, zonder nieuwe feiten en zonder
+voorbeeldantwoord (zoals het Block Plan vraagt).
+
+**WATCH:** vier deelvragen in één reflectievraag is relatief zwaar. Nog onvoldoende bewijs voor een systeemwijziging;
+geen correctie in deze stap.
