@@ -18,7 +18,7 @@ Persistence geeft **geen** toestemming om echte of geanonimiseerde casuïstiek t
 | --- | --- |
 | `training` | Het trainingsrecord: interne UUID, unieke leesbare code (`TR-0001`, zonder klant- of casusnaam), titel, status, `data_policy` (`synthetic_only`), tijdstempels |
 | `training_input` | De oorspronkelijke invoer, apart, zodat die later gericht verwijderd kan worden zonder het trainingsrecord te verwijderen. Alleen preflight-metadata (versie, status, aantallen per categorie), nooit posities of gevonden waarden |
-| `artifact_revision` | Immutable snapshots: `analysis`, `blueprint`, `block_plan`, `start_content`, `end_content`, `block_content` |
+| `artifact_revision` | Immutable snapshots: `analysis`, `blueprint`, `block_plan`, `start_content`, `end_content`, `block_content`, `source` (migratie 002) |
 | `workflow_event` | Append-only workflowbesluiten: `direction_selected`, `approved`, `needs_revision`, `revoked` |
 
 Geen vijfde tabel voor afhankelijkheden (`based_on_revision_ids` is een UUID-array) en geen aparte head-tabel.
@@ -30,14 +30,18 @@ Het Training Content Package wordt **niet** opgeslagen: het wordt server-side sa
    (regenerate, handmatige edit, AI-hergeneratie) is een nieuwe revision; de oude blijft bestaan.
 2. **Uniek.** `(training_id, artifact_type, artifact_key, revision_no)` bestaat hooguit één keer. Nieuwe revisions
    krijgen hun nummer transactioneel.
-3. **Artifact key.** `block_content`: het `plannedBlockId` (`blok-n`). Alle andere types: de vaste key `main`.
+3. **Artifact key.** `block_content`: het `plannedBlockId` (`blok-n`). `source`: `src-n`. Alle andere types: de
+   vaste key `main`.
 4. **Current** = de hoogste `revision_no` voor `(training_id, artifact_type, artifact_key)`.
 5. **content_hash** = SHA-256 (hex) over canonieke JSON van de payload (sleutels recursief gesorteerd, geen
    witruimte). Berekend bij het aanmaken, daarna nooit gewijzigd. Onafhankelijk van sleutelvolgorde.
 6. **based_on.** Iedere downstream revision legt vast waarop hij gebouwd is, en de server valideert dat:
    - `blueprint` ← `analysis` (met een gekozen richting; `selectedDirectionId` van de Blueprint = die richting);
    - `block_plan` ← goedgekeurde `blueprint`;
-   - `start_content`, `end_content`, `block_content` ← goedgekeurde `blueprint` + goedgekeurd `block_plan`.
+   - `start_content`, `end_content`, `block_content` ← goedgekeurde `blueprint` + goedgekeurd `block_plan`;
+   - `source` ← goedgekeurde `blueprint` (alleen bestaande sourceNeeds);
+   - een Bron-blok (`block_content`) daarnaast optioneel ← de gevalideerde `source`-revisions die het gebruikt
+     (provenance; een nieuwe bronversie maakt het blok stale).
 7. **workflow_event.** Append-only. `direction_selected` bevat `event_data.trainingDirectionId` (een bestaande
    richting van een `ready`-analyse) en dupliceert de analyse niet. `actor_id` is `null` tot er authenticatie is.
 8. **Approved.** Een revision is alleen approved als:

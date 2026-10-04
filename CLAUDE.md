@@ -363,6 +363,47 @@ Certum-fase, Vast Einde), per onderdeel bekijken, handmatig bewerken, goedkeuren
   beperking" zonder editor. Kleine read-only historie (`revisionHistoryAction`); geen diff of herstel.
 - **Prestatie:** een handmatige opslag ≤ 12 queries; heropenen blijft 4 (tests).
 
+### Source Workspace V1 (stap 13A)
+
+Maakt `needs_source` oplosbaar: sourceNeed → bron van de opleider → menselijke validatie → Bron-inhoud uitsluitend
+uit gevalideerde bronnen.
+
+- **Contract `certum-source/v1`** (`modules/sources/schema.ts`, Certum-eigendom; geen SKJ- of BC Online-model):
+  `sourceNeedRefs` (1–3 bestaande SN-ids), titel, soort (webpage, article, guideline, book, document, other),
+  optioneel auteur, organisatie/uitgever, datum (JJJJ[-MM[-DD]]) en http(s)-URL, en verplicht `relevantContent`: de
+  passage of gecontroleerde notitie waarop Certum mag steunen. Een URL alleen is nooit genoeg; er wordt niets van
+  internet gehaald. Geen APA-generatie.
+- **Opslag:** een bron is een immutable `artifact_revision` met `artifact_type = 'source'`, key `src-n`, `based_on` =
+  de current goedgekeurde Blueprint (migratie `002_certum_sources.sql`). Versie, hash, aanmaakmoment en herkomst
+  (`manual-edit`) zet de server. De opslag weigert onbekende of dubbele sourceNeeds (geen nieuwe sourceNeeds).
+- **Candidate vs gevalideerd:** validatie is een `approved`-event op exact één bronversie, alleen met de expliciete
+  bevestiging "Ik heb deze bron gecontroleerd en wil deze gebruiken voor deze training." (`SOURCE_VALIDATION_STATEMENT`).
+  Geen AI-validatie en geen automatisch betrouwbaarheidslabel. Corrigeren (`editSource`) maakt een nieuwe versie die
+  opnieuw gevalideerd moet worden. Code: `app/trainings/workflow/sources.ts`; Server Actions `addSourceAction`,
+  `editSourceAction`, `validateSourceAction`.
+- **Dekking** (`sourcesView` in `services/storage/workspace.ts`, afgeleid, niet opgeslagen): een sourceNeed is gedekt
+  als minstens één current, gevalideerde bron eraan gekoppeld is. Een candidate dekt nooit.
+- **Bron-generatie:** `generateAndStoreBlock` geeft alleen de current gevalideerde bronnen die bij de sourceNeeds van
+  het Bron-blok horen door (`resolveBlockTarget(..., validatedSources)`, veld `validatedSources` in de generation input).
+  Nooit candidates, andere bronnen, ruwe invoer of algemene AI-kennis. `generated` mag alleen als alle vereiste
+  sourceNeeds gedekt zijn; anders, of als de bron onvoldoende is, blijft het blok `needs_source`. Prompt
+  `training-block-content/v1.2` = v1.1 plus de sectie "Bron-inhoud alleen uit gevalideerde bronnen"; alleen bij een
+  Bron-blok met bronnen komt er een `<gevalideerde_bronnen>`-blok bij. Mock-marker `#onvoldoende` simuleert een
+  onvoldoende bron.
+- **Provenance:** een Bron-blokrevision heeft `based_on` = [Blueprint, Block Plan, ...gebruikte bronrevisions]. De UI
+  toont "Gebaseerd op N gevalideerde bronnen: …". Een handmatige bewerking behoudt dezelfde bronversies.
+- **Stale:** een gecorrigeerde (of niet meer gevalideerde) bron maakt via de gewone approvalrecursie alleen de
+  Bron-inhoud die erop steunt stale ("Bron gewijzigd"); andere blokken blijven geldig. Opnieuw valideren en genereren
+  herstelt dat.
+- **Readiness:** `review.sourceNeedsOpen` en `review.staleBlocks`. CTA: "1 bron ontbreekt" → "Alle benodigde bronnen
+  aanwezig · Bron-blok nog genereren"; het Bron-blok moet daarna nog gemaakt en goedgekeurd worden.
+- **UI:** `components/studio/review/SourceWorkspace.tsx`: paneel "Bronnen" met de dekking per sourceNeed, beheer met
+  formulier (titel, soort, auteur, organisatie, datum, URL, relevante inhoud, sourceNeed-checkboxes), "Nog
+  controleren"/"Gevalideerd", corrigeren en valideren. Op een `needs_source`-kaart: "Bron toevoegen" (sourceNeeds
+  voorgeselecteerd) of, als gedekt, "Bron-blok genereren".
+- **Privacy:** broninhoud, titels en URL's komen nooit in logs (test). Heropenen blijft 4 queries.
+- **Buiten scope:** zoeken op internet, scraping, uploads (PDF/Word), centrale bronbibliotheek, media, APA, SKJ.
+
 ### Block Content en Training Content Package (stap 10A)
 
 - **Na beide menselijke goedkeuringen** (Blueprint én Block Plan) maakt Certum de inhoud per gepland blok. Server-side
@@ -478,6 +519,7 @@ src/
     training-blueprint/ Training Blueprint: V1-contract (baseline), v2/ (actief), invarianten, goedkeuringsgates
     block-plan/        BC Online Block Plan V1: contract en invarianten
     block-content/     Block Content V1 en Training Content Package: contract, trusted compose, invarianten, review
+    sources/           Certum Source V1: brongegevens en dekking per sourceNeed
   knowledge/           Certum-kennis en methodiek; platform/ bevat de BC Online-blokcatalogus
   services/            Externe koppelingen, elk achter een interface, alleen server-side
     analysis/          TrainingAnalysisService(V2): mock + Claude; v1 historisch naast v2
@@ -530,6 +572,8 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 11C, persistence cut-over V1: de Studio onthoudt en hervat trainingen (bewezen tegen Supabase).
 - Stap 11D, persistence performance V1: Training Record Snapshot; alle V1-doelen gehaald.
 - Stap 12A, Training Review & Editor V1: handmatig bewerken als nieuwe revision, review per blok, Start/Einde, readiness.
+- Stap 13A, Source Workspace V1: bronnen toevoegen en valideren, dekking per sourceNeed, Bron-inhoud alleen uit
+  gevalideerde bronnen, provenance en stale-afhankelijkheid (mock bewezen; migratie 002 op Supabase dev).
 
 Routes:
 - `/`: dashboard.
