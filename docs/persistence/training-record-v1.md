@@ -70,6 +70,22 @@ Het Training Content Package wordt **niet** opgeslagen: het wordt server-side sa
 - gecontroleerde flow: training → synthetische input → analysis → richting → Blueprint → approve → herladen uit
   de database (na sluiten en heropenen) → exact dezelfde goedgekeurde Blueprint.
 
+## Implementatie (Step 11B)
+
+Kleine uitwerkingen ten opzichte van het ontwerp, zonder het model te veranderen:
+
+- `workflow_event.event_no` (identity): de volgorde van besluiten is eenduidig, ook bij gelijke tijdstempels.
+- `artifact_revision` heeft een unieke `(id, training_id)`; `workflow_event` verwijst daar samengesteld naar, zodat een
+  event altijd bij dezelfde training hoort als zijn revision.
+- Append-only wordt in de database afgedwongen met triggers op `artifact_revision` en `workflow_event` (UPDATE en
+  DELETE geweigerd). Een volledige training verwijderen vraagt later dus een bewuste, aparte procedure.
+- `data_policy_version` = `synthetic_only@attestation-<eerste 12 hex van SHA-256 van de attestatietekst>`: de
+  bevestiging is gebonden aan exact de geldende tekst.
+- De payload wordt bij het opslaan gevalideerd tegen het domeinschema van het type (analysis: `analysis-contract/v2.1`
+  met invarianten tegen de opgeslagen invoer; blueprint: `blueprint-contract/v2` met routebeleid en gekozen richting;
+  block_plan, start/end en block_content tegen hun contracten en invarianten).
+- Een analyse wordt niet `approved`: hij is geaccepteerd zodra hij current is en een `direction_selected` heeft.
+
 ## Infrastructuur en operations
 
 | | |

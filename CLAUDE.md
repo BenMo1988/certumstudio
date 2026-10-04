@@ -275,7 +275,34 @@ Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
   aanvaardbaar voor de huidige gecontroleerde ontwikkeling en evals. Vóór echte productie of export naar BC Online is
   server-side persistence of een cryptografisch of anderszins integriteitsgebonden goedkeuring vereist. Nog niet
   gebouwd (geen database, geen signing).
-- Er is nog geen BC Online-adapter, API, database, MCP of export.
+- Er is nog geen BC Online-adapter, API, MCP of export.
+
+### Persistence: Certum Training Record V1 (stap 11B, fundering)
+
+Ontwerp en regels: `docs/persistence/training-record-v1.md`. Uitgangspunt: **goedgekeurde output wordt een
+server-owned snapshot**; een goedgekeurd onderdeel dat inhoudelijk verandert, verliest zijn approval.
+
+- **Database:** Supabase Postgres, Frankfurt (`eu-central-1`), via één server-only `DATABASE_URL` (`.env.local`).
+  Client: `postgres` (postgres.js, `prepare: false` voor de transaction pooler). Plain SQL, geen ORM.
+- **Schema:** `migrations/001_certum_training_record.sql` (in Git; nooit alleen via het Supabase-dashboard). Toepassen
+  met `npm run db:migrate` (registratie en checksum in `schema_migrations`).
+- **Vier tabellen:** `training` (UUID + unieke code `TR-nnnn`, `data_policy`), `training_input` (apart, gericht te
+  verwijderen; alleen preflight-metadata), `artifact_revision` (immutable snapshots: analysis, blueprint, block_plan,
+  start_content, end_content, block_content) en `workflow_event` (append-only: `direction_selected` met
+  `trainingDirectionId`, `approved`, `needs_revision`, `revoked`; `actor_id` leeg tot er auth is).
+- **Regels:** revisions en events kunnen niet worden gewijzigd of verwijderd (triggers; de repository heeft geen
+  update-functie). Current = hoogste `revision_no`, transactioneel toegekend. `content_hash` = SHA-256 over canonieke
+  JSON. `based_on_revision_ids` wordt server-side gevalideerd. `isRevisionApproved`: current, laatste besluit
+  `approved` op exact die hash, en alle upstream revisions current en geaccepteerd; een nieuwe Blueprint maakt het
+  Block Plan stale, een nieuw Block Plan de blokinhoud.
+- **Content Package** wordt niet opgeslagen maar samengesteld uit de current revisions (`composeStoredContentPackage`).
+- **Code:** `src/services/storage/` (`training-record.ts` is de enige plek met SQL voor trainingen; `index.ts` is
+  server-only met `getDb()`). Tests draaien tegen PGlite (PostgreSQL in WASM) met dezelfde migratie;
+  `npm run test:db` is een opt-in test tegen Supabase.
+- **Governance:** persistence geeft geen toestemming voor echte casuïstiek; `saveTrainingInput` herhaalt preflight en
+  synthetic_only-attestatie.
+- **Nog niet:** de `/trainings/new`-flow gebruikt de database nog niet (cut-over volgt), geen auth, geen RLS, geen
+  publieke deployment. Volgorde: persistence → Training Review/Editor → auth → hosted Certum Studio.
 
 ### Block Content en Training Content Package (stap 10A)
 
@@ -397,6 +424,7 @@ src/
     blueprint/         TrainingBlueprintService V1 en v2/ (mock + Claude), BlockPlanService-contract en mock
     block-plan/        Block Plan-provider: Claude, config, diagnose, logging, factory
     block-content/     Block Content: mock + Claude, ontwerpschema per blok, orchestrator, logging, factory
+    storage/           Certum Training Record: Postgres-repository (plain SQL), migratierunner, hashing
 ```
 
 Regels:
@@ -443,6 +471,7 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 9A, Claude-provider voor het BC Online Block Plan: klaar; BLP-baseline beoordeeld (3× PASS_WITH_NOTES), gesloten.
 - Stap 10A/10B, Block Content V1/V1.1 en Training Content Package: klaar en gesloten (BC-001 t/m BC-007 beoordeeld;
   WATCH: `persona_fact_drift`, `reflection_question_density`). Verdere wijzigingen vragen nieuw bewijs uit trainingsgebruik.
+- Stap 11A (ontwerp) en 11B (persistence-fundering, Supabase): fundering klaar en getest; UI nog niet aangesloten.
 
 Routes:
 - `/`: dashboard.
@@ -479,7 +508,8 @@ als verbetering geldt. Er is nog geen geautomatiseerde scorer of runner.
   als basis voor trainingen. Die komt los van de instroom op `/trainings/new`. Het type `PracticeCase` in
   `modules/cases` staat hiervoor al klaar.
 
-Er is nog geen database, authenticatie of koppeling met BC Online.
+Er is een database-fundering (Supabase Postgres, nog niet aangesloten op de UI), maar nog geen authenticatie of
+koppeling met BC Online.
 
 ## Commando's
 
@@ -487,6 +517,8 @@ Er is nog geen database, authenticatie of koppeling met BC Online.
 - `npm run build`: productiebuild
 - `npm run lint`: ESLint
 - `npm test`: unit tests (Vitest). Die doen nooit echte API-aanroepen.
+- `npm run db:migrate`: SQL-migraties toepassen op `DATABASE_URL`
+- `npm run test:db`: opt-in integratietest tegen `DATABASE_URL` (schrijft synthetische testdata)
 
 ## Configuratie (`.env.local`, nooit committen)
 
@@ -499,6 +531,7 @@ CERTUM_BLUEPRINT_PROVIDER=mock     # standaard; claude = echte Blueprint Generat
 CERTUM_BLOCK_PLAN_PROVIDER=mock    # standaard; claude = echt Block Plan (betaald)
 CERTUM_BLOCK_CONTENT_PROVIDER=mock # standaard; claude = echte Block Content, één aanroep per blok (betaald)
 ANTHROPIC_API_KEY=sk-ant-...       # alleen nodig bij claude
+DATABASE_URL=postgres://...        # Supabase Postgres (Frankfurt); alleen server-side, nooit loggen
 ```
 
 Herstart `npm run dev` na elke wijziging in `.env.local`.

@@ -1,5 +1,5 @@
 import { fileURLToPath } from "node:url";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 export default defineConfig({
   resolve: {
@@ -11,6 +11,8 @@ export default defineConfig({
   },
   test: {
     include: ["src/**/*.test.ts"],
+    // De opt-in test tegen de echte database draait alleen via `npm run test:db` (vitest.db.config.mts).
+    exclude: [...configDefaults.exclude, "src/**/*.supabase.test.ts"],
     environment: "node",
   },
 });
