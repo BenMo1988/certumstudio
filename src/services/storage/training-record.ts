@@ -67,7 +67,8 @@ export type StorageErrorCode =
   | "invalid_event"
   | "not_generated"
   | "hash_mismatch"
-  | "duplicate_revision";
+  | "duplicate_revision"
+  | "stale_revision";
 
 /** Fout van de storage-laag. De melding bevat nooit inhoud, invoer of hashes. */
 export class StorageError extends Error {
@@ -305,6 +306,11 @@ export interface NewArtifactRevision {
   modelVersion?: string | null;
   payload: unknown;
   basedOnRevisionIds: string[];
+  /**
+   * Optimistische concurrency: de revision die de aanroeper als current kent (`null` = er is er nog geen). Wijkt de
+   * werkelijke current af, dan `stale_revision`: een dubbele of verouderde actie maakt geen extra revision.
+   */
+  expectedCurrentRevisionId?: string | null;
 }
 
 /**
@@ -329,6 +335,12 @@ export async function createArtifactRevision(db: Db, input: NewArtifactRevision)
       await lockTraining(tx, input.trainingId);
       const upstream = await loadBasedOn(tx, input.trainingId, input.artifactType, input.basedOnRevisionIds);
       await validatePayload(tx, input, artifactKey, upstream);
+      if (input.expectedCurrentRevisionId !== undefined) {
+        const current = await getCurrentArtifactRevision(tx, input.trainingId, input.artifactType, artifactKey);
+        if ((current?.id ?? null) !== input.expectedCurrentRevisionId) {
+          throw new StorageError("stale_revision", "De revision is intussen gewijzigd; laad de training opnieuw.");
+        }
+      }
 
       const [{ next }] = await tx.query<{ next: number }>(
         `select coalesce(max(revision_no), 0) + 1 as next from artifact_revision
@@ -519,6 +531,11 @@ export async function appendWorkflowEvent(
         }
       }
     }
+
+    // Idempotent: hetzelfde besluit nog eens (bijv. een dubbelklik) voegt geen nieuw event toe.
+    const relevant: WorkflowEventType[] = input.eventType === "direction_selected" ? ["direction_selected"] : ["approved", "needs_revision", "revoked"];
+    const last = (await listWorkflowEvents(tx, revision.id)).filter((e) => relevant.includes(e.eventType)).at(-1);
+    if (last && last.eventType === input.eventType && canonicalJson(last.eventData) === canonicalJson(eventData)) return last;
 
     const [row] = await tx.query(
       `insert into workflow_event (training_id, artifact_revision_id, event_type, event_data, content_hash, actor_id)
