@@ -28,8 +28,7 @@ import { BlockContentValidationError } from "./diagnostics";
 import { createBlockContentService } from "./factory";
 import { withBlockContentLogging, type BlockContentGenerationLogEntry } from "./logging";
 import { MockBlockContentService } from "./mock/mock-block-content-service";
-import { generateBlockContent, generateTrainingContentPackage } from "./orchestrator";
-import type { BlockContentService } from "./services";
+import { generateBlockContent } from "./orchestrator";
 
 const mock = new MockBlockContentService();
 const gen = async (r: ReturnType<typeof request>) => (await generateBlockContent(() => mock, r)).block;
@@ -258,43 +257,15 @@ describe("Claude-provider (zonder echte aanroepen)", () => {
 });
 
 describe("orchestrator en logging", () => {
-  it("genereert ieder blok één keer in planvolgorde", async () => {
-    const generate = vi.spyOn(mock, "generate");
-    const { package: pkg, failure } = await generateTrainingContentPackage(() => mock, fixtureCase("BLP-003"));
-    expect(failure).toBeNull();
-    // blok-9 (Bron) bepaalt de server zelf; alle andere blokken gaan één keer naar de provider.
-    expect(generate.mock.calls.map((c) => c[0].plannedBlockId)).toEqual(
-      fixtureCase("BLP-003").blockPlan.plannedBlocks.filter((b) => b.certumPhase !== "bron").map((b) => b.id),
-    );
-    expect(pkg.blocks).toHaveLength(14);
-    generate.mockRestore();
-  });
-
-  it("stopt bij de eerste fout: geen extra aanroepen, rest blijft not_generated", async () => {
-    let calls = 0;
-    const failing: BlockContentService = {
-      generateFrame: (r) => mock.generateFrame(r),
-      generate: async (r) => {
-        calls += 1;
-        if (r.plannedBlockId === "blok-3") throw new AnalysisError("rate-limit", "429");
-        return mock.generate(r);
-      },
-    };
-    const { package: pkg, failure } = await generateTrainingContentPackage(() => failing, fixtureCase("BLP-001"));
-    expect(calls).toBe(3);
-    expect(failure).toEqual({ plannedBlockId: "blok-3", errorKind: "rate-limit" });
-    expect(pkg.blocks.map((b) => b.plannedBlockId)).toEqual(["blok-1", "blok-2"]);
-    expect(pkg.unresolvedRequirements.filter((u) => u.kind === "not_generated").map((u) => u.plannedBlockId)).toEqual([
-      "blok-3", "blok-4", "blok-5", "blok-6", "blok-7", "blok-8", "blok-9",
-    ]);
-    expect(pkg.readiness).toBe("incomplete");
-  });
-
   it("logt alleen metadata, nooit inhoud", async () => {
     const entries: BlockContentGenerationLogEntry[] = [];
     const ctx = fixtureCase("BLP-003");
     const logged = withBlockContentLogging(mock, { provider: "mock" }, (e) => entries.push(e));
-    const { package: pkg } = await generateTrainingContentPackage(() => logged, ctx);
+    // Start/Einde één keer, daarna ieder gepland blok (zoals de persisted workflow), met de gelogde service.
+    const frame = await logged.generateFrame(ctx);
+    const blocks = [];
+    for (const b of ctx.blockPlan.plannedBlocks) blocks.push((await generateBlockContent(() => logged, { ...ctx, plannedBlockId: b.id, approvedEarlierContent: [] })).block);
+    const pkg = { start: frame.start, blocks };
     const failing = withBlockContentLogging(
       { generateFrame: mock.generateFrame, generate: async () => { throw new BlockContentValidationError("domain_invariant", ["url-verzonnen"]); } },
       { provider: "claude", model: "claude-opus-5-5", effort: "medium", promptVersion: TRAINING_BLOCK_CONTENT_PROMPT_VERSION },

@@ -1,10 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { AnalysisError } from "@/services/analysis/errors";
 import { MockBlockContentService } from "@/services/block-content/mock/mock-block-content-service";
 import type { BlockContentService } from "@/services/block-content/services";
 import { fixtureCase } from "../../../../test/block-content-fixtures";
-import { replaceBlockContent } from "@/modules/block-content";
-import { runBlockRegenerationFlow, runTrainingContentFlow, type ContentFlowLogEntry } from "./content-flow";
+import { runBlockRegenerationFlow, type ContentFlowLogEntry } from "./content-flow";
 
 const APPROVED = { status: "approved" as const };
 const CONCEPT = { status: "concept" as const };
@@ -15,7 +13,7 @@ function deps(service: BlockContentService = new MockBlockContentService()) {
   return { getService, log: (e: ContentFlowLogEntry) => entries.push(e), entries };
 }
 
-describe("runTrainingContentFlow: poorten", () => {
+describe("poorten (gedeeld door iedere blokgeneratie)", () => {
   it("zonder goedgekeurde Blueprint of goedgekeurd Block Plan wordt geen provider aangemaakt", async () => {
     const { blueprint, blockPlan } = fixtureCase("BLP-001");
     for (const [bp, plan, reason] of [
@@ -23,7 +21,7 @@ describe("runTrainingContentFlow: poorten", () => {
       [APPROVED, CONCEPT, "block_plan_not_approved"],
     ] as const) {
       const d = deps();
-      expect(await runTrainingContentFlow(blueprint, bp, blockPlan, plan, d)).toEqual({ status: "rejected", reason });
+      expect(await runBlockRegenerationFlow(blueprint, bp, blockPlan, plan, "blok-2", [], d)).toEqual({ status: "rejected", reason });
       expect(d.getService).not.toHaveBeenCalled();
     }
   });
@@ -31,11 +29,11 @@ describe("runTrainingContentFlow: poorten", () => {
   it("ongeldige of oude Blueprint en een plan dat niet bij de Blueprint hoort worden afgewezen", async () => {
     const { blueprint, blockPlan } = fixtureCase("BLP-001");
     const d = deps();
-    expect(await runTrainingContentFlow({ ...blueprint, version: "x" }, APPROVED, blockPlan, APPROVED, d)).toMatchObject({ reason: "invalid_blueprint" });
+    expect(await runBlockRegenerationFlow({ ...blueprint, version: "x" }, APPROVED, blockPlan, APPROVED, "blok-2", [], d)).toMatchObject({ reason: "invalid_blueprint" });
     const inconsistent = { ...blueprint, decisionPoint: { ...blueprint.decisionPoint, routePolicy: "prescribed_action" } };
-    expect(await runTrainingContentFlow(inconsistent, APPROVED, blockPlan, APPROVED, d)).toMatchObject({ reason: "invalid_blueprint" });
-    expect(await runTrainingContentFlow(blueprint, APPROVED, { ...blockPlan, blueprintVersion: "blueprint-contract/v1" }, APPROVED, d)).toMatchObject({ reason: "invalid_block_plan" });
-    expect(await runTrainingContentFlow(fixtureCase("BLP-002").blueprint, APPROVED, blockPlan, APPROVED, d)).toMatchObject({ reason: "invalid_block_plan" });
+    expect(await runBlockRegenerationFlow(inconsistent, APPROVED, blockPlan, APPROVED, "blok-2", [], d)).toMatchObject({ reason: "invalid_blueprint" });
+    expect(await runBlockRegenerationFlow(blueprint, APPROVED, { ...blockPlan, blueprintVersion: "blueprint-contract/v1" }, APPROVED, "blok-2", [], d)).toMatchObject({ reason: "invalid_block_plan" });
+    expect(await runBlockRegenerationFlow(fixtureCase("BLP-002").blueprint, APPROVED, blockPlan, APPROVED, "blok-2", [], d)).toMatchObject({ reason: "invalid_block_plan" });
     expect(d.getService).not.toHaveBeenCalled();
   });
 
@@ -55,49 +53,7 @@ describe("runTrainingContentFlow: poorten", () => {
         toets: { demonstrate: learningArc.toets.demonstrate, transferEvidence: learningArc.toets.transferEvidence, newDecisionPoint: learningArc.toets.newDecisionPoint },
       },
     };
-    expect(await runTrainingContentFlow(v1, APPROVED, blockPlan, APPROVED, deps())).toMatchObject({ reason: "incompatible_blueprint" });
-  });
-
-  it("na beide goedkeuringen: een volledig pakket, één aanroep per blok, metadata-log", async () => {
-    const { blueprint, blockPlan } = fixtureCase("BLP-002");
-    const service = new MockBlockContentService();
-    const generate = vi.spyOn(service, "generate");
-    const d = deps(service);
-    const result = await runTrainingContentFlow(blueprint, APPROVED, blockPlan, APPROVED, d);
-    if (result.status !== "content_package") throw new Error(result.reason);
-    expect(result.failedBlockId).toBeNull();
-    expect(result.package.blocks).toHaveLength(11);
-    // blok-6 en blok-7 (Bron) bepaalt de server zelf: 9 provideraanroepen voor 11 blokken, één providercreatie.
-    expect(generate).toHaveBeenCalledTimes(9);
-    expect(d.getService).toHaveBeenCalledTimes(1);
-    expect(d.entries).toEqual([
-      expect.objectContaining({ event: "certum.block_content", operation: "package", outcome: "success", blocks: 11, generated: 9, deterministic: 2, unresolved: result.package.unresolvedRequirements.length }),
-    ]);
-    expect(JSON.stringify(d.entries)).not.toContain(blueprint.title);
-  });
-
-  it("een providerfout bij Start/Einde wordt provider_error, zonder terugval naar mock", async () => {
-    const failing: BlockContentService = {
-      generate: vi.fn(),
-      generateFrame: async () => { throw new AnalysisError("auth", "401"); },
-    };
-    const { blueprint, blockPlan } = fixtureCase("BLP-001");
-    expect(await runTrainingContentFlow(blueprint, APPROVED, blockPlan, APPROVED, deps(failing))).toEqual({ status: "rejected", reason: "provider_error" });
-    expect(failing.generate).not.toHaveBeenCalled();
-  });
-
-  it("een blokfout geeft een gedeeltelijk pakket met het mislukte blok", async () => {
-    const mock = new MockBlockContentService();
-    const failing: BlockContentService = {
-      generateFrame: (r) => mock.generateFrame(r),
-      generate: async (r) => {
-        if (r.plannedBlockId === "blok-2") throw new AnalysisError("invalid-output", "x");
-        return mock.generate(r);
-      },
-    };
-    const { blueprint, blockPlan } = fixtureCase("BLP-001");
-    const result = await runTrainingContentFlow(blueprint, APPROVED, blockPlan, APPROVED, deps(failing));
-    expect(result).toMatchObject({ status: "content_package", failedBlockId: "blok-2", package: { readiness: "incomplete" } });
+    expect(await runBlockRegenerationFlow(v1, APPROVED, blockPlan, APPROVED, "blok-2", [], deps())).toMatchObject({ reason: "incompatible_blueprint" });
   });
 });
 
@@ -179,29 +135,5 @@ describe("deterministische resultaten vóór providercreatie", () => {
     expect(c.getService).toHaveBeenCalledTimes(1);
     expect(c.service.generate).toHaveBeenCalledTimes(1);
     expect(c.service.generateFrame).not.toHaveBeenCalled();
-  });
-
-  it("pakket: Start/Einde één keer per training, één providercreatie, deterministische blokken zonder aanroep", async () => {
-    const { blueprint, blockPlan } = fixtureCase("BLP-003");
-    const c = counting();
-    await runTrainingContentFlow(blueprint, APPROVED, blockPlan, APPROVED, c);
-    expect(c.getService).toHaveBeenCalledTimes(1);
-    expect(c.service.generateFrame).toHaveBeenCalledTimes(1);
-    expect(c.service.generate).toHaveBeenCalledTimes(13); // 14 blokken, blok-9 (Bron) server-side
-  });
-
-  it("regeneratie van één blok verandert Start en Einde niet", async () => {
-    const { blueprint, blockPlan } = fixtureCase("BLP-001");
-    const c = counting();
-    const first = await runTrainingContentFlow(blueprint, APPROVED, blockPlan, APPROVED, c);
-    if (first.status !== "content_package") throw new Error();
-    for (const plannedBlockId of ["blok-2", "blok-5"]) {
-      const regen = await runBlockRegenerationFlow(blueprint, APPROVED, blockPlan, APPROVED, plannedBlockId, first.package.blocks, c);
-      if (regen.status !== "block_content") throw new Error();
-      const after = replaceBlockContent(first.package, blockPlan, regen.block);
-      expect(after.start).toEqual(first.package.start);
-      expect(after.end).toEqual(first.package.end);
-    }
-    expect(c.service.generateFrame).toHaveBeenCalledTimes(1);
   });
 });

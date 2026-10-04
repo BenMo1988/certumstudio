@@ -3,17 +3,15 @@ import {
   BLOCK_CONTENT_VERSION,
   BlockContentResultSchema,
   checkBlockContentInvariants,
-  checkContentPackageInvariants,
   getBlockContentGenerationBlocker,
   type BlockContentResult,
-  type TrainingContentPackage,
 } from "@/modules/block-content";
 import { BcOnlineBlockPlanSchema, checkBlockPlanInvariants, type BcOnlineBlockPlan } from "@/modules/block-plan";
 import { TrainingBlueprintSchema, type ApprovalState } from "@/modules/training-blueprint";
 import { TrainingBlueprintV2Schema, routePolicyFor, type TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
 import { AnalysisError, type AnalysisErrorKind } from "@/services/analysis/errors";
 import type { BlockContentService } from "@/services/block-content/services";
-import { generateBlockContent, generateTrainingContentPackage } from "@/services/block-content/orchestrator";
+import { generateBlockContent } from "@/services/block-content/orchestrator";
 
 /** Waarom er geen Block Content mag ontstaan. Bevat geen inhoud. */
 export type ContentFlowRejection =
@@ -26,10 +24,6 @@ export type ContentFlowRejection =
   | "invalid_earlier_content"
   | "provider_error"
   | "invalid_block_content";
-
-export type ContentFlowResult =
-  | { status: "content_package"; package: TrainingContentPackage; failedBlockId: string | null }
-  | { status: "rejected"; reason: ContentFlowRejection };
 
 export type BlockRegenerationResult =
   | { status: "block_content"; block: BlockContentResult }
@@ -90,52 +84,6 @@ function gate(blueprintCandidate: unknown, blueprintApproval: ApprovalState, pla
   if (!plan.success || plan.data.blueprintVersion !== blueprint.version) return { ok: false, reason: "invalid_block_plan" };
   if (checkBlockPlanInvariants(plan.data, blueprint).length > 0) return { ok: false, reason: "invalid_block_plan" };
   return { ok: true, blueprint, blockPlan: plan.data };
-}
-
-/**
- * Training Content Package: Start/Einde één keer per training, daarna ieder gepland blok. Alleen blokken die gegenereerd
- * kunnen worden gaan naar de provider (één aanroep per blok); de rest bepaalt de server zelf. Slaat niets op.
- */
-export async function runTrainingContentFlow(
-  blueprintCandidate: unknown,
-  blueprintApproval: ApprovalState,
-  planCandidate: unknown,
-  planApproval: ApprovalState,
-  deps: Deps,
-): Promise<ContentFlowResult> {
-  const log = deps.log ?? defaultLog;
-  const reject = (reason: ContentFlowRejection, errorKind?: AnalysisErrorKind | "unknown"): ContentFlowResult => {
-    log({ event: "certum.block_content", version: BLOCK_CONTENT_VERSION, operation: "package", outcome: "rejected", reason, ...(errorKind && { errorKind }) });
-    return { status: "rejected", reason };
-  };
-
-  const gated = gate(blueprintCandidate, blueprintApproval, planCandidate, planApproval);
-  if (!gated.ok) return reject(gated.reason);
-
-  // Pas na alle poorten, en pas bij de eerste echte aanroep, wordt de provider aangemaakt. Geen terugval naar mock.
-  let generated;
-  try {
-    generated = await generateTrainingContentPackage(deps.getService, gated);
-  } catch (error) {
-    if (error instanceof AnalysisError && error.kind === "invalid-output") return reject("invalid_block_content", error.kind);
-    return reject("provider_error", error instanceof AnalysisError ? error.kind : "unknown");
-  }
-  // Ook na een provider die zelf controleert: de flow is de poort voor iedere implementatie.
-  if (checkContentPackageInvariants(generated.package, gated).length > 0) return reject("invalid_block_content");
-
-  const pkg = generated.package;
-  log({
-    event: "certum.block_content",
-    version: BLOCK_CONTENT_VERSION,
-    operation: "package",
-    outcome: "success",
-    blocks: gated.blockPlan.plannedBlocks.length,
-    generated: pkg.blocks.filter((b) => b.body.status === "generated").length,
-    unresolved: pkg.unresolvedRequirements.length,
-    deterministic: generated.deterministicBlocks,
-    ...(generated.failure && { failedBlockId: generated.failure.plannedBlockId, errorKind: generated.failure.errorKind }),
-  });
-  return { status: "content_package", package: pkg, failedBlockId: generated.failure?.plannedBlockId ?? null };
 }
 
 /**
