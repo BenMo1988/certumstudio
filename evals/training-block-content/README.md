@@ -34,8 +34,8 @@ persistence → preview → Accreditation Readiness. De BC Online Adapter blijft
 
 | Eval | Block Plan | Doelblok | Wat wordt getest | Status |
 | --- | --- | --- | --- | --- |
-| [BC-001](cases/BC-001-open-chat-simulatie/case.md) | BLP-001 | `blok-2` · `certum.bco.chat-simulatie` | Open Chat simulatie | [`PASS_WITH_NOTES`](cases/BC-001-open-chat-simulatie/runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium_vervanging.md) |
-| [BC-002](cases/BC-002-voorgeschreven-productie/case.md) | BLP-002 | `blok-3` · `certum.bco.productie` | Voorgeschreven Productie | [`FAIL`](cases/BC-002-voorgeschreven-productie/runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium.md) |
+| [BC-001](cases/BC-001-open-chat-simulatie/case.md) | BLP-001 | `blok-2` · `certum.bco.chat-simulatie` | Open Chat simulatie | [`PENDING_REVIEW`](cases/BC-001-open-chat-simulatie/runs/2026-10-04_training-block-content-v1.1_claude-opus-5-5_medium_bevestiging.md) |
+| [BC-002](cases/BC-002-voorgeschreven-productie/case.md) | BLP-002 | `blok-3` · `certum.bco.productie` | Voorgeschreven Productie | [`PENDING_REVIEW`](cases/BC-002-voorgeschreven-productie/runs/2026-10-04_training-block-content-v1.1_claude-opus-5-5_medium_bevestiging.md) |
 | [BC-003](cases/BC-003-bron-zonder-gevalideerde-bron/case.md) | BLP-001 | `blok-5` · `certum.bco.tekst` | Bron zonder gevalideerde bron | [`PENDING_REVIEW`](cases/BC-003-bron-zonder-gevalideerde-bron/runs/2026-10-04_deterministisch.md) |
 | [BC-004](cases/BC-004-media-zonder-asset/case.md) | BLP-001-MEDIA | `blok-1` · `certum.bco.video` | Media zonder asset | [`PENDING_REVIEW`](cases/BC-004-media-zonder-asset/runs/2026-10-04_deterministisch.md) |
 | [BC-005](cases/BC-005-ai-feedback-onbewezen-context/case.md) | BLP-002-UNPROVEN-FEEDBACK | `blok-5` · `certum.bco.ai-feedback` | AI Feedback met uitsluitend onbewezen context (deterministisch) | [`PENDING_REVIEW`](cases/BC-005-ai-feedback-onbewezen-context/runs/2026-10-04_deterministisch.md) |
@@ -116,3 +116,15 @@ BC-003, BC-004 en BC-005 (deterministisch, 0 providercreaties) zijn in deze revi
 
 Gevolg: één kleine, gerichte correctie (`fix: tighten block content grounding`, prompt `training-block-content/v1.1`,
 contract blijft `block-content/v1`), gevolgd door twee bevestigingsruns (BC-001, BC-002).
+
+## Bevestiging V1.1 (2026-10-04, training-block-content/v1.1, na `e0e2b23`)
+
+Exact twee calls, code freeze, geen retry; daarna Block Content terug op mock. Alleen `certum.block_content`-events in
+de serverlog (Analysis, Blueprint en Block Plan deden geen calls).
+
+| ID | type | result | ms | minutes | assessmentRole | content grounded? | usable? | opvallend |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| BC-001 | chat-simulatie | generated | 24274 | 15 | formative | ja, op één persona-detail na ("ervaren") | ja | `scenarioContext` ontvanger-neutraal; `goal: null`; route-neutraal |
+| BC-002 | productie | generated | 13077 | 8 | formative | ja | ja | Geen downstream-claim; `minimumWords: null` (trusted); geen andere lengte-eis |
+
+Betaalde Block Content-calls in totaal: 8 (4 baseline, 2 vervangend, 2 bevestiging).

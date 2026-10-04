@@ -6,7 +6,7 @@
 | **Input** | Goedgekeurde Blueprint `BLP-001` (`test/fixtures/approved-blueprints.json`) en goedgekeurd Block Plan `BLP-001` (`test/fixtures/approved-block-plans.json`) |
 | **Doelblok** | `blok-2` · actie · `certum.bco.chat-simulatie` |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `PASS_WITH_NOTES` |
+| **Status (laatste run)** | `PENDING_REVIEW` |
 
 ## Doelblok (uit het Block Plan)
 
@@ -40,3 +40,4 @@ Vastgelegd vóór de implementatie van de Block Content Engine. Algemeen (G) en 
 | --- | --- | --- | --- | --- |
 | 2026-10-04 | training-block-content/v1 · block-content/v1 | claude-opus-5-5 · medium | `INCONCLUSIVE` | [run](runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium.md) |
 | 2026-10-04 | training-block-content/v1 · block-content/v1 (vervanging: evidence herstellen) | claude-opus-5-5 · medium | `PASS_WITH_NOTES` | [run](runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium_vervanging.md) |
+| 2026-10-04 | training-block-content/v1.1 · block-content/v1 (bevestiging, na e0e2b23) | claude-opus-5-5 · medium | `PENDING_REVIEW` | [run](runs/2026-10-04_training-block-content-v1.1_claude-opus-5-5_medium_bevestiging.md) |
