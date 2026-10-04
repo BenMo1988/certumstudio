@@ -20,7 +20,7 @@ import type { BlockContentRequest, FrameContentRequest } from "./services";
  * (`resolveDeterministicResult`) en mag hier nooit aankomen.
  */
 export function targetOf(request: BlockContentRequest): BlockTarget {
-  const target = resolveBlockTarget(request.blueprint, request.blockPlan, request.plannedBlockId);
+  const target = resolveBlockTarget(request.blueprint, request.blockPlan, request.plannedBlockId, request.validatedSources);
   if (!target) throw new AnalysisError("config", "Onbekend gepland blok.");
   if (!needsProvider(target)) throw new AnalysisError("config", "Dit blok wordt server-side bepaald; geen provider nodig.");
   return target;

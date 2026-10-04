@@ -71,7 +71,7 @@ export const BLOCK_GUIDANCE: Record<string, string> = {
     "Toets: vraagvolgorde, slagingspercentage en toetsvragen (meerkeuze met één juist antwoord, of ja/nee). Gebruik bij 'open_choice' geen vraag die één route als juist neerzet.",
 };
 
-const BRON_GUIDANCE =
+export const BRON_GUIDANCE =
   "Dit blok staat in de Bron-fase. Er is nog geen gevalideerde bron: geef 'needs_source' met de relevante sourceNeed-ids. Schrijf geen kennis, geen samenvatting van regels en geen bronverwijzing.";
 const MEDIA_GUIDANCE =
   "Dit is een mediablok. Er is geen asset: geef 'needs_asset' met een beschrijving van wat nodig is. Noem geen URL, bestand of bestaande video, afbeelding, audio of document.";

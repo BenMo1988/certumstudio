@@ -35,7 +35,7 @@ export {
   type FrameContent,
   type FrameDesign,
 } from "./compose";
-export { earlierBlocks, isQuestionBlock, resolveBlockTarget, type BlockTarget } from "./target";
+export { earlierBlocks, isQuestionBlock, requiredSourceNeedsFor, resolveBlockTarget, type BlockTarget } from "./target";
 export {
   checkBlockContentInvariants,
   checkContentPackageInvariants,

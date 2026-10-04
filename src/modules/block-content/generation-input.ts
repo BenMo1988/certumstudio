@@ -25,6 +25,11 @@ export interface BlockContentGenerationInput {
     knownLimitations: string[];
   };
   approvedEarlierContent: { plannedBlockId: string; catalogBlockId: string; content: unknown }[];
+  /**
+   * Alleen bij een Bron-blok met dekking: de gevalideerde bronnen die aan de vereiste sourceNeeds gekoppeld zijn. Het
+   * enige waarop Bron-inhoud mag steunen; nooit candidate-bronnen of andere bronnen van de training.
+   */
+  validatedSources: { sourceId: string; title: string; sourceType: string; author: string | null; publisher: string | null; publicationDate: string | null; url: string | null; sourceNeedRefs: string[]; relevantContent: string }[];
   trustedContext: {
     routePolicy: BlockTarget["routePolicy"];
     allowedStatuses: BlockTarget["allowedStatuses"];
@@ -55,6 +60,17 @@ export function buildBlockContentGenerationInput(input: {
       observedFields: catalog.observedFields,
       knownLimitations: catalog.knownLimitations,
     },
+    validatedSources: target.sources.map((s) => ({
+      sourceId: s.sourceId,
+      title: s.title,
+      sourceType: s.sourceType,
+      author: s.author,
+      publisher: s.publisher,
+      publicationDate: s.publicationDate,
+      url: s.url,
+      sourceNeedRefs: s.sourceNeedRefs,
+      relevantContent: s.relevantContent,
+    })),
     approvedEarlierContent: input.approvedEarlierContent
       .filter((b) => b.sequence < target.block.sequence && b.reviewStatus === "approved" && b.body.status === "generated")
       .map((b) => ({

@@ -1,4 +1,4 @@
-import { TRAINING_BLOCK_CONTENT_V1_1_PROMPT_VERSION } from "@/knowledge/prompts/training-block-content-v1-1";
+import { TRAINING_BLOCK_CONTENT_V1_2_PROMPT_VERSION } from "@/knowledge/prompts/training-block-content-v1-2";
 import { createClaudeClient } from "../analysis/claude/claude-training-analysis-service";
 import { ClaudeBlockContentService } from "./claude-block-content-service";
 import { readBlockContentConfig } from "./config";
@@ -23,7 +23,7 @@ export function createBlockContentService(env?: Record<string, string | undefine
         provider: "claude",
         model: settings.model,
         effort: settings.effort,
-        promptVersion: TRAINING_BLOCK_CONTENT_V1_1_PROMPT_VERSION,
+        promptVersion: TRAINING_BLOCK_CONTENT_V1_2_PROMPT_VERSION,
       });
     }
   }

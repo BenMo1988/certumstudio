@@ -56,19 +56,32 @@ export class MockBlockContentService implements BlockContentService {
   }
 }
 
+/** Testmarkering in broninhoud: de mock behandelt de bron dan als inhoudelijk onvoldoende (blijft needs_source). */
+export const MOCK_INSUFFICIENT_SOURCE = "#onvoldoende";
+
 function designFor(target: BlockTarget, blueprint: TrainingBlueprintV2): BlockContentDesign {
   const { block } = target;
-  return {
-    status: "generated",
-    accreditation: {
-      learningGoalContribution: fit(block.purpose, 500),
-      assessmentRole: DEFAULT_ASSESSMENT_ROLE[block.certumPhase],
-      estimatedMinutes: MINUTES[block.catalogBlockId] ?? null,
-      sourceNeedRefs: [],
-    },
-    content: contentFor(target, blueprint),
+  const accreditation = {
+    learningGoalContribution: fit(block.purpose, 500),
+    assessmentRole: DEFAULT_ASSESSMENT_ROLE[block.certumPhase],
+    estimatedMinutes: MINUTES[block.catalogBlockId] ?? null,
+    // Een Bron-blok steunt op de vereiste sourceNeeds; andere blokken niet.
+    sourceNeedRefs: target.sourcesCover ? target.requiredSourceNeedIds : [],
   };
+  // Bron met onvoldoende broninhoud: eerlijk needs_source in plaats van kennis aanvullen.
+  if (target.sourcesCover && target.sources.some((s) => s.relevantContent.includes(MOCK_INSUFFICIENT_SOURCE))) {
+    return {
+      status: "needs_source",
+      accreditation: { ...accreditation, estimatedMinutes: null },
+      whatToValidate: "De aangeleverde broninhoud is onvoldoende om de kennisvraag te beantwoorden.",
+      generatableAfterValidation: fit(`Na aanvulling van de bron: ${block.purpose}`, 1000),
+    };
+  }
+  return { status: "generated", accreditation, content: contentFor(target, blueprint) };
 }
+
+/** Bron-tekst uitsluitend uit de aangeleverde gevalideerde broninhoud. */
+const fromSources = (target: BlockTarget) => target.sources.map((s) => `${s.title}: ${s.relevantContent}`).join("\n\n");
 
 function contentFor(target: BlockTarget, blueprint: TrainingBlueprintV2): BlockPayloadDesign {
   const { block } = target;
@@ -79,7 +92,7 @@ function contentFor(target: BlockTarget, blueprint: TrainingBlueprintV2): BlockP
 
   switch (block.catalogBlockId) {
     case "certum.bco.tekst":
-      return { title, text: fit(situation, 4000) };
+      return { title, text: fit(target.sourcesCover ? fromSources(target) : situation, 4000) };
     case "certum.bco.whatsapp-email":
       return {
         title,

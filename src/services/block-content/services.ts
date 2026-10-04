@@ -1,4 +1,5 @@
 import type { BcOnlineBlockPlan } from "@/modules/block-plan/schema";
+import type { ValidatedSource } from "@/modules/sources/schema";
 import type { BlockContentResult, FrameContent } from "@/modules/block-content";
 import type { TrainingBlueprintV2 } from "@/modules/training-blueprint/v2/schema";
 
@@ -13,6 +14,11 @@ export interface BlockContentRequest {
   blockPlan: BcOnlineBlockPlan;
   plannedBlockId: string;
   approvedEarlierContent: BlockContentResult[];
+  /**
+   * Alleen voor Bron-blokken: current gevalideerde bronnen van de training. Het doelblok gebruikt uitsluitend de bronnen
+   * die aan zijn vereiste sourceNeeds gekoppeld zijn; candidate-bronnen komen hier nooit in.
+   */
+  validatedSources?: ValidatedSource[];
 }
 
 /** Vaste Start en Vast Einde: alleen Blueprint en Block Plan. */

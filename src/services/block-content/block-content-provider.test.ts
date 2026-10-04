@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  TRAINING_BLOCK_CONTENT_V1_2_INSTRUCTIONS,
+  TRAINING_BLOCK_CONTENT_V1_2_PROMPT_VERSION,
+} from "@/knowledge/prompts/training-block-content-v1-2";
+import {
   BLOCK_GUIDANCE_V1_1,
   TRAINING_BLOCK_CONTENT_V1_1_INSTRUCTIONS,
   TRAINING_BLOCK_CONTENT_V1_1_PROMPT_VERSION,
@@ -193,7 +197,7 @@ describe("Claude-provider (zonder echte aanroepen)", () => {
     expect(await service.generate(request("BLP-003", "blok-8"))).toEqual(expected);
     expect(parse).toHaveBeenCalledTimes(1);
     const sent = parse.mock.calls[0][0] as { model: string; system: string; output_config: { effort: string } };
-    expect(sent).toMatchObject({ model: "claude-opus-5-5", system: TRAINING_BLOCK_CONTENT_V1_1_INSTRUCTIONS, output_config: { effort: "medium" } });
+    expect(sent).toMatchObject({ model: "claude-opus-5-5", system: TRAINING_BLOCK_CONTENT_V1_2_INSTRUCTIONS, output_config: { effort: "medium" } });
   });
 
   it("de provider krijgt geen oorspronkelijke invoer, analyse of bronsegment-ids", async () => {
@@ -205,7 +209,7 @@ describe("Claude-provider (zonder echte aanroepen)", () => {
     expect(content).not.toContain(ctx.blueprint.selectedDirectionId);
     const input = buildBlockContentGenerationInput({ ...ctx, target: resolveBlockTarget(ctx.blueprint, ctx.blockPlan, "blok-2")!, approvedEarlierContent: [] });
     expect(Object.keys(input.blueprint)).not.toContain("sourceRefs");
-    expect(Object.keys(input)).toEqual(["blueprint", "blockPlan", "targetBlock", "catalogDefinition", "approvedEarlierContent", "trustedContext"]);
+    expect(Object.keys(input)).toEqual(["blueprint", "blockPlan", "targetBlock", "catalogDefinition", "validatedSources", "approvedEarlierContent", "trustedContext"]);
   });
 
   it("alleen eerdere, goedgekeurde, gegenereerde inhoud gaat mee", async () => {
@@ -364,13 +368,15 @@ describe("grounding v1.1 (training-block-content/v1.1, contract block-content/v1
     expect(buildTrainingBlockContentV1_1Request(input)).toBe(buildTrainingBlockContentV1Request(input));
   });
 
-  it("de Claude-provider gebruikt v1.1 en logt die promptversie", async () => {
+  it("de Claude-provider gebruikt v1.2 (v1.1 plus de bronregel) en logt die promptversie", async () => {
     const entries: BlockContentGenerationLogEntry[] = [];
     const { service, parse } = claudeReturning(await productieDesign());
-    const logged = withBlockContentLogging(service, { provider: "claude", promptVersion: TRAINING_BLOCK_CONTENT_V1_1_PROMPT_VERSION }, (e) => entries.push(e));
+    const logged = withBlockContentLogging(service, { provider: "claude", promptVersion: TRAINING_BLOCK_CONTENT_V1_2_PROMPT_VERSION }, (e) => entries.push(e));
     await logged.generate(request("BLP-002", "blok-3"));
-    expect((parse.mock.calls[0][0] as { system: string }).system).toBe(TRAINING_BLOCK_CONTENT_V1_1_INSTRUCTIONS);
+    expect((parse.mock.calls[0][0] as { system: string }).system).toBe(TRAINING_BLOCK_CONTENT_V1_2_INSTRUCTIONS);
+    expect(TRAINING_BLOCK_CONTENT_V1_2_INSTRUCTIONS).toContain("## Bron-inhoud alleen uit gevalideerde bronnen");
+    expect(TRAINING_BLOCK_CONTENT_V1_2_INSTRUCTIONS.startsWith(TRAINING_BLOCK_CONTENT_V1_1_INSTRUCTIONS.slice(0, 2000))).toBe(true);
     expect((parse.mock.calls[0][0] as { messages: { content: string }[] }).messages[0].content).toContain(BLOCK_GUIDANCE_V1_1["certum.bco.productie"]);
-    expect(entries[0]).toMatchObject({ promptVersion: "training-block-content/v1.1", contentContractVersion: "block-content/v1" });
+    expect(entries[0]).toMatchObject({ promptVersion: "training-block-content/v1.2", contentContractVersion: "block-content/v1" });
   });
 });

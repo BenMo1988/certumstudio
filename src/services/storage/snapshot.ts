@@ -1,6 +1,7 @@
 import { composeContentPackage, type BlockContentResult, type TrainingContentPackage } from "@/modules/block-content";
 import type { BcOnlineBlockPlan } from "@/modules/block-plan";
 import type { TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
+import type { CertumSource, ValidatedSource } from "@/modules/sources/schema";
 import { contentHash } from "./canonical-json";
 import type {
   ArtifactRevision,
@@ -183,4 +184,49 @@ export function composeContentFromSnapshot(snap: TrainingRecordSnapshot): Stored
     }),
     revisionIds,
   };
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Bronnen (certum-source/v1)
+// ---------------------------------------------------------------------------------------------------------------
+
+/** Een bronrevision als input voor de Block Content Engine, met herkomst (source key en revision-id). */
+export function toValidatedSource(revision: ArtifactRevision): ValidatedSource {
+  const p = revision.payload as CertumSource;
+  return {
+    sourceId: revision.artifactKey,
+    revisionId: revision.id,
+    title: p.title,
+    sourceType: p.sourceType,
+    author: p.author,
+    publisher: p.publisher,
+    publicationDate: p.publicationDate,
+    url: p.url,
+    sourceNeedRefs: p.sourceNeedRefs,
+    relevantContent: p.relevantContent,
+  };
+}
+
+/** De current bronrevisions van de training (één per bron), in volgorde van aanmaak. */
+export function currentSources(snap: TrainingRecordSnapshot): ArtifactRevision[] {
+  const keys = [...new Set(snap.revisions.filter((r) => r.artifactType === "source").map((r) => r.artifactKey))];
+  return keys
+    .sort((a, b) => Number(a.slice(4)) - Number(b.slice(4)))
+    .map((k) => currentRevision(snap, "source", k)!)
+    .filter(Boolean);
+}
+
+/**
+ * De bronnen die de Block Content Engine mag gebruiken: current, gevalideerd (besluit op exact deze versie) en gebouwd
+ * op de current goedgekeurde Blueprint. Candidate-bronnen en verouderde versies vallen hier altijd buiten.
+ */
+export function validatedSources(snap: TrainingRecordSnapshot): ValidatedSource[] {
+  return currentSources(snap)
+    .filter((r) => isApproved(snap, r.id))
+    .map(toValidatedSource);
+}
+
+/** De versies van bronnen waarop een (Bron-)blokrevision is gebaseerd. */
+export function sourcesUsedBy(snap: TrainingRecordSnapshot, revision: ArtifactRevision): ArtifactRevision[] {
+  return revision.basedOnRevisionIds.map((id) => revisionById(snap, id)).filter((r): r is ArtifactRevision => r?.artifactType === "source");
 }

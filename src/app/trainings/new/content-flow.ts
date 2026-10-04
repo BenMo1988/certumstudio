@@ -12,6 +12,7 @@ import { TrainingBlueprintV2Schema, routePolicyFor, type TrainingBlueprintV2 } f
 import { AnalysisError, type AnalysisErrorKind } from "@/services/analysis/errors";
 import type { BlockContentService } from "@/services/block-content/services";
 import { generateBlockContent } from "@/services/block-content/orchestrator";
+import type { ValidatedSource } from "@/modules/sources/schema";
 
 /** Waarom er geen Block Content mag ontstaan. Bevat geen inhoud. */
 export type ContentFlowRejection =
@@ -99,6 +100,8 @@ export async function runBlockRegenerationFlow(
   plannedBlockId: unknown,
   earlierContentCandidate: unknown,
   deps: Deps,
+  /** Server-side bepaalde current gevalideerde bronnen (alleen relevant voor Bron-blokken). */
+  validatedSources: ValidatedSource[] = [],
 ): Promise<BlockRegenerationResult> {
   const log = deps.log ?? defaultLog;
   const reject = (reason: ContentFlowRejection, errorKind?: AnalysisErrorKind | "unknown"): BlockRegenerationResult => {
@@ -123,6 +126,7 @@ export async function runBlockRegenerationFlow(
   let deterministic: boolean;
   try {
     ({ block, deterministic } = await generateBlockContent(deps.getService, {
+      validatedSources,
       ...gated,
       plannedBlockId: target.id,
       approvedEarlierContent: approvedEarlier,
@@ -131,7 +135,7 @@ export async function runBlockRegenerationFlow(
     if (error instanceof AnalysisError && error.kind === "invalid-output") return reject("invalid_block_content", error.kind);
     return reject("provider_error", error instanceof AnalysisError ? error.kind : "unknown");
   }
-  if (block.plannedBlockId !== target.id || checkBlockContentInvariants(block, { ...gated, approvedEarlierContent: approvedEarlier }).length > 0) {
+  if (block.plannedBlockId !== target.id || checkBlockContentInvariants(block, { ...gated, approvedEarlierContent: approvedEarlier, validatedSources }).length > 0) {
     return reject("invalid_block_content");
   }
 

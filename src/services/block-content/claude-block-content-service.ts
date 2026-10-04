@@ -1,10 +1,10 @@
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { buildTrainingFrameV1Request } from "@/knowledge/prompts/training-block-content-v1";
 import {
-  TRAINING_BLOCK_CONTENT_V1_1_INSTRUCTIONS,
-  TRAINING_FRAME_V1_1_INSTRUCTIONS,
-  buildTrainingBlockContentV1_1Request,
-} from "@/knowledge/prompts/training-block-content-v1-1";
+  TRAINING_BLOCK_CONTENT_V1_2_INSTRUCTIONS,
+  TRAINING_FRAME_V1_2_INSTRUCTIONS,
+  buildTrainingBlockContentV1_2Request,
+} from "@/knowledge/prompts/training-block-content-v1-2";
 import {
   BLOCK_CONTENT_VERSION,
   buildBlockContentGenerationInput,
@@ -22,7 +22,7 @@ import type { BlockContentRequest, BlockContentService, FrameContentRequest } fr
 type ParseRequest = Parameters<ClaudeMessagesClient["messages"]["parse"]>[0];
 
 /**
- * Block Content via Claude (Certum Content Writer, prompt training-block-content/v1.1). Eén aanroep per doelblok.
+ * Block Content via Claude (Certum Content Writer, prompt training-block-content/v1.2). Eén aanroep per doelblok.
  *
  * Input: uitsluitend downstream-materiaal (`buildBlockContentGenerationInput`). Claude ontwerpt alleen wat het
  * ontwerpschema van dít doelblok toelaat; de server voegt de trusted velden toe. Geldig pas na structured output,
@@ -39,8 +39,8 @@ export class ClaudeBlockContentService implements BlockContentService {
     const target = targetOf(request);
     const input = buildBlockContentGenerationInput({ ...request, target });
     const candidate = await this.call(
-      TRAINING_BLOCK_CONTENT_V1_1_INSTRUCTIONS,
-      buildTrainingBlockContentV1_1Request({ ...input, contractVersion: BLOCK_CONTENT_VERSION }),
+      TRAINING_BLOCK_CONTENT_V1_2_INSTRUCTIONS,
+      buildTrainingBlockContentV1_2Request({ ...input, contractVersion: BLOCK_CONTENT_VERSION }),
       buildBlockContentDesignSchema(target),
     );
     return finalizeBlockContent(candidate, target, request);
@@ -51,7 +51,7 @@ export class ClaudeBlockContentService implements BlockContentService {
     void sourceRefs;
     void selectedDirectionId;
     const candidate = await this.call(
-      TRAINING_FRAME_V1_1_INSTRUCTIONS,
+      TRAINING_FRAME_V1_2_INSTRUCTIONS,
       buildTrainingFrameV1Request({ blueprint, blockPlan: request.blockPlan }),
       FrameDesignSchema,
     );

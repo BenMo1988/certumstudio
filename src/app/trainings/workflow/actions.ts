@@ -1,7 +1,7 @@
 "use server";
 
 import { TRAINING_ANALYSIS_V211_PROMPT_VERSION } from "@/knowledge/prompts/training-analysis-v2-1-1";
-import { TRAINING_BLOCK_CONTENT_V1_1_PROMPT_VERSION } from "@/knowledge/prompts/training-block-content-v1-1";
+import { TRAINING_BLOCK_CONTENT_V1_2_PROMPT_VERSION } from "@/knowledge/prompts/training-block-content-v1-2";
 import { TRAINING_BLOCK_PLAN_PROMPT_VERSION } from "@/knowledge/prompts/training-block-plan-v1";
 import { TRAINING_BLUEPRINT_V21_PROMPT_VERSION } from "@/knowledge/prompts/training-blueprint-v2-1";
 import { parsePreflightAcknowledgement } from "@/modules/privacy";
@@ -29,6 +29,7 @@ import {
   type WorkflowResult,
 } from "./persisted-workflow";
 import { revisionHistory, saveBlockEdit, saveFrameEdit, type RevisionHistoryEntry } from "./editing";
+import { addSource, editSource, validateSource } from "./sources";
 
 /*
  * Server Actions van de persisted workflow. Ze nemen uitsluitend ids en eenvoudige keuzes aan; Blueprint, Block Plan,
@@ -60,7 +61,7 @@ function deps(): WorkflowDeps {
       analysis: provenance(readAnalysisConfig, TRAINING_ANALYSIS_V211_PROMPT_VERSION),
       blueprint: provenance(readBlueprintConfig, TRAINING_BLUEPRINT_V21_PROMPT_VERSION),
       blockPlan: provenance(readBlockPlanConfig, TRAINING_BLOCK_PLAN_PROMPT_VERSION),
-      blockContent: provenance(readBlockContentConfig, TRAINING_BLOCK_CONTENT_V1_1_PROMPT_VERSION),
+      blockContent: provenance(readBlockContentConfig, TRAINING_BLOCK_CONTENT_V1_2_PROMPT_VERSION),
     },
   };
 }
@@ -149,4 +150,26 @@ export async function revisionHistoryAction(trainingId: unknown, target: unknown
     if (error instanceof StorageError) return null;
     throw error;
   }
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Source Workspace V1: bronnen toevoegen, corrigeren en valideren (0 AI-aanroepen)
+// ---------------------------------------------------------------------------------------------------------------
+
+/** Nieuwe bron (candidate) bij bestaande sourceNeeds van de goedgekeurde Blueprint. */
+export async function addSourceAction(trainingId: unknown, fields: unknown) {
+  if (!isId(trainingId)) return invalid;
+  return guarded(() => addSource(deps(), trainingId, fields));
+}
+
+/** Bron corrigeren: nieuwe versie die opnieuw gevalideerd moet worden. */
+export async function editSourceAction(trainingId: unknown, sourceId: unknown, expectedRevisionId: unknown, fields: unknown) {
+  if (!isId(trainingId) || !isId(sourceId) || !isId(expectedRevisionId)) return invalid;
+  return guarded(() => editSource(deps(), trainingId, sourceId, expectedRevisionId, fields));
+}
+
+/** Validatie door de opleider; alleen met expliciete bevestiging van de vaste verklaring. */
+export async function validateSourceAction(trainingId: unknown, revisionId: unknown, confirmed: unknown) {
+  if (!isId(trainingId) || !isId(revisionId)) return invalid;
+  return guarded(() => validateSource(deps(), trainingId, revisionId, confirmed === true));
 }

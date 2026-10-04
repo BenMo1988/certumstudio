@@ -12,12 +12,13 @@ import type { RevisionHistoryEntry } from "@/app/trainings/workflow/editing";
 import type { WorkflowResult } from "@/app/trainings/workflow/persisted-workflow";
 import { METHODOLOGY_STEPS } from "@/knowledge";
 import { getCatalogBlock } from "@/knowledge/platform/bc-online-block-catalog";
-import type { BlockContentResult } from "@/modules/block-content";
+import { requiredSourceNeedsFor, type BlockContentResult } from "@/modules/block-content";
 import type { RevisionMeta, TrainingWorkspaceView } from "@/services/storage/workspace";
 import { Button } from "../Button";
 import { Icon } from "../Icon";
 import { ASSESSMENT_LABEL, FIELD_SPECS, REVIEW_LABEL, UNRESOLVED_LABEL, editableFields, previewOf, type FieldSpec } from "./block-fields";
 import { BlockForm, BlockView, type FieldContext } from "./BlockFields";
+import { SourcesDetail, SourcesPanel } from "./SourceWorkspace";
 
 /*
  * Training Review & Editor V1: de opleiderswerkplek. Overzicht van de hele training in volgorde (Vaste Start, blokken
@@ -36,7 +37,7 @@ interface Props {
   onBack: () => void;
 }
 
-type Selection = { kind: "block"; id: string } | { kind: "start" } | { kind: "end" } | null;
+type Selection = { kind: "block"; id: string } | { kind: "start" } | { kind: "end" } | { kind: "sources"; preselect: string[] } | null;
 
 const phaseLabel = (id: string) => METHODOLOGY_STEPS.find((s) => s.id === id)?.label ?? id;
 const blockName = (id: string) => getCatalogBlock(id)?.visibleName ?? id;
@@ -80,7 +81,9 @@ export function ReviewWorkspace({ ws, pending, failedBlockId, act, onBack }: Pro
           Terug naar de training
         </button>
         {noticeView}
-        {selection.kind === "block" ? (
+        {selection.kind === "sources" ? (
+          <SourcesDetail ws={ws} preselect={selection.preselect} pending={pending} run={run} />
+        ) : selection.kind === "block" ? (
           <BlockDetail
             key={content.blockRevisions[selection.id]?.revisionId ?? selection.id}
             ws={ws}
@@ -88,6 +91,7 @@ export function ReviewWorkspace({ ws, pending, failedBlockId, act, onBack }: Pro
             blockLabel={blockLabel}
             pending={pending}
             run={run}
+            onAddSource={(refs) => open({ kind: "sources", preselect: refs })}
           />
         ) : (
           <FrameDetail key={content.frame[selection.kind].revisionId} ws={ws} part={selection.kind} pending={pending} run={run} />
@@ -101,6 +105,7 @@ export function ReviewWorkspace({ ws, pending, failedBlockId, act, onBack }: Pro
     <div className="mt-8" data-testid="review-workspace" data-readiness={r.readiness}>
       <ReviewSummary ws={ws} />
       {noticeView}
+      {ws.sources && <SourcesPanel sources={ws.sources} onOpen={() => open({ kind: "sources", preselect: [] })} />}
       {failedBlockId && (
         <p role="alert" className="mt-4 text-sm text-danger">
           Het genereren stopte bij {blockLabel(failedBlockId)}. Je kunt het opnieuw starten; wat er al is, blijft bewaard.
@@ -126,6 +131,7 @@ export function ReviewWorkspace({ ws, pending, failedBlockId, act, onBack }: Pro
                     label={`${b.sequence}. ${blockName(b.catalogBlockId)}`}
                     pending={pending}
                     onOpen={() => open({ kind: "block", id: b.id })}
+                    onAddSource={(refs) => open({ kind: "sources", preselect: refs })}
                     run={run}
                   />
                 ))}
@@ -165,7 +171,9 @@ function ReviewSummary({ ws }: { ws: TrainingWorkspaceView }) {
     r.notGenerated > 0 && `${r.notGenerated} nog niet gemaakt`,
   ].filter(Boolean);
   const open = [
-    r.source > 0 && (r.source === 1 ? "1 bron ontbreekt" : `${r.source} bronnen ontbreken`),
+    r.sourceNeedsOpen > 0 && (r.sourceNeedsOpen === 1 ? "1 bron ontbreekt" : `${r.sourceNeedsOpen} bronnen ontbreken`),
+    r.sourceNeedsOpen === 0 && r.source > 0 && "Alle benodigde bronnen aanwezig · Bron-blok nog genereren",
+    r.staleBlocks > 0 && (r.staleBlocks === 1 ? "1 blok steunt op een gewijzigde bron" : `${r.staleBlocks} blokken steunen op een gewijzigde bron`),
     r.asset > 0 && (r.asset === 1 ? "1 asset ontbreekt" : `${r.asset} assets ontbreken`),
     r.capability > 0 && `${r.capability} technische beperking`,
     r.toReview > 0 && (r.toReview === 1 ? "Nog 1 onderdeel beoordelen" : `Nog ${r.toReview} onderdelen beoordelen`),
@@ -213,6 +221,7 @@ function BlockCard({
   label,
   pending,
   onOpen,
+  onAddSource,
   run,
 }: {
   ws: TrainingWorkspaceView;
@@ -220,6 +229,7 @@ function BlockCard({
   label: string;
   pending: boolean;
   onOpen: () => void;
+  onAddSource: (refs: string[]) => void;
   run: (a: () => Promise<WorkflowResult>, success: string) => Promise<ActResult>;
 }) {
   const content = ws.content!;
@@ -228,17 +238,20 @@ function BlockCard({
   const status = statusOf(block);
   const generated = block?.body.status === "generated";
   const id = ws.training.id;
+  const sourceState = block?.body.status === "needs_source" ? bronSourceState(ws) : null;
   return (
     <li className="rounded-lg border border-line p-5" data-testid={`card-${plannedBlockId}`} data-status={block?.body.status ?? "not_generated"} data-review={block?.reviewStatus ?? "-"}>
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <p className="font-medium text-ink">{label}</p>
         <StatusPill tone={status.tone}>{status.label}</StatusPill>
+        {meta?.staleSources && <StatusPill tone="attention">Bron gewijzigd</StatusPill>}
         <p className="text-xs text-muted" data-testid="card-version">
           {versionText(meta)}
           {block?.accreditation.estimatedMinutes ? ` · ${block.accreditation.estimatedMinutes} min` : ""}
         </p>
       </div>
       {block && <p className="mt-2 text-sm text-muted">{previewOf(block)}</p>}
+      {meta && meta.basedOnSources.length > 0 && <p className="mt-1 text-xs text-muted" data-testid="card-provenance">{provenanceText(meta.basedOnSources)}</p>}
       <div className="mt-4 flex flex-wrap gap-2">
         {block && (
           <Button variant="secondary" onClick={onOpen}>
@@ -260,6 +273,7 @@ function BlockCard({
             Opnieuw genereren
           </Button>
         )}
+        {sourceState && <SourceActions state={sourceState} ws={ws} plannedBlockId={plannedBlockId} revisionId={meta?.revisionId ?? null} pending={pending} run={run} onAddSource={onAddSource} />}
       </div>
     </li>
   );
@@ -315,12 +329,14 @@ function BlockDetail({
   blockLabel,
   pending,
   run,
+  onAddSource,
 }: {
   ws: TrainingWorkspaceView;
   plannedBlockId: string;
   blockLabel: (id: string) => string;
   pending: boolean;
   run: (a: () => Promise<WorkflowResult>, success: string) => Promise<ActResult>;
+  onAddSource: (refs: string[]) => void;
 }) {
   const content = ws.content!;
   const block = content.package.blocks.find((b) => b.plannedBlockId === plannedBlockId)!;
@@ -349,6 +365,17 @@ function BlockDetail({
         <StatusPill tone={status.tone}>{status.label}</StatusPill>
       </header>
       <History ws={ws} target={{ plannedBlockId }} meta={meta} ctx={ctx} specs={specs} />
+      {meta?.staleSources && (
+        <p role="alert" className="mt-4 rounded-md border border-attention/30 bg-attention-50 px-4 py-3 text-sm text-attention-700" data-testid="stale-sources">
+          Bron gewijzigd: een bron waarop dit blok steunt, is gecorrigeerd of niet meer gevalideerd. Valideer de bron en genereer
+          dit blok opnieuw; de huidige versie kan niet meer worden goedgekeurd.
+        </p>
+      )}
+      {meta && meta.basedOnSources.length > 0 && (
+        <p className="mt-4 text-sm text-ink" data-testid="provenance">
+          {provenanceText(meta.basedOnSources)}
+        </p>
+      )}
 
       {block.body.status === "generated" ? (
         <>
@@ -362,7 +389,13 @@ function BlockDetail({
           </section>
         </>
       ) : (
-        <UnresolvedCard block={block} />
+        <UnresolvedCard block={block}>
+          {block.body.status === "needs_source" && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              <SourceActions state={bronSourceState(ws)} ws={ws} plannedBlockId={plannedBlockId} revisionId={meta?.revisionId ?? null} pending={pending} run={run} onAddSource={onAddSource} />
+            </div>
+          )}
+        </UnresolvedCard>
       )}
 
       <section className="mt-8" aria-labelledby="meta-heading" data-testid="learning-metadata">
@@ -473,7 +506,44 @@ function ContextNotes({ block, blockLabel }: { block: BlockContentResult; blockL
   return null;
 }
 
-function UnresolvedCard({ block }: { block: BlockContentResult }) {
+/** Of de sourceNeeds van het Bron-blok gedekt zijn door gevalideerde bronnen (server-snapshot). */
+function bronSourceState(ws: TrainingWorkspaceView): { required: string[]; covered: boolean } {
+  const required = ws.blueprint ? requiredSourceNeedsFor(ws.blueprint.payload) : [];
+  const needs = ws.sources?.needs ?? [];
+  return { required, covered: required.length > 0 && required.every((r) => needs.find((n) => n.id === r)?.covered) };
+}
+
+const provenanceText = (titles: string[]) =>
+  `Gebaseerd op ${titles.length} gevalideerde ${titles.length === 1 ? "bron" : "bronnen"}: ${titles.join(", ")}`;
+
+function SourceActions({
+  state,
+  ws,
+  plannedBlockId,
+  revisionId,
+  pending,
+  run,
+  onAddSource,
+}: {
+  state: { required: string[]; covered: boolean };
+  ws: TrainingWorkspaceView;
+  plannedBlockId: string;
+  revisionId: string | null;
+  pending: boolean;
+  run: (a: () => Promise<WorkflowResult>, success: string) => Promise<ActResult>;
+  onAddSource: (refs: string[]) => void;
+}) {
+  const open = state.required.filter((r) => !ws.sources?.needs.find((n) => n.id === r)?.covered);
+  return state.covered ? (
+    <Button disabled={pending} onClick={() => run(() => regenerateBlockAction(ws.training.id, plannedBlockId, revisionId), "Bron-blok gegenereerd uit de gevalideerde bronnen (concept)")}>
+      Bron-blok genereren
+    </Button>
+  ) : (
+    <Button onClick={() => onAddSource(open)}>Bron toevoegen</Button>
+  );
+}
+
+function UnresolvedCard({ block, children }: { block: BlockContentResult; children?: ReactNode }) {
   const body = block.body;
   if (body.status === "generated") return null;
   return (
@@ -512,7 +582,12 @@ function UnresolvedCard({ block }: { block: BlockContentResult }) {
           <p className="mt-1">{body.why}</p>
         </>
       )}
-      <p className="mt-3 text-xs text-muted">Nog op te lossen. Bronnen en assets toevoegen komt in een volgende stap.</p>
+      <p className="mt-3 text-xs text-muted">
+        {body.status === "needs_source"
+          ? "Voeg een bron toe en valideer hem. Daarna kan het Bron-blok uit de gevalideerde bronnen worden gemaakt."
+          : "Nog op te lossen. Assets toevoegen komt in een volgende stap."}
+      </p>
+      {children}
     </section>
   );
 }

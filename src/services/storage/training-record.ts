@@ -20,6 +20,7 @@ import { MAX_INPUT_LENGTH, type AgentInputKind } from "@/modules/training-agent"
 import { segmentInput } from "@/modules/training-agent/v2";
 import { ANALYSIS_CONTRACT_V21_VERSION, AnalysisOutcomeV21Schema, checkOutcomeInvariantsV21 } from "@/modules/training-agent/v2-1";
 import { TrainingBlueprintV2Schema, routePolicyFor, type TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
+import { CERTUM_SOURCE_VERSION, CertumSourceSchema } from "@/modules/sources/schema";
 import { canonicalJson, contentHash } from "./canonical-json";
 import type { Db } from "./db";
 import {
@@ -31,6 +32,7 @@ import {
   payloadHashValid,
   revisionById,
   selectedDirection,
+  toValidatedSource,
   type ApprovalState,
   type StoredContentPackage,
   type TrainingRecordSnapshot,
@@ -47,7 +49,10 @@ export type { ApprovalState, StoredContentPackage, TrainingRecordSnapshot } from
  * - Logt niets: geen invoer, payloads, hashes of connection strings.
  */
 
-export const ARTIFACT_TYPES = ["analysis", "blueprint", "block_plan", "start_content", "end_content", "block_content"] as const;
+export const ARTIFACT_TYPES = ["analysis", "blueprint", "block_plan", "start_content", "end_content", "block_content", "source"] as const;
+
+/** Artifacttypes met een eigen key per exemplaar (blok-n, src-n); de rest heeft de vaste key `main`. */
+export const KEYED_ARTIFACT_TYPES: readonly ArtifactType[] = ["block_content", "source"];
 export type ArtifactType = (typeof ARTIFACT_TYPES)[number];
 
 export const WORKFLOW_EVENT_TYPES = ["direction_selected", "approved", "needs_revision", "revoked"] as const;
@@ -64,6 +69,16 @@ const REQUIRED_BASED_ON: Record<ArtifactType, ArtifactType[]> = {
   start_content: ["blueprint", "block_plan"],
   end_content: ["blueprint", "block_plan"],
   block_content: ["blueprint", "block_plan"],
+  // Een bron hoort bij de goedgekeurde Blueprint waarvan hij sourceNeeds dekt.
+  source: ["blueprint"],
+};
+
+/**
+ * Optionele, herhaalbare upstream types: een Bron-blok verwijst naar de gevalideerde bronversies waarop het is gebaseerd
+ * (provenance). Iedere genoemde bron moet current en gevalideerd zijn; een nieuwe bronversie maakt het blok stale.
+ */
+const OPTIONAL_BASED_ON: Partial<Record<ArtifactType, ArtifactType[]>> = {
+  block_content: ["source"],
 };
 
 /** Koppelt de bevestiging aan exact de huidige attestatietekst. */
@@ -396,7 +411,7 @@ export interface NewArtifactRevision {
 export async function createArtifactRevision(db: Db, input: NewArtifactRevision): Promise<ArtifactRevision> {
   const artifactKey = input.artifactKey ?? SINGLETON_KEY;
   if (!ARTIFACT_TYPES.includes(input.artifactType)) throw new StorageError("invalid_payload", "Onbekend artifacttype.");
-  if ((input.artifactType === "block_content") === (artifactKey === SINGLETON_KEY)) {
+  if (KEYED_ARTIFACT_TYPES.includes(input.artifactType) === (artifactKey === SINGLETON_KEY)) {
     throw new StorageError("invalid_payload", "Ongeldige artifact key voor dit type.");
   }
   if (input.basedOnRevisionIds.some((id) => !UUID.test(id))) throw new StorageError("invalid_based_on", "Ongeldige revision-id.");
@@ -440,27 +455,30 @@ export async function createArtifactRevision(db: Db, input: NewArtifactRevision)
   }
 }
 
-type Upstream = Partial<Record<ArtifactType, ArtifactRevision>>;
+type Upstream = Partial<Record<ArtifactType, ArtifactRevision>> & { sources: ArtifactRevision[] };
 
 /** Controleert `based_on` in het geheugen tegen de write-snapshot: exacte types, zelfde training, geaccepteerd. */
 function resolveBasedOn(snap: TrainingRecordSnapshot, type: ArtifactType, ids: string[]): Upstream {
   const required = REQUIRED_BASED_ON[type];
-  if (ids.length !== required.length || new Set(ids).size !== ids.length) {
-    throw new StorageError("invalid_based_on", "based_on bevat niet precies de vereiste upstream revisions.");
-  }
-  const upstream: Upstream = {};
+  const optional = OPTIONAL_BASED_ON[type] ?? [];
+  if (new Set(ids).size !== ids.length) throw new StorageError("invalid_based_on", "based_on bevat dubbele revisions.");
+  const upstream: Upstream = { sources: [] };
   for (const id of ids) {
     // De snapshot bevat alleen revisions van deze training: een onbekende id hoort er niet bij.
     const revision = revisionById(snap, id);
     if (!revision) throw new StorageError("invalid_based_on", "Upstream revision hoort niet bij deze training.");
-    if (!required.includes(revision.artifactType) || upstream[revision.artifactType]) {
+    if (optional.includes(revision.artifactType)) {
+      upstream.sources.push(revision);
+    } else if (!required.includes(revision.artifactType) || upstream[revision.artifactType]) {
       throw new StorageError("invalid_based_on", "based_on bevat niet precies de vereiste upstream types.");
+    } else {
+      upstream[revision.artifactType] = revision;
     }
     if (!approvalState(snap, revision.id).approved) {
       throw new StorageError("stale_based_on", `Upstream ${revision.artifactType} is niet current of niet geaccepteerd.`);
     }
-    upstream[revision.artifactType] = revision;
   }
+  if (required.some((r) => !upstream[r])) throw new StorageError("invalid_based_on", "based_on mist een vereist upstream type.");
   return upstream;
 }
 
@@ -512,7 +530,19 @@ function validatePayload(snap: TrainingRecordSnapshot, input: NewArtifactRevisio
       const parsed = BlockContentResultSchema.safeParse(input.payload);
       if (!parsed.success || parsed.data.version !== input.contractVersion) throw invalid("schema of contractversie");
       if (parsed.data.plannedBlockId !== artifactKey) throw invalid("artifact key wijkt af van plannedBlockId");
-      if (checkBlockContentInvariants(parsed.data, { blueprint: blueprint!, blockPlan: blockPlan! }).length > 0) throw invalid("invarianten");
+      // Een Bron-blok mag alleen steunen op de gevalideerde bronnen in zijn based_on (provenance).
+      const validatedSources = upstream.sources.map(toValidatedSource);
+      if (checkBlockContentInvariants(parsed.data, { blueprint: blueprint!, blockPlan: blockPlan!, validatedSources }).length > 0) throw invalid("invarianten");
+      return;
+    }
+    case "source": {
+      const parsed = CertumSourceSchema.safeParse(input.payload);
+      if (!parsed.success || input.contractVersion !== CERTUM_SOURCE_VERSION) throw invalid("schema of contractversie");
+      // Alleen bestaande sourceNeeds van de goedgekeurde Blueprint; geen nieuwe.
+      const ids = blueprint!.sourceNeeds.map((s) => s.id);
+      if (parsed.data.sourceNeedRefs.some((r) => !ids.includes(r)) || new Set(parsed.data.sourceNeedRefs).size !== parsed.data.sourceNeedRefs.length) {
+        throw invalid("onbekende of dubbele sourceNeed");
+      }
       return;
     }
   }

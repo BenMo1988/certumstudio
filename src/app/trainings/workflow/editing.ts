@@ -13,7 +13,7 @@ import type { TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
 import { editableContentSchema } from "@/services/block-content/design";
 import { zodIssueCodes } from "@/services/block-content/diagnostics";
 import { contentHash } from "@/services/storage/canonical-json";
-import { builtOn, currentRevision } from "@/services/storage/snapshot";
+import { builtOn, currentRevision, sourcesUsedBy, toValidatedSource } from "@/services/storage/snapshot";
 import { createArtifactRevision, loadTrainingRecordSnapshot, type ArtifactRevision } from "@/services/storage/training-record";
 import { MANUAL_EDIT, type RevisionSource } from "@/services/storage/workspace";
 import { approvedEarlierContent, approvedUpstream, ok, reject, rejectError, type WorkflowDeps, type WorkflowResult } from "./persisted-workflow";
@@ -70,7 +70,9 @@ export async function saveBlockEdit(
 
   const blueprint = up.blueprint.payload as TrainingBlueprintV2;
   const plan = up.plan.payload as BcOnlineBlockPlan;
-  const target = resolveBlockTarget(blueprint, plan, plannedBlockId);
+  // Een bewerkt Bron-blok blijft gebaseerd op dezelfde bronversies (provenance); die moeten nog current en gevalideerd zijn.
+  const usedSources = sourcesUsedBy(snap, current).map(toValidatedSource);
+  const target = resolveBlockTarget(blueprint, plan, plannedBlockId, usedSources);
   if (!target || typeof edit.content !== "object" || edit.content === null || Array.isArray(edit.content)) return invalidInput(deps, action, ["invalid_type@content"]);
 
   // Trusted: de bron van Conditionele logica blijft die van de opgeslagen revision.
@@ -96,7 +98,7 @@ export async function saveBlockEdit(
   );
   const parsed = BlockContentResultSchema.safeParse(block);
   if (!parsed.success) return invalidInput(deps, action, zodIssueCodes(parsed.error));
-  const violations = checkBlockContentInvariants(parsed.data, { blueprint, blockPlan: plan, approvedEarlierContent: approvedEarlierContent(snap, plan, plannedBlockId, up.ids) });
+  const violations = checkBlockContentInvariants(parsed.data, { blueprint, blockPlan: plan, approvedEarlierContent: approvedEarlierContent(snap, plan, plannedBlockId, up.ids), validatedSources: usedSources });
   if (violations.length > 0) return invalidInput(deps, action, violations);
   if (contentHash(parsed.data) === current.contentHash) return ok(deps, trainingId, action);
 
@@ -109,7 +111,7 @@ export async function saveBlockEdit(
       promptVersion: null,
       modelVersion: MANUAL_EDIT,
       payload: parsed.data,
-      basedOnRevisionIds: up.ids,
+      basedOnRevisionIds: [...up.ids, ...usedSources.map((s) => s.revisionId)],
       expectedCurrentRevisionId: expectedRevisionId,
     });
   } catch (error) {

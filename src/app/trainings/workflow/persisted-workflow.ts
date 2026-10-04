@@ -16,7 +16,8 @@ import type { BlockContentService } from "@/services/block-content/services";
 import { lazyService } from "@/services/block-content/orchestrator";
 import type { BlockPlanService, TrainingBlueprintServiceV21 } from "@/services/blueprint/services";
 import type { Db } from "@/services/storage/db";
-import { builtOn, currentRevision, isApproved, selectedDirection, withRevision, type TrainingRecordSnapshot } from "@/services/storage/snapshot";
+import { builtOn, currentRevision, isApproved, selectedDirection, validatedSources, withRevision, type TrainingRecordSnapshot } from "@/services/storage/snapshot";
+import { resolveBlockTarget } from "@/modules/block-content";
 import {
   DATA_POLICY_VERSION,
   StorageError,
@@ -354,7 +355,10 @@ async function generateAndStoreBlock(
   const plan = up.plan.payload as BcOnlineBlockPlan;
   const upstream = [up.blueprint.id, up.plan.id];
   const earlier = approvedEarlierContent(snap, plan, plannedBlockId, upstream);
-  const result = await runBlockRegenerationFlow(blueprint, { status: "approved" }, plan, { status: "approved" }, plannedBlockId, earlier, { getService });
+  // Bron-blok: alleen de current gevalideerde bronnen die aan zijn vereiste sourceNeeds gekoppeld zijn; hun versies
+  // worden provenance (based_on), zodat een nieuwe bronversie het blok stale maakt.
+  const sources = resolveBlockTarget(blueprint, plan, plannedBlockId, validatedSources(snap))?.sources ?? [];
+  const result = await runBlockRegenerationFlow(blueprint, { status: "approved" }, plan, { status: "approved" }, plannedBlockId, earlier, { getService }, sources);
   if (result.status === "rejected") {
     return reject(deps, "generate_block", result.reason === "provider_error" ? "provider_error" : result.reason === "invalid_block_content" ? "invalid_output" : "invalid_state", result.reason);
   }
@@ -365,7 +369,7 @@ async function generateAndStoreBlock(
     contractVersion: BLOCK_CONTENT_VERSION,
     ...deps.provenance.blockContent,
     payload: result.block,
-    basedOnRevisionIds: upstream,
+    basedOnRevisionIds: [...upstream, ...sources.map((s) => s.revisionId)],
     expectedCurrentRevisionId,
   });
 }

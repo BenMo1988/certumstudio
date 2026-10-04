@@ -4,12 +4,17 @@ import type { AgentInputKind } from "@/modules/training-agent";
 import { findEpistemicFlags, segmentInput, type AnalysisOutcome, type EpistemicFlag, type SourceSegment } from "@/modules/training-agent/v2";
 import type { TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
 import type { Db } from "./db";
+import { sourceNeedCoverage, type CertumSource } from "@/modules/sources/schema";
 import {
   builtOn,
   composeContentFromSnapshot,
   currentRevision,
+  currentSources,
   isApproved,
+  lastRelevantEvent,
   selectedDirection,
+  sourcesUsedBy,
+  validatedSources,
   type TrainingRecordSnapshot,
 } from "./snapshot";
 import {
@@ -79,6 +84,25 @@ export interface RevisionMeta {
   /** Aantal eerdere revisions van hetzelfde onderdeel (historie). */
   previousRevisions: number;
   source: RevisionSource;
+  /** Titels van de bronnen waarop deze revision is gebaseerd (alleen bij Bron-blokken). */
+  basedOnSources: string[];
+  /** Een gebruikte bronversie is niet meer current of gevalideerd: opnieuw genereren en beoordelen. */
+  staleSources: boolean;
+}
+
+/** Source Workspace: per sourceNeed de dekking, en de bronnen van de training (current versie). */
+export interface SourcesView {
+  needs: { id: string; question: string; whyNeeded: string; covered: boolean; sourceIds: string[] }[];
+  items: {
+    sourceId: string;
+    revisionId: string;
+    revisionNo: number;
+    previousRevisions: number;
+    validated: boolean;
+    validatedAt: string | null;
+    payload: CertumSource;
+  }[];
+  allCovered: boolean;
 }
 
 /**
@@ -105,6 +129,10 @@ export interface TrainingReview {
   frameToReview: number;
   /** Onderdelen (blokken, Start, Einde) die nog een besluit van de opleider vragen. */
   toReview: number;
+  /** SourceNeeds van de Blueprint zonder current gevalideerde bron. */
+  sourceNeedsOpen: number;
+  /** Bron-blokken waarvan een gebruikte bron intussen is gewijzigd. */
+  staleBlocks: number;
 }
 
 interface StoredArtifactView<T> {
@@ -126,6 +154,8 @@ export interface TrainingWorkspaceView {
   } | null;
   blueprint: StoredArtifactView<TrainingBlueprintV2> | null;
   blockPlan: StoredArtifactView<BcOnlineBlockPlan> | null;
+  /** Bronnen en dekking; beschikbaar zodra de Blueprint is goedgekeurd. */
+  sources: SourcesView | null;
   content: {
     package: TrainingContentPackage;
     /** Current revision per gepland blok (voor besluiten, bewerken en regeneratie met stale-controle). */
@@ -184,7 +214,10 @@ export function deriveWorkspace(snap: TrainingRecordSnapshot): TrainingWorkspace
         start: { ...revisionMeta(snap, startRev), approved: isApproved(snap, startRev.id) },
         end: { ...revisionMeta(snap, endRev), approved: isApproved(snap, endRev.id) },
       };
-      content = { package: stored.package, blockRevisions, frame, review: deriveReview(stored.package, blockPlan.payload, frame) };
+      const review = deriveReview(stored.package, blockPlan.payload, frame);
+      review.sourceNeedsOpen = sourcesView(snap, blueprint.payload)?.needs.filter((n) => !n.covered).length ?? 0;
+      review.staleBlocks = Object.values(blockRevisions).filter((m) => m.staleSources).length;
+      content = { package: stored.package, blockRevisions, frame, review };
     }
   }
 
@@ -194,13 +227,43 @@ export function deriveWorkspace(snap: TrainingRecordSnapshot): TrainingWorkspace
     analysis,
     blueprint,
     blockPlan,
+    sources: blueprint?.approved ? sourcesView(snap, blueprint.payload) : null,
     content,
   };
   return { ...view, progress: deriveProgress(view) };
 }
 
+/** De Source Workspace uit de snapshot: dekking per sourceNeed (alleen current gevalideerde bronnen tellen). */
+function sourcesView(snap: TrainingRecordSnapshot, blueprint: TrainingBlueprintV2): SourcesView {
+  const items = currentSources(snap).map((rev) => {
+    const validated = isApproved(snap, rev.id);
+    const decision = validated ? lastRelevantEvent(snap, rev) : null;
+    return {
+      sourceId: rev.artifactKey,
+      revisionId: rev.id,
+      revisionNo: rev.revisionNo,
+      previousRevisions: snap.revisions.filter((r) => r.artifactType === "source" && r.artifactKey === rev.artifactKey && r.revisionNo < rev.revisionNo).length,
+      validated,
+      validatedAt: decision ? decision.createdAt.toISOString() : null,
+      payload: rev.payload as CertumSource,
+    };
+  });
+  const coverage = sourceNeedCoverage(blueprint.sourceNeeds.map((s) => s.id), validatedSources(snap));
+  const needs = blueprint.sourceNeeds.map((n) => ({
+    id: n.id,
+    question: n.question,
+    whyNeeded: n.whyNeeded,
+    covered: coverage[n.id] ?? false,
+    sourceIds: items.filter((i) => i.payload.sourceNeedRefs.includes(n.id)).map((i) => i.sourceId),
+  }));
+  return { needs, items, allCovered: needs.every((n) => n.covered) };
+}
+
 function revisionMeta(snap: TrainingRecordSnapshot, rev: ArtifactRevision): RevisionMeta {
+  const used = sourcesUsedBy(snap, rev);
   return {
+    basedOnSources: used.map((s) => (s.payload as CertumSource).title),
+    staleSources: used.some((s) => !isApproved(snap, s.id)),
     revisionId: rev.id,
     revisionNo: rev.revisionNo,
     previousRevisions: snap.revisions.filter((r) => r.artifactType === rev.artifactType && r.artifactKey === rev.artifactKey && r.revisionNo < rev.revisionNo).length,
@@ -230,6 +293,8 @@ export function deriveReview(
     capability: blocks.filter((b) => b.body.status === "blocked_by_capability").length,
     frameToReview,
     toReview: generated.length - approved + frameToReview,
+    sourceNeedsOpen: 0,
+    staleBlocks: 0,
   };
   const readiness =
     pkg.readiness === "incomplete" ? "incomplete" : pkg.readiness === "approved" && frameToReview === 0 ? "approved" : "in_review";

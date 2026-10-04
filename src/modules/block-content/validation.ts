@@ -1,4 +1,5 @@
 import type { BcOnlineBlockPlan } from "@/modules/block-plan/schema";
+import type { ValidatedSource } from "@/modules/sources/schema";
 import type { TrainingBlueprintV2 } from "@/modules/training-blueprint/v2/schema";
 import { BlockContentResultSchema, TrainingContentPackageSchema, isMediaBlock, type BlockContentResult } from "./schema";
 import { deriveDuration, deriveReadiness, deriveUnresolvedRequirements } from "./compose";
@@ -48,12 +49,18 @@ function strings(value: unknown): string[] {
  */
 export function checkBlockContentInvariants(
   candidate: unknown,
-  context: { blueprint: TrainingBlueprintV2; blockPlan: BcOnlineBlockPlan; approvedEarlierContent?: BlockContentResult[] },
+  context: {
+    blueprint: TrainingBlueprintV2;
+    blockPlan: BcOnlineBlockPlan;
+    approvedEarlierContent?: BlockContentResult[];
+    /** Current gevalideerde bronnen waarop een Bron-blok mag steunen (zie `resolveBlockTarget`). */
+    validatedSources?: ValidatedSource[];
+  },
 ): BlockContentViolation[] {
   const parsed = BlockContentResultSchema.safeParse(candidate);
   if (!parsed.success) return ["schema"];
   const result = parsed.data;
-  const target = resolveBlockTarget(context.blueprint, context.blockPlan, result.plannedBlockId);
+  const target = resolveBlockTarget(context.blueprint, context.blockPlan, result.plannedBlockId, context.validatedSources);
   if (!target) return ["onbekend-blok"];
   const violations = new Set<BlockContentViolation>();
 

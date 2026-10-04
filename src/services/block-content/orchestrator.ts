@@ -23,7 +23,7 @@ export async function generateBlockContent(
   getService: () => BlockContentService,
   request: BlockContentRequest,
 ): Promise<{ block: BlockContentResult; deterministic: boolean }> {
-  const target = resolveBlockTarget(request.blueprint, request.blockPlan, request.plannedBlockId);
+  const target = resolveBlockTarget(request.blueprint, request.blockPlan, request.plannedBlockId, request.validatedSources);
   if (!target) throw new AnalysisError("config", "Onbekend gepland blok.");
   const deterministic = resolveDeterministicResult(target, request.blueprint);
   if (deterministic) return { block: deterministic, deterministic: true };
