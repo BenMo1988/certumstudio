@@ -7,7 +7,7 @@ Uitgevoerd via de Server Action `generateBlockPlan` op de dev-server (`CERTUM_AN
 `CERTUM_BLUEPRINT_PROVIDER=mock`, `CERTUM_BLOCK_PLAN_PROVIDER=claude`), met exact de goedgekeurde Blueprint
 `BLP-003` uit `test/fixtures/approved-blueprints.json`.
 
-**Status: `PENDING_REVIEW`** (nog geen menselijke beoordeling; geen PASS/FAIL).
+**Status: `PASS_WITH_NOTES`** (menselijk beoordeeld; zie "Menselijke evaluatie").
 
 ## Configuratie en metadata
 
@@ -475,6 +475,24 @@ Uitgevoerd via de Server Action `generateBlockPlan` op de dev-server (`CERTUM_AN
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS_WITH_NOTES`**
 
-Nog niet beoordeeld.
+### Sterk
+
+- Branching staat expliciet als capability gap.
+- Het capability gap blijft bestaan ondanks de workaround.
+- Geen fictief bloktype.
+- Conditionele logica wordt uitsluitend als beperkt alternatief gebruikt.
+- Beide limitations zeggen expliciet dat deelnemers dezelfde blokvolgorde doorlopen.
+- Het plan doet nergens alsof echte routering beschikbaar is.
+- De leeractiviteit blijft ondanks de technische beperking uitvoerbaar.
+- De open professionele keuze blijft behouden.
+- Bron verzint geen bron.
+- `followUpRecommendation` blijft `null`.
+
+### Notes / WATCH
+
+- 14 geplande blokken is relatief veel: **block inflation** als observatie; nu geen wijziging.
+- **feedback_context_capability_watch:** de AI Feedback-intentie lijkt bij deze case te veronderstellen dat Poll- en
+  Productie-output als context beschikbaar zijn. De huidige catalogus bewijst alleen context uit eerdere vraagblokken.
+- Geen nieuwe invariant of tekstheuristiek hiervoor.

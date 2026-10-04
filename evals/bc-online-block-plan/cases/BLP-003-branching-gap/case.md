@@ -6,7 +6,7 @@
 | **Input** | Goedgekeurde Training Blueprint (`blueprint-contract/v2`) |
 | **Bron** | Synthetisch: synthetisch, afgeleid van evals/training-blueprint/cases/BP-003-volgorde-vervolgcontact/runs/2026-10-03_training-blueprint-v2_claude-opus-5-5_medium.md (title, learningArc.actie.participantMust en learningArc.toets.newDecisionPoint aangepast) |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `PENDING_REVIEW` |
+| **Status (laatste run)** | `PASS_WITH_NOTES` |
 
 ## Input
 
@@ -45,4 +45,4 @@ Vastgelegd vóór de implementatie van de Block Plan-provider. Algemeen (G) en c
 | --- | --- | --- | --- | --- |
 | 2026-10-04 | training-block-plan/v1 · bc-online-block-plan/v1 | claude-opus-5-5 · medium | `FAIL` | [run](runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium.md) |
 | 2026-10-04 | training-block-plan/v1 · bc-online-block-plan/v1 (bevestiging, na e708f2e) | claude-opus-5-5 · medium | `INCONCLUSIVE` | [run](runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium_bevestiging.md) |
-| 2026-10-04 | training-block-plan/v1 · bc-online-block-plan/v1 (bevestiging 2, na f438caa) | claude-opus-5-5 · medium | `PENDING_REVIEW` | [run](runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium_bevestiging-2.md) |
+| 2026-10-04 | training-block-plan/v1 · bc-online-block-plan/v1 (bevestiging 2, na f438caa) | claude-opus-5-5 · medium | `PASS_WITH_NOTES` | [run](runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium_bevestiging-2.md) |

@@ -39,7 +39,7 @@ Het Block Plan ontwerpt de leerervaring niet opnieuw en schrijft nog geen eindco
 | --- | --- | --- | --- | --- |
 | [BLP-001](cases/BLP-001-open-keuze/case.md) | B21-OPEN | `multiple_defensible_actions` | Open professionele keuze (B21-OPEN) | [`PASS_WITH_NOTES`](cases/BLP-001-open-keuze/runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium.md) |
 | [BLP-002](cases/BLP-002-voorgeschreven-handeling/case.md) | B21-PRESCRIBED | `single_best_action` | Voorgeschreven handeling onder druk (B21-PRESCRIBED) | [`PASS_WITH_NOTES`](cases/BLP-002-voorgeschreven-handeling/runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium.md) |
-| [BLP-003](cases/BLP-003-branching-gap/case.md) | synthetisch | `multiple_defensible_actions` | Route-afhankelijk vervolg: capability gap (synthetisch) | [`PENDING_REVIEW`](cases/BLP-003-branching-gap/runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium_bevestiging-2.md) |
+| [BLP-003](cases/BLP-003-branching-gap/case.md) | synthetisch | `multiple_defensible_actions` | Route-afhankelijk vervolg: capability gap (synthetisch) | [`PASS_WITH_NOTES`](cases/BLP-003-branching-gap/runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium_bevestiging-2.md) |
 
 ## Baseline conclusions — training-block-plan/v1
 
@@ -72,4 +72,23 @@ Eén betaalde run met dezelfde prompt, contract, catalogus en fixture, nu met in
 
 Eén betaalde run zonder de vrije-tekst branching-invariant: geldig Block Plan met 14 blokken en
 2 capability gaps (branching in Actie en Toets, elk met een `partial` workaround op basis van
-Conditionele logica en een beperking die zegt dat het gat blijft bestaan). Status `PENDING_REVIEW`.
+Conditionele logica en een beperking die zegt dat het gat blijft bestaan). Beoordeeld als `PASS_WITH_NOTES`.
+
+## Conclusie — BC Online Block Plan V1
+
+Definitief: BLP-001 `PASS_WITH_NOTES`, BLP-002 `PASS_WITH_NOTES`, BLP-003 `PASS_WITH_NOTES` (na bevestigingsrun 2).
+
+**BC Online Block Plan V1 is voldoende stabiel om te sluiten.** Bewezen:
+
+- open professional choice → passend uitvoeringsplan;
+- prescribed professional action → passend uitvoeringsplan;
+- unsupported platform need → capability gap + partial workaround, zonder een capability te verzinnen.
+
+Verdere wijzigingen aan het Block Plan vereisen voortaan nieuw empirisch bewijs uit contentgeneratie of productgebruik.
+
+WATCH:
+
+- **block inflation:** BLP-003 plande 14 blokken.
+- **feedback_context_capability_watch:** AI Feedback-intenties kunnen context veronderstellen (Poll, Productie, chat)
+  die de catalogus niet aantoonbaar levert. Bij contentgeneratie mag AI Feedback niet afhankelijk worden gemaakt van
+  informatie waarvan niet vaststaat dat het blok die ontvangt.
