@@ -10,10 +10,13 @@ interface BlockPlanReviewProps {
   approved: boolean;
   onApprove: () => void;
   onBack: () => void;
+  /** Na goedkeuring: Training Content maken (Block Content per blok). */
+  onCreateContent: () => void;
+  pending: boolean;
 }
 
 /** Review van het BC Online Block Plan: per Certum-fase de voorgestelde bestaande blokken. Geen edit-interface. */
-export function BlockPlanReview({ blockPlan, approved, onApprove, onBack }: BlockPlanReviewProps) {
+export function BlockPlanReview({ blockPlan, approved, onApprove, onBack, onCreateContent, pending }: BlockPlanReviewProps) {
   const blocks = [...blockPlan.plannedBlocks].sort((a, b) => a.sequence - b.sequence);
 
   return (
@@ -109,8 +112,8 @@ export function BlockPlanReview({ blockPlan, approved, onApprove, onBack }: Bloc
         <p role="status" className="mt-8 flex items-start gap-2.5 rounded-md border border-petrol-100 bg-petrol-50 px-4 py-3 text-sm text-petrol-800">
           <Icon name="check" className="mt-px size-4 shrink-0" />
           <span>
-            Block Plan goedgekeurd. Het aanmaken van een concepttraining in BC Online volgt later, zodra de koppeling
-            (adapter) met BC Online bestaat.
+            Block Plan goedgekeurd. Je kunt nu de inhoud per blok laten maken. Het aanmaken van een concepttraining in BC
+            Online volgt later, zodra de koppeling (adapter) met BC Online bestaat.
           </span>
         </p>
       )}
@@ -120,9 +123,14 @@ export function BlockPlanReview({ blockPlan, approved, onApprove, onBack }: Bloc
           <Icon name="arrowLeft" className="size-4" />
           Terug naar Blueprint
         </Button>
-        <Button onClick={onApprove} disabled={approved}>
-          {approved ? "Block Plan goedgekeurd" : "Block Plan goedkeuren"}
-        </Button>
+        {approved ? (
+          <Button onClick={onCreateContent} disabled={pending}>
+            {pending ? "Inhoud wordt gemaakt…" : "Training Content maken"}
+            {!pending && <Icon name="arrowRight" className="size-4" />}
+          </Button>
+        ) : (
+          <Button onClick={onApprove}>Block Plan goedkeuren</Button>
+        )}
       </div>
     </div>
   );

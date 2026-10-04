@@ -4,6 +4,14 @@ import { useMemo, useState, useTransition } from "react";
 import { analyzeInput } from "@/app/trainings/new/actions";
 import { generateBlockPlan, generateBlueprint } from "@/app/trainings/new/blueprint-actions";
 import type { BlueprintFlowRejection } from "@/app/trainings/new/blueprint-flow";
+import { generateTrainingContent, regenerateBlockContent } from "@/app/trainings/new/content-actions";
+import type { ContentFlowRejection } from "@/app/trainings/new/content-flow";
+import {
+  replaceBlockContent,
+  setBlockReviewStatus,
+  type ReviewStatus,
+  type TrainingContentPackage,
+} from "@/modules/block-content";
 import type { BcOnlineBlockPlan } from "@/modules/block-plan/schema";
 import type { TrainingBlueprintV2 as TrainingBlueprint } from "@/modules/training-blueprint/v2";
 import type { InputGateRejection } from "@/app/trainings/new/gated-analysis";
@@ -16,6 +24,7 @@ import { BlockPlanReview } from "./BlockPlanReview";
 import { BlueprintReview } from "./BlueprintReview";
 import { FlowSteps } from "./FlowSteps";
 import { PageHeader } from "./PageHeader";
+import { TrainingContentWorkspace } from "./TrainingContentWorkspace";
 import { TrainingInputStep } from "./TrainingInputStep";
 
 const PREFLIGHT_MESSAGES: Record<InputGateRejection, string> = {
@@ -37,6 +46,18 @@ const BLUEPRINT_MESSAGES: Record<BlueprintFlowRejection, string> = {
   invalid_block_plan: "Het Block Plan voldeed niet aan de regels en is niet getoond.",
 };
 
+const CONTENT_MESSAGES: Record<ContentFlowRejection, string> = {
+  blueprint_not_approved: "Keur eerst de Blueprint goed.",
+  block_plan_not_approved: "Keur eerst het Block Plan goed.",
+  invalid_blueprint: "De Blueprint kon niet worden gecontroleerd.",
+  incompatible_blueprint: "Deze Blueprint is gemaakt met een oudere versie. Maak de Blueprint opnieuw.",
+  invalid_block_plan: "Het Block Plan kon niet worden gecontroleerd.",
+  unknown_block: "Dit blok staat niet in het Block Plan.",
+  invalid_earlier_content: "Eerdere blokinhoud kon niet worden gecontroleerd.",
+  provider_error: "De inhoud kon nu niet worden gemaakt. Probeer het later opnieuw.",
+  invalid_block_content: "De inhoud voldeed niet aan de regels en is niet getoond.",
+};
+
 /**
  * Nieuwe training: Invoer → lokale Privacy Preflight → Certum Analyse → keuze van een richting.
  *
@@ -54,6 +75,8 @@ export function NewTrainingFlow({ initialKind }: { initialKind?: AgentInputKind 
   } | null>(null);
   const [blueprint, setBlueprint] = useState<TrainingBlueprint | null>(null);
   const [blockPlan, setBlockPlan] = useState<{ plan: BcOnlineBlockPlan; approved: boolean } | null>(null);
+  const [content, setContent] = useState<{ pkg: TrainingContentPackage; failedBlockId: string | null } | null>(null);
+  const [openBlockId, setOpenBlockId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [stepError, setStepError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -104,6 +127,7 @@ export function NewTrainingFlow({ initialKind }: { initialKind?: AgentInputKind 
     setResult(null);
     setBlueprint(null);
     setBlockPlan(null);
+    setContent(null);
     setStepError(null);
     window.scrollTo({ top: 0 });
   }
@@ -145,11 +169,84 @@ export function NewTrainingFlow({ initialKind }: { initialKind?: AgentInputKind 
     });
   }
 
+  /** Goedgekeurd Block Plan → Training Content: Start/Einde en per gepland blok de inhoud (server controleert opnieuw). */
+  function createContent() {
+    if (!blueprint || !blockPlan?.approved) return;
+    setStepError(null);
+    startTransition(async () => {
+      const response = await generateTrainingContent(blueprint, true, blockPlan.plan, true);
+      if (response.status === "rejected") {
+        setStepError(CONTENT_MESSAGES[response.reason]);
+        return;
+      }
+      setContent({ pkg: response.package, failedBlockId: response.failedBlockId });
+      setOpenBlockId(null);
+      window.scrollTo({ top: 0 });
+    });
+  }
+
+  /** Eén blok opnieuw genereren, met alleen eerdere goedgekeurde inhoud als context. */
+  function regenerate(plannedBlockId: string) {
+    if (!blueprint || !blockPlan || !content) return;
+    setStepError(null);
+    startTransition(async () => {
+      const response = await regenerateBlockContent(blueprint, true, blockPlan.plan, blockPlan.approved, plannedBlockId, content.pkg.blocks);
+      if (response.status === "rejected") {
+        setStepError(CONTENT_MESSAGES[response.reason]);
+        return;
+      }
+      setContent({
+        pkg: replaceBlockContent(content.pkg, blockPlan.plan, response.block),
+        failedBlockId: content.failedBlockId === plannedBlockId ? null : content.failedBlockId,
+      });
+    });
+  }
+
+  function review(plannedBlockId: string, status: ReviewStatus) {
+    if (!blockPlan || !content) return;
+    setContent({ ...content, pkg: setBlockReviewStatus(content.pkg, blockPlan.plan, plannedBlockId, status) });
+  }
+
   const stepErrorNotice = stepError && (
     <p role="alert" className="mt-6 text-sm text-danger">
       {stepError}
     </p>
   );
+
+  if (blueprint && blockPlan && content) {
+    return (
+      <>
+        <FlowSteps current="Content" />
+        <PageHeader
+          eyebrow="Training Content"
+          title="Beoordeel de inhoud per blok"
+          description="De inhoud van ieder gepland blok, op basis van de goedgekeurde Blueprint en het goedgekeurde Block Plan. Keur ieder blok afzonderlijk goed."
+        />
+        {stepErrorNotice}
+        <TrainingContentWorkspace
+          pkg={content.pkg}
+          blockPlan={blockPlan.plan}
+          failedBlockId={content.failedBlockId}
+          openBlockId={openBlockId}
+          pending={pending}
+          onOpen={(id) => {
+            setOpenBlockId(id);
+            setStepError(null);
+            window.scrollTo({ top: 0 });
+          }}
+          onReview={review}
+          onRegenerate={regenerate}
+          onBack={() => {
+            // Terug naar het Block Plan: de inhoud vervalt (er wordt niets opgeslagen).
+            setContent(null);
+            setOpenBlockId(null);
+            setStepError(null);
+            window.scrollTo({ top: 0 });
+          }}
+        />
+      </>
+    );
+  }
 
   if (blueprint && blockPlan) {
     return (
@@ -160,10 +257,13 @@ export function NewTrainingFlow({ initialKind }: { initialKind?: AgentInputKind 
           title="Beoordeel het Block Plan"
           description="Uitvoeringsvoorstel met bestaande BC Online-blokken op basis van de goedgekeurde Blueprint."
         />
+        {stepErrorNotice}
         <BlockPlanReview
           blockPlan={blockPlan.plan}
           approved={blockPlan.approved}
           onApprove={() => setBlockPlan({ ...blockPlan, approved: true })}
+          onCreateContent={createContent}
+          pending={pending}
           onBack={() => {
             // Terug naar de Blueprint: de goedkeuring vervalt en een nieuw plan vraagt een nieuwe goedkeuring.
             setBlockPlan(null);

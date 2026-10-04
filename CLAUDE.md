@@ -238,8 +238,9 @@ Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
     `incompatible_analysis` (geen stille gok). De flow controleert ook dat de ambiguïteit uit het routebeleid volgt.
   - V1 en V2 (`runBlueprintFlow`, `runBlueprintFlowV2`) blijven als baseline-codepaden bestaan.
 - **Keten met heldere verantwoordelijkheden per laag:** Training Blueprint (didactische waarheid) → **Block Plan**
-  (welke bestaande BC Online-blokken) → later **Block Content** (uitgeschreven inhoud per blok: dialogen, vragen,
-  feedbacktekst, documenten, broninhoud) → later **BC Online Adapter** (export als concepttraining). Elke laag doet
+  (welke bestaande BC Online-blokken) → **Block Content** (uitgeschreven inhoud per blok, zie hieronder) → later
+  Training Review/Editor, opslag en versies, preview, Accreditation Readiness → later **BC Online Adapter** (export
+  als concepttraining). Elke laag doet
   alleen haar eigen werk; het Block Plan schrijft geen inhoud en ontwerpt de leerervaring niet opnieuw.
 - **Block Plan-provider (stap 9A):** `BlockPlanService.generate({ blueprint })`, mock of Claude via
   `CERTUM_BLOCK_PLAN_PROVIDER` (standaard `mock`, los van de andere providers; geen terugval naar mock). Code in
@@ -274,7 +275,56 @@ Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
   aanvaardbaar voor de huidige gecontroleerde ontwikkeling en evals. Vóór echte productie of export naar BC Online is
   server-side persistence of een cryptografisch of anderszins integriteitsgebonden goedkeuring vereist. Nog niet
   gebouwd (geen database, geen signing).
-- Er is nog geen Block Content, BC Online-adapter, API, database, MCP of export.
+- Er is nog geen BC Online-adapter, API, database, MCP of export.
+
+### Block Content en Training Content Package (stap 10A)
+
+- **Na beide menselijke goedkeuringen** (Blueprint én Block Plan) maakt Certum de inhoud per gepland blok. Server-side
+  poorten in `src/app/trainings/new/content-flow.ts` (`runTrainingContentFlow`, `runBlockRegenerationFlow`): beide
+  goedkeuringen, een geldige Blueprint V2 met consistent routebeleid (V1 → `incompatible_blueprint`: geen
+  sourceNeed-ids) en een geldig Block Plan dat bij die Blueprint hoort. Pas daarna wordt de provider aangemaakt.
+- **Granulariteit:** `BlockContentService.generate(request)` is precies één `plannedBlockId` → één `BlockContentResult`;
+  `generateFrame` maakt Vaste Start/Vast Einde. De orchestrator (`services/block-content/orchestrator.ts`) genereert
+  alle blokken één voor één in planvolgorde en stopt bij de eerste fout (rest blijft `not_generated`).
+- **Downstream-only input** (`buildBlockContentGenerationInput`): goedgekeurde Blueprint (zonder `sourceRefs` en
+  `selectedDirectionId`), goedgekeurd Block Plan, doelblok, catalogusdefinitie, eerder goedgekeurde blokinhoud en de
+  trusted context. Nooit de casus, de analyse, niet-gekozen richtingen of bronsegmenten.
+- **Contracten:** `block-content/v1` (per blok) en `training-content-package/v1` (Certum-eigen, geen BC
+  Online-payload). Code in `src/modules/block-content/`.
+  - Inhoud is een discriminated union op `catalogBlockId`, met alleen de velden uit de catalogus.
+  - Media (Beeld, Video, Audio, Document) hebben geen inhoudstype.
+  - Statussen: `generated | needs_source | needs_asset | blocked_by_capability`. Nooit stil verzonnen inhoud.
+- **Structurele regels** (`resolveBlockTarget`, `checkBlockContentInvariants`; geen vrije-tekstheuristieken):
+  - Media → alleen `needs_asset` (met trusted assettype; nooit een URL of asset).
+  - Bron-fase → alleen `needs_source` (er is nog geen gevalideerde bron; nooit kenniscontent).
+  - AI Feedback krijgt aantoonbaar alleen antwoorden op eerdere **vraagblokken** (catalogusveld "Vraag": Meerkeuze,
+    Open vraag, Poll). Eerdere invoerblokken zonder dat veld (Productie, Chat simulatie, Informatie opvragen, Toets)
+    staan trusted in `unavailableContext` en als `ai_context` bij de unresolved requirements. Zonder eerder vraagblok
+    kan AI Feedback (en Conditionele logica) alleen `blocked_by_capability` zijn.
+  - Chat simulatie bij `open_choice`: geen sleutelwoorddoel (`goal: null`).
+  - Conditionele logica verwijst naar een eerder vraagblok; het is tekstweergave, geen branching.
+  - sourceNeedRefs alleen bestaande SN-ids; nergens een URL.
+- **Trusted (server-side, `composeBlockContent`):** versie, `plannedBlockId`, `sequence`, `certumPhase`,
+  `catalogBlockId` (ook in de inhoud), `routePolicy` (uit de Blueprint), werkvorm (catalogus), `reviewStatus: draft`,
+  assettype en AI Feedback-context. Start: titel en leerdoel uit de Blueprint, duur afgeleid (som van de blokken, of
+  `null`). Einde: `followUpRecommendation: null`.
+- **Accreditatiemetadata per blok** (registeronafhankelijk, geen SKJ): fase, werkvorm, bijdrage aan het leerdoel,
+  `assessmentRole` (`none | formative | summative | transfer`), `estimatedMinutes` (geheel getal 1–120 of `null`),
+  `sourceNeedRefs`.
+- **Review:** per blok `draft | approved | needs_revision`; alleen `generated` kan worden goedgekeurd. Readiness van
+  het pakket: `incomplete | in_review | approved`. Alles leeft in de client-state; niets wordt opgeslagen. De blocker
+  `approval_integrity_required_before_export` geldt hier evengoed.
+- **Provider:** `CERTUM_BLOCK_CONTENT_PROVIDER` (standaard `mock`, los van de andere providers, geen terugval).
+  `CLAUDE_BLOCK_CONTENT_DEFAULTS`: `claude-opus-5-5`, `medium`, `maxRetries: 0`.
+  - Prompt `training-block-content/v1` (`src/knowledge/prompts/training-block-content-v1.ts`): een gedeelde kern plus
+    een korte aanwijzing per bloktype.
+  - Het ontwerpschema wordt per doelblok gebouwd (`services/block-content/design.ts`): alleen toegestane statussen en
+    de velden van dat bloktype.
+  - Mock en Claude delen dezelfde weg: ontwerp → compose → Zod → invarianten (`finalize.ts`).
+  - Inhoudsvrije diagnose: `BlockContentValidationError`.
+- **Logging:** `certum.block_content_generation` (provider, model, effort, promptVersion, contentContractVersion,
+  target, plannedBlockId, catalogBlockId, certumPhase, duur, uitkomst, resultStatus, estimatedMinutes, errorKind,
+  validationStage, violationCodes) en `certum.block_content` (flow, aantallen). Nooit inhoud.
 
 ### Privacy in logs (niet onderhandelbaar)
 
@@ -323,10 +373,13 @@ src/
     training-agent/    Certum Training Agent: v1-contract (historisch), v2/ (baseline) en v2-1/ (actief)
     training-blueprint/ Training Blueprint: V1-contract (baseline), v2/ (actief), invarianten, goedkeuringsgates
     block-plan/        BC Online Block Plan V1: contract en invarianten
+    block-content/     Block Content V1 en Training Content Package: contract, trusted compose, invarianten, review
   knowledge/           Certum-kennis en methodiek; platform/ bevat de BC Online-blokcatalogus
   services/            Externe koppelingen, elk achter een interface, alleen server-side
     analysis/          TrainingAnalysisService(V2): mock + Claude; v1 historisch naast v2
-    blueprint/         TrainingBlueprintService V1 en v2/ (mock + Claude), BlockPlanService (alleen mock)
+    blueprint/         TrainingBlueprintService V1 en v2/ (mock + Claude), BlockPlanService-contract en mock
+    block-plan/        Block Plan-provider: Claude, config, diagnose, logging, factory
+    block-content/     Block Content: mock + Claude, ontwerpschema per blok, orchestrator, logging, factory
 ```
 
 Regels:
@@ -370,13 +423,16 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 8B, BP-baseline met `training-blueprint/v1`: klaar en beoordeeld (1 PASS, 1 PASS_WITH_NOTES, 1 FAIL).
 - Stap 8C, Blueprint Contract V2 en `training-blueprint/v2`: klaar en beoordeeld (2 PASS, 1 PASS_WITH_NOTES); gesloten.
 - Analysis Direction V2.1/V2.1.1 en Blueprint met trusted routebeleid: gesloten als één didactische keten.
-- Stap 9A, Claude-provider voor het BC Online Block Plan: gebouwd en getest met mocks. Nog geen BLP-baseline.
+- Stap 9A, Claude-provider voor het BC Online Block Plan: klaar; BLP-baseline beoordeeld (3× PASS_WITH_NOTES), gesloten.
+- Stap 10A, Block Content Engine V1 en Training Content Package: fundering klaar, getest met mocks. Nog geen BC-run met
+  Claude.
 
 Routes:
 - `/`: dashboard.
 - `/trainings`: overzicht van trainingen.
 - `/trainings/new`: kies een soort input, voer tekst in, voer de Certum Analyse uit, kies een trainingsrichting en
-  beoordeel en keur daarna de Blueprint en het Block Plan goed.
+  beoordeel en keur daarna de Blueprint en het Block Plan goed. Daarna: Training Content per blok bekijken,
+  goedkeuren, laten herzien of opnieuw genereren.
 - `/trainings/[id]`: Training Workspace met de zes methodiekonderdelen.
 
 Er is één centrale instroom voor het maken van trainingen: `/trainings/new`. `?input=casus` (of `onderwerp`, of
@@ -388,11 +444,12 @@ Workspace doet nog niets. Er wordt nergens iets opgeslagen.
 
 ## Evals
 
-Er zijn vier evalsets, elk met een eigen README:
+Er zijn vijf evalsets, elk met een eigen README:
 - `evals/training-analysis/` (CA-001 t/m CA-008): de inhoud van de analyse door een AI-provider.
 - `evals/privacy-preflight/` (PP-001 t/m PP-003): de lokale Privacy Preflight, zonder externe AI.
 - `evals/training-blueprint/` (BP-001 t/m BP-003): Blueprint en Block Plan; V1-baseline beoordeeld, V2-verwachtingen vastgelegd.
-- `evals/bc-online-block-plan/` (BLP-001 t/m BLP-003): Block Plan uit een goedgekeurde Blueprint; verwachtingen vastgelegd.
+- `evals/bc-online-block-plan/` (BLP-001 t/m BLP-003): Block Plan uit een goedgekeurde Blueprint; baseline beoordeeld.
+- `evals/training-block-content/` (BC-001 t/m BC-005): Block Content per blok; verwachtingen vastgelegd, nog geen run.
 
 Kwaliteitsbasis voor Certum Analyse staat in `evals/training-analysis/`. Er staat alleen
 synthetische data in en het is geen productiecode. Elke run wordt vastgelegd met promptVersion, model en effort.
@@ -422,6 +479,8 @@ Zie `.env.example`.
 CERTUM_ANALYSIS_PROVIDER=mock      # standaard, geen sleutel nodig
 CERTUM_ANALYSIS_PROVIDER=claude    # echte Certum Analyse via Claude
 CERTUM_BLUEPRINT_PROVIDER=mock     # standaard; claude = echte Blueprint Generation (betaald)
+CERTUM_BLOCK_PLAN_PROVIDER=mock    # standaard; claude = echt Block Plan (betaald)
+CERTUM_BLOCK_CONTENT_PROVIDER=mock # standaard; claude = echte Block Content, één aanroep per blok (betaald)
 ANTHROPIC_API_KEY=sk-ant-...       # alleen nodig bij claude
 ```
 
