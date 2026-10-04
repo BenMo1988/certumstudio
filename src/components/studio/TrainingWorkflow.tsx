@@ -8,7 +8,6 @@ import {
   generateBlockPlanAction,
   generateBlueprintAction,
   generateContentAction,
-  regenerateBlockAction,
   runAnalysisAction,
   selectDirectionAction,
 } from "@/app/trainings/workflow/actions";
@@ -22,7 +21,7 @@ import { Button } from "./Button";
 import { FlowSteps } from "./FlowSteps";
 import { Icon } from "./Icon";
 import { PageHeader } from "./PageHeader";
-import { TrainingContentWorkspace } from "./TrainingContentWorkspace";
+import { ReviewWorkspace, type ActResult } from "./review/ReviewWorkspace";
 import { workflowMessage } from "./workflow-messages";
 
 type Step = "Analyse" | "Blueprint" | "Block Plan" | "Content";
@@ -56,7 +55,7 @@ export function TrainingWorkflow({ initial }: { initial: TrainingWorkspaceView }
   const [step, setStep] = useState<Step>(stepFor(initial.progress.stage));
   const [error, setError] = useState<string | null>(null);
   const [failedBlockId, setFailedBlockId] = useState<string | null>(null);
-  const [openBlockId, setOpenBlockId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const [pending, startTransition] = useTransition();
   const id = ws.training.id;
 
@@ -77,6 +76,23 @@ export function TrainingWorkflow({ initial }: { initial: TrainingWorkspaceView }
       }
       window.scrollTo({ top: 0 });
     });
+  }
+
+  /** Voor de reviewwerkplek: één actie, met het resultaat terug (voor de bevestiging of de foutmelding in het formulier). */
+  async function act(action: () => Promise<WorkflowResult>): Promise<ActResult> {
+    setError(null);
+    setBusy(true);
+    try {
+      const result = await action();
+      if (result.status === "rejected") {
+        if (result.workspace) setWs(result.workspace);
+        return { ok: false, message: workflowMessage(result.reason), issues: result.issues };
+      }
+      setWs(result.workspace);
+      return { ok: true };
+    } finally {
+      setBusy(false);
+    }
   }
 
   const errorNotice = error && (
@@ -179,29 +195,12 @@ export function TrainingWorkflow({ initial }: { initial: TrainingWorkspaceView }
             </div>
           )}
           {ws.content && ws.blockPlan ? (
-            <TrainingContentWorkspace
-              pkg={ws.content.package}
-              blockPlan={ws.blockPlan.payload}
+            <ReviewWorkspace
+              ws={ws}
+              pending={pending || busy}
               failedBlockId={failedBlockId}
-              openBlockId={openBlockId}
-              pending={pending}
-              onOpen={(blockId) => {
-                setOpenBlockId(blockId);
-                setError(null);
-                window.scrollTo({ top: 0 });
-              }}
-              onReview={(blockId, status) => {
-                const revision = ws.content?.blockRevisions[blockId];
-                if (!revision || status === "draft") return;
-                run([() => decideRevisionAction(id, revision.revisionId, status)], { keepStep: true });
-              }}
-              onRegenerate={(blockId) =>
-                run([() => regenerateBlockAction(id, blockId, ws.content?.blockRevisions[blockId]?.revisionId ?? null)], { keepStep: true })
-              }
-              onBack={() => {
-                setOpenBlockId(null);
-                setStep("Block Plan");
-              }}
+              act={act}
+              onBack={() => setStep("Block Plan")}
             />
           ) : (
             <p className="mt-8 text-sm text-muted">Er is nog geen inhoud.</p>

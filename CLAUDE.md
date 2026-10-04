@@ -336,6 +336,33 @@ De Studio gebruikt de database als waarheid; React-state is alleen een weergave 
   N+1 zichtbaar terugkomt. Gemeten tegen Supabase Frankfurt: heropenen 4 queries (~0,18 s), blokbesluit 8 queries
   (~0,63 s), mock-contentgeneratie 48 queries (~4,9 s), trainingenlijst 5 queries (~0,3 s).
 
+### Training Review & Editor V1 (stap 12A)
+
+De opleiderswerkplek op `/trainings/[id]` (stap Content): de training in volgorde (Vaste Start, blokken per
+Certum-fase, Vast Einde), per onderdeel bekijken, handmatig bewerken, goedkeuren, laten aanpassen of opnieuw genereren.
+
+- **Bewerken = nieuwe immutable revision.** `saveBlockEdit` / `saveFrameEdit` (`app/trainings/workflow/editing.ts`,
+  Server Actions `saveBlockEditAction`, `saveFrameEditAction`): revision +1, concept, herkomst `manual-edit`
+  (`model_version`). De vorige revision en haar besluiten blijven historie; een goedkeuring gaat niet mee. Geen
+  autosave. `expectedRevisionId` is verplicht (`stale_revision`, geen last-write-wins); opslaan zonder wijziging maakt
+  geen revision.
+- **Mens en AI volgen dezelfde regels.** De bewerkbare velden zijn precies de velden die een provider genereert:
+  `editableContentSchema(target)` (`services/block-content/design.ts`, strict). Trusted en niet bewerkbaar: bloktype,
+  fase, volgorde, routebeleid, plannedBlockId, AI Feedback-context, bron van Conditionele logica, `minimumWords`
+  (V1: `null`), werkvorm, bijdrage aan leerdoel, toetsfunctie, sourceNeedRefs. Bewerkbaar naast de inhoud: geschatte
+  minuten (1–120 of leeg). Daarna compose, het volledige contractschema en `checkBlockContentInvariants`. Geen
+  tekstpolitie.
+- **Start en Einde:** bewerkbaar zijn de uitleg (Start) en de afsluitende tekst en samenvatting (Einde); titel,
+  leerdoel en vervolgaanbeveling (`null`) blijven trusted. Start en Einde hebben een eigen goedkeuring. Een
+  blokbewerking raakt ze niet.
+- **Readiness** (`deriveReview` in `services/storage/workspace.ts`, op basis van de readiness van het Content
+  Package): `incomplete` (bron, asset, technische beperking of ontbrekend blok), `in_review`, `approved` (alle blokken
+  én Start en Einde goedgekeurd → stage `training_ready`, "Training gereed"). Geen export of accreditatie.
+- **UI:** `components/studio/review/` (`ReviewWorkspace`, `BlockFields` met veldspecificaties per bloktype in
+  `block-fields.ts`; geen JSON). Niet-gegenereerde blokken tonen een kaart "Bron nodig / Asset nodig / Technische
+  beperking" zonder editor. Kleine read-only historie (`revisionHistoryAction`); geen diff of herstel.
+- **Prestatie:** een handmatige opslag ≤ 12 queries; heropenen blijft 4 (tests).
+
 ### Block Content en Training Content Package (stap 10A)
 
 - **Na beide menselijke goedkeuringen** (Blueprint én Block Plan) maakt Certum de inhoud per gepland blok. Server-side
@@ -439,7 +466,7 @@ src/
   app/                 Routes en pagina's (alleen routing en compositie, geen domeinlogica)
   components/
     studio/            Studio-interface: StudioLayout, SidebarNav, PageHeader, ActionCard, ChoiceCard,
-                       StatusBadge, TrainingList, NewTrainingIntake, TrainingWorkflow, review-componenten,
+                       StatusBadge, TrainingList, NewTrainingIntake, TrainingWorkflow, review/ (opleiderswerkplek),
                        Button, Icon (inline SVG, geen icon-library)
   lib/                 Kleine generieke helpers (bijv. datumopmaak)
   modules/             Domein, per onderdeel
@@ -501,20 +528,22 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
   WATCH: `persona_fact_drift`, `reflection_question_density`). Verdere wijzigingen vragen nieuw bewijs uit trainingsgebruik.
 - Stap 11A (ontwerp) en 11B (persistence-fundering, Supabase): klaar en bewezen tegen Supabase.
 - Stap 11C, persistence cut-over V1: de Studio onthoudt en hervat trainingen (bewezen tegen Supabase).
+- Stap 11D, persistence performance V1: Training Record Snapshot; alle V1-doelen gehaald.
+- Stap 12A, Training Review & Editor V1: handmatig bewerken als nieuwe revision, review per blok, Start/Einde, readiness.
 
 Routes:
 - `/`: dashboard.
 - `/trainings`: opgeslagen trainingen met code, titel, status en voortgang.
 - `/trainings/new`: kies een soort input en voer de tekst in; na indienen bestaat de training in de database.
 - `/trainings/[id]`: de hervatbare workflow van één training: analyse en richting, Blueprint, Block Plan en Training
-  Content per blok (bekijken, goedkeuren, laten herzien, opnieuw genereren).
+  Content als opleiderswerkplek (per blok bekijken, bewerken als nieuwe versie, goedkeuren, laten aanpassen, opnieuw
+  genereren; Vaste Start en Vast Einde bewerken en goedkeuren).
 
 Er is één centrale instroom voor het maken van trainingen: `/trainings/new`. `?input=casus` (of `onderwerp`, of
 `praktijkvraag`) selecteert vooraf een soort; de dashboardactie "Casus invoeren" gebruikt dat. Er komt geen aparte
 casusflow naast deze instroom.
 
-Gebruik voor trainingen altijd `/trainings/...` (meervoud). Goedkeuren maakt nog niets aan in BC Online. Inhoud
-handmatig wijzigen kan nog niet (Training Review/Editor volgt).
+Gebruik voor trainingen altijd `/trainings/...` (meervoud). Goedkeuren maakt nog niets aan in BC Online.
 
 ## Evals
 
