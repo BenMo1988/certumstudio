@@ -83,3 +83,47 @@ per revision en per blok); zie CLAUDE.md, "Bekend aandachtspunt (prestatie)".
 | `TR-0006` | Resume-proof, geslaagd | 1 input, 13 revisions, 4 events |
 
 Uitsluitend synthetische invoer (een fictieve praktijkvraag). Niet verwijderd: ze documenteren de proof.
+
+## Step 11D: persistence performance
+
+`CERTUM_PERF_RUNS=3 npx vitest run --config vitest.db.config.mts src/services/storage/persistence-performance.supabase.test.ts`:
+per run één `[development performance]`-training (synthetische praktijkvraag, mock-providers, 0 Claude-aanroepen).
+Gemeten met een inhoudsvrije queryteller (`instrumented-db.ts`: aantallen, DB-tijd, statische querytekst; nooit
+parameters of inhoud). Zelfde machine, zelfde Supabase-database (Frankfurt, Session pooler; ~87 ms per round-trip).
+
+### Vóór (baseline, 1 run, `TR-0007`)
+
+| Actie | Queries | DB-tijd | Totaal |
+| --- | --- | --- | --- |
+| Heropenen (3×) | 88 | ~7,65 s | 7,65 / 7,67 / 7,65 s |
+| Blokgoedkeuring (3 opeenvolgende blokken) | 124 / 139 / 154 | 10,9–13,4 s | 11,0 / 12,3 / 13,5 s |
+| Mock-contentgeneratie | 448 | 39,3 s | 40,2 s |
+| Trainingenlijst (7 trainingen) | 432 | 37,7 s | 37,8 s |
+
+Oorzaak: N+1. De approvalregel liep recursief per revision met losse queries (`getCurrentArtifactRevision`,
+`getArtifactRevision`, `listWorkflowEvents`), voor iedere upstream revision en ieder blok opnieuw; de lijst deed dat per
+training. Bij een blokbesluit groeide het aantal queries met het aantal eerder goedgekeurde blokken.
+
+### Ná (3 runs: `TR-0008`, `TR-0009`, `TR-0010`)
+
+| Actie | Queries | Run 1 (cold-ish) | Run 2 | Run 3 | Representatief |
+| --- | --- | --- | --- | --- | --- |
+| Heropenen | 4 | 169 / 178 / 176 ms | 189 / 177 / 170 ms | 174 / 175 / 175 ms | ~0,18 s |
+| Blokgoedkeuring | 8 (constant) | 632 / 656 / 686 ms | 594 / 606 / 619 ms | 614 / 653 / 645 ms | ~0,63 s |
+| Mock-contentgeneratie | 48 | 4.962 ms | 4.904 ms | 4.932 ms | ~4,9 s |
+| Trainingenlijst | 5 | 322 ms (8 trainingen) | 284 ms (9) | 357 ms (10) | ~0,3 s |
+
+DB-tijd is opgeteld per query; omdat de snapshotqueries gelijktijdig lopen, kan die som hoger zijn dan de totale tijd.
+Alle V1-doelen gehaald (heropenen < 2 s, blokbesluit < 2 s, contentgeneratie < 8 s). Resterend bij contentgeneratie:
+per opgeslagen artifact een vaste write van vier round-trips (vergrendelen, revisions, events, insert).
+
+### Achtergebleven development-records (Step 11D)
+
+| Code | Herkomst |
+| --- | --- |
+| `TR-0007` | Performance-baseline (vóór optimalisatie) |
+| `TR-0008`, `TR-0009`, `TR-0010` | Performance-proof (ná optimalisatie), 3 runs |
+| `TR-0011` | Persisted browserflow (mock) ná optimalisatie |
+
+Uitsluitend synthetische invoer; niet verwijderd.
+

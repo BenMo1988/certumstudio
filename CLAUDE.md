@@ -273,7 +273,7 @@ Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
 - **Blocker `approval_integrity_required_before_export`: principieel opgelost (stap 11C).** De UI-workflow stuurt geen
   goedgekeurde artifacts of approval-flags meer terug; de server laadt Blueprint, Block Plan en inhoud zelf uit Postgres
   en goedkeuringen zijn workflow events op exact één revision en content_hash. De oude client-authoritative Server
-  Actions bestaan niet meer. De flow-functies (`runBlockPlanFlow`, `runTrainingContentFlow`, …) accepteren nog
+  Actions bestaan niet meer. De flow-functies (`runBlockPlanFlow`, `runBlockRegenerationFlow`, …) accepteren nog
   artifacts als argument, maar zijn geen Server Actions; de persisted workflow voedt ze uit de database. Een toekomstige
   export moet ook uitsluitend uit opgeslagen, goedgekeurde revisions lezen.
 - Er is nog geen BC Online-adapter, API, MCP of export.
@@ -326,19 +326,26 @@ De Studio gebruikt de database als waarheid; React-state is alleen een weergave 
 - **Resume-state:** `loadTrainingWorkspace` (`services/storage/workspace.ts`) leidt de `stage` af uit revisions en
   events (`intake_complete` … `training_ready`); niets wordt dubbel opgeslagen. `/` en `/trainings` tonen echte
   records via `listTrainingSummaries` (code, titel, status, voortgang, laatst gewijzigd).
-- **Bekend aandachtspunt (prestatie):** de loader en de approvalregel doen veel kleine queries (recursief per revision
-  en per blok). Tegen Supabase kost heropenen ~9,5 s en een blokbesluit ~11 s. Oplossing voor een volgende stap: per
-  training alle revisions en events in enkele queries laden en de regels in het geheugen toepassen.
+- **Prestatie (stap 11D): Training Record Snapshot.** `loadTrainingRecordSnapshot(s)` laadt training, laatste invoer,
+  alle revisions en alle events met vier bulkqueries (gelijktijdig), ongeacht het aantal blokken of trainingen. De
+  approval-, staleness-, richting-, pakket- en resume-regels zijn pure functies over die snapshot
+  (`services/storage/snapshot.ts`, `deriveWorkspace`); de regels zelf zijn ongewijzigd en een test vergelijkt ze per
+  revision met de repository. Writes blijven DB-authoritative: ze vergrendelen de training (`update … returning`,
+  tevens `updated_at`) en laden hun eigen snapshot binnen de transactie. `generateContent` werkt na iedere write de
+  lokale snapshot bij in plaats van alles opnieuw te laden. Query-tellingen staan in tests (`snapshot.test.ts`) zodat
+  N+1 zichtbaar terugkomt. Gemeten tegen Supabase Frankfurt: heropenen 4 queries (~0,18 s), blokbesluit 8 queries
+  (~0,63 s), mock-contentgeneratie 48 queries (~4,9 s), trainingenlijst 5 queries (~0,3 s).
 
 ### Block Content en Training Content Package (stap 10A)
 
 - **Na beide menselijke goedkeuringen** (Blueprint én Block Plan) maakt Certum de inhoud per gepland blok. Server-side
-  poorten in `src/app/trainings/new/content-flow.ts` (`runTrainingContentFlow`, `runBlockRegenerationFlow`): beide
+  poort in `src/app/trainings/new/content-flow.ts` (`runBlockRegenerationFlow`, per blok): beide
   goedkeuringen, een geldige Blueprint V2 met consistent routebeleid (V1 → `incompatible_blueprint`: geen
   sourceNeed-ids) en een geldig Block Plan dat bij die Blueprint hoort. Pas daarna wordt de provider aangemaakt.
 - **Granulariteit:** `BlockContentService.generate(request)` is precies één `plannedBlockId` → één `BlockContentResult`;
-  `generateFrame` maakt Vaste Start/Vast Einde. De orchestrator (`services/block-content/orchestrator.ts`) genereert
-  alle blokken één voor één in planvolgorde en stopt bij de eerste fout (rest blijft `not_generated`).
+  `generateFrame` maakt Vaste Start/Vast Einde. De persisted workflow (`generateContent`) genereert alle blokken één
+  voor één in planvolgorde, slaat ieder blok direct op en stopt bij de eerste fout (rest blijft `not_generated`). De
+  vroegere pakketflow in één request (`runTrainingContentFlow`, `generateTrainingContentPackage`) is verwijderd.
 - **Claude alleen als het resultaat werkelijk `generated` kan zijn** (kostenvermenigvuldigende laag: één aanroep per
   blok). `generateBlockContent`: eerst `resolveBlockTarget`; kan het blok niet gegenereerd worden, dan maakt
   `resolveDeterministicResult` (`modules/block-content/deterministic.ts`) server-side `needs_source`, `needs_asset` of
