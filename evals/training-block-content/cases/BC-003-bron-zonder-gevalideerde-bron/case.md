@@ -6,7 +6,7 @@
 | **Input** | Goedgekeurde Blueprint `BLP-001` (`test/fixtures/approved-blueprints.json`) en goedgekeurd Block Plan `BLP-001` (`test/fixtures/approved-block-plans.json`) |
 | **Doelblok** | `blok-5` · bron · `certum.bco.tekst` |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `NOT_RUN` |
+| **Status (laatste run)** | `PENDING_REVIEW` |
 
 ## Doelblok (uit het Block Plan)
 
@@ -35,3 +35,4 @@ Vastgelegd vóór de implementatie van de Block Content Engine. Algemeen (G) en 
 
 | Datum | Versie | Generator | Status | Run |
 | --- | --- | --- | --- | --- |
+| 2026-10-04 | training-block-content/v1 · block-content/v1 | server-side (geen provider) | `PENDING_REVIEW` | [run](runs/2026-10-04_deterministisch.md) |
