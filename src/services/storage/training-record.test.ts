@@ -405,3 +405,20 @@ describe("migratiechecksum", () => {
     expect((await applyMigrations(db, crlf)).every((o) => o.status === "already_applied")).toBe(true);
   });
 });
+
+describe("opgeslagen JSON-typen", () => {
+  it("payload, preflight, bevestigingen, attestatie en event_data staan als JSON-object/array, niet als JSON-string", async () => {
+    const { training, analysis } = await trainingWithAnalysis();
+    const [types] = await db.query<Record<string, string>>(
+      `select
+         (select jsonb_typeof(payload) from artifact_revision where id = $1) as payload,
+         (select jsonb_typeof(privacy_preflight) from training_input where training_id = $2) as preflight,
+         (select jsonb_typeof(acknowledgements) from training_input where training_id = $2) as acknowledgements,
+         (select jsonb_typeof(attestation) from training_input where training_id = $2) as attestation,
+         (select jsonb_typeof(event_data) from workflow_event where artifact_revision_id = $1) as event_data,
+         (select pg_typeof(based_on_revision_ids)::text from artifact_revision where id = $1) as based_on`,
+      [analysis.id, training.id],
+    );
+    expect(types).toEqual({ payload: "object", preflight: "object", acknowledgements: "array", attestation: "object", event_data: "object", based_on: "uuid[]" });
+  });
+});

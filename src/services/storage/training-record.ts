@@ -176,6 +176,13 @@ const toEvent = (r: Row): WorkflowEvent => ({
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const uuidArray = (ids: string[]) => `{${ids.join(",")}}`;
 
+/*
+ * Parameterconventie: JSON en arrays gaan als tekst mee en worden in SQL omgezet (`$n::text::jsonb`,
+ * `$n::text::uuid[]`). postgres.js serialiseert een parameter van type jsonb zelf met JSON.stringify; een direct als
+ * `$n::jsonb` getypeerde JSON-string zou dan dubbel gecodeerd worden opgeslagen (als JSON-string). Via `::text` gedragen
+ * postgres.js (Supabase) en PGlite (tests) zich gelijk.
+ */
+
 function isUniqueViolation(error: unknown): boolean {
   return typeof error === "object" && error !== null && (error as { code?: unknown }).code === "23505";
 }
@@ -247,7 +254,7 @@ export async function saveTrainingInput(
     const [row] = await tx.query(
       `insert into training_input
          (training_id, input_type, input_text, text_hash, privacy_preflight, acknowledgements, attestation, data_policy_version)
-       values ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7::jsonb, $8)
+       values ($1, $2, $3, $4, $5::text::jsonb, $6::text::jsonb, $7::text::jsonb, $8)
        returning *`,
       [
         input.trainingId,
@@ -332,7 +339,7 @@ export async function createArtifactRevision(db: Db, input: NewArtifactRevision)
         `insert into artifact_revision
            (training_id, artifact_type, artifact_key, revision_no, contract_version, prompt_version, model_version,
             payload, content_hash, based_on_revision_ids)
-         values ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10::uuid[])
+         values ($1, $2, $3, $4, $5, $6, $7, $8::text::jsonb, $9, $10::text::uuid[])
          returning *`,
         [
           input.trainingId,
@@ -515,7 +522,7 @@ export async function appendWorkflowEvent(
 
     const [row] = await tx.query(
       `insert into workflow_event (training_id, artifact_revision_id, event_type, event_data, content_hash, actor_id)
-       values ($1, $2, $3, $4::jsonb, $5, null) returning *`,
+       values ($1, $2, $3, $4::text::jsonb, $5, null) returning *`,
       [input.trainingId, revision.id, input.eventType, JSON.stringify(eventData), revision.contentHash],
     );
     await touchTraining(tx, input.trainingId);
