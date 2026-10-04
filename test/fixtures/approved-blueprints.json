@@ -1,0 +1,299 @@
+{
+  "_note": "Goedgekeurde Training Blueprints als input voor Block Plan Generation. BLP-001 en BLP-002 zijn letterlijk de menselijk beoordeelde Blueprints uit de B21-runs; BLP-003 is een synthetische afgeleide van de BP-003 V2-run waarin route-afhankelijk vervolg (branching) expliciet nodig is. Niet wijzigen.",
+  "cases": {
+    "BLP-001": {
+      "source": "evals/training-blueprint/cases/B21-OPEN-privegrens-open-keuze/runs/2026-10-03_training-blueprint-v2.1_claude-opus-5-5_medium.md",
+      "synthetic": false,
+      "blueprint": {
+        "version": "blueprint-contract/v2",
+        "title": "Privégrens respecteren en werkverantwoordelijkheid bewaken",
+        "targetAudience": "Teamleiders en andere leidinggevenden die medewerkers aansturen.",
+        "learningGoal": "De deelnemer kan afwegen hoe hij de door een medewerker aangegeven grens rond privéomstandigheden respecteert en tegelijk verantwoordelijkheid houdt voor het werk en het team, en kan zijn gekozen aanpak onderbouwen in het licht van de situatie en de mogelijke consequenties.",
+        "professionalDilemma": "De teamleider staat voor de vraag hoe hij de door de medewerker aangegeven grens rond zijn privésituatie respecteert, terwijl hij tegelijk verantwoordelijkheid houdt voor de gemiste deadlines, niet nagekomen afspraken en de gevolgen daarvan voor het team en het werk.",
+        "selectedDirectionId": "grens-en-verantwoordelijkheid",
+        "sourceRefs": [
+          "S2",
+          "S3"
+        ],
+        "participantRole": "Teamleider die een medewerker aanstuurt en met hem in gesprek is over gemiste deadlines en niet nagekomen afspraken.",
+        "scenarioPremise": "Een teamleider merkt dat een medewerker de afgelopen maand meerdere deadlines heeft gemist en afspraken niet altijd nakomt. In een gesprek hierover zegt de medewerker dat er privé veel speelt, maar dat hij daar op het werk niet verder over wil praten. De teamleider wil respectvol omgaan met die grens, maar moet ook iets doen met de gevolgen voor het team en het werk. De simulatie start direct nadat de medewerker deze grens heeft aangegeven, terwijl het gesprek nog loopt.",
+        "decisionPoint": {
+          "task": "Bepaal hoe je als teamleider in dit gesprek verder gaat nu de medewerker heeft aangegeven niet over zijn privésituatie te willen praten, voer dat vervolg van het gesprek uit en onderbouw je aanpak in het licht van de grens van de medewerker en de gevolgen voor het team en het werk.",
+          "routePolicy": "open_choice"
+        },
+        "ambiguity": "multiple_defensible_actions",
+        "successCriteria": [
+          "De deelnemer voert het vervolg van het gesprek zichtbaar uit op een manier waarin zowel de aangegeven privégrens als de gevolgen voor werk en team aan bod komen.",
+          "De deelnemer onderbouwt zijn gekozen aanpak door de belangen van de medewerker, het team en het werk expliciet tegen elkaar af te wegen.",
+          "De deelnemer benoemt de mogelijke consequenties van zijn aanpak voor de medewerker, de werkrelatie en het team."
+        ],
+        "assumptions": [
+          {
+            "assumption": "De simulatie start op het moment direct nadat de medewerker in het lopende gesprek heeft aangegeven niet verder over zijn privésituatie te willen praten.",
+            "reason": "De bron legt het exacte startmoment niet vast; het keuzemoment uit de gekozen richting vraagt om een start waarin de grens al is aangegeven en de teamleider moet reageren."
+          }
+        ],
+        "sourceNeeds": [
+          {
+            "id": "SN1",
+            "question": "Welke handelingsruimte en verantwoordelijkheden heeft een leidinggevende wanneer een medewerker privéomstandigheden noemt maar daar niet over wil praten, terwijl het functioneren onder druk staat, en waar liggen de grenzen van wat een leidinggevende mag vragen of bespreken?",
+            "sourceType": "nog_te_bepalen",
+            "whyNeeded": "De deelnemer moet zijn gekozen aanpak achteraf kunnen toetsen aan gevalideerde kaders over de verhouding tussen privacy van de medewerker en de verantwoordelijkheid van de leidinggevende voor werk en team."
+          },
+          {
+            "id": "SN2",
+            "question": "Welke gesprekstechnieken of methodische principes ondersteunen een leidinggevende bij het bespreekbaar maken van werkafspraken en gevolgen voor het team zonder een aangegeven persoonlijke grens te overschrijden?",
+            "sourceType": "methodiek",
+            "whyNeeded": "Om de uitvoering van de eigen gekozen route te kunnen verdiepen en te vergelijken met beproefde manieren om grens en werkverantwoordelijkheid tegelijk te hanteren."
+          }
+        ],
+        "learningArc": {
+          "context": {
+            "participantKnows": "Dat de medewerker de afgelopen maand meerdere deadlines heeft gemist en afspraken niet altijd nakomt, dat dit gevolgen heeft voor team en werk, en dat de medewerker zojuist heeft gezegd dat er privé veel speelt maar dat hij daar op het werk niet verder over wil praten.",
+            "deliberatelyUnknown": "Wat er privé speelt, hoe lang het nog duurt en hoe de medewerker zelf de gevolgen voor zijn werk inschat; die onzekerheid blijft bestaan.",
+            "tensionArises": "Tussen het willen respecteren van de door de medewerker aangegeven grens en de verantwoordelijkheid van de teamleider om iets te doen met de gemiste deadlines, niet nagekomen afspraken en de gevolgen voor het team."
+          },
+          "actie": {
+            "participantMust": "Zelf een aanpak kiezen voor het vervolg van het gesprek en die uitvoeren in reactie op de medewerker, waarbij de deelnemer bepaalt hoe hij omgaat met de aangegeven grens en wat hij doet met de gevolgen voor werk en team.",
+            "performanceType": "gesprek_voeren",
+            "routePolicy": "open_choice"
+          },
+          "reflectie": {
+            "looksBackOn": "De eigen gekozen aanpak in het gesprek: wat de deelnemer wel en niet heeft aangesneden, hoe hij op de grens van de medewerker reageerde en welke ruimte of afspraken hij rond het werk heeft gecreëerd.",
+            "explicitTradeOff": "Hoe de deelnemer het respecteren van de privégrens heeft gewogen tegen zijn verantwoordelijkheid voor het werk en het team, en welke consequenties hij daarbij voor medewerker, werkrelatie en team heeft meegenomen of laten liggen."
+          },
+          "feedback": {
+            "respondsTo": "Zowel het gevoerde gesprek als de onderbouwing van de gekozen aanpak: hoe zorgvuldig de grens is gehanteerd, hoe helder werkverantwoordelijkheid is bewaakt en hoe consistent het handelen is met de uitgesproken afweging.",
+            "dimensions": [
+              "Omgaan met de aangegeven privégrens van de medewerker",
+              "Bewaken van werkverantwoordelijkheid en gevolgen voor het team",
+              "Onderbouwing van de afweging en de consequenties"
+            ],
+            "evaluationBasis": [
+              "afweging",
+              "aansluiting_op_situatie",
+              "consequenties",
+              "uitvoering"
+            ],
+            "multipleDefensibleHandling": "Verschillende routes kunnen verdedigbaar zijn; feedback beoordeelt niet welke route is gekozen, maar of de aanpak aansluit op de situatie, of beide kanten van het dilemma zichtbaar zijn meegewogen, of de consequenties zijn doordacht en of de uitvoering in het gesprek overeenkomt met de onderbouwing."
+          },
+          "bron": {
+            "learningIntent": "Na handelen, reflectie en feedback legt de deelnemer zijn eigen gekozen aanpak naast gevalideerde kennis over de handelingsruimte van een leidinggevende rond privéomstandigheden en over methodische principes voor het bespreken van werkafspraken, zodat hij ziet welke onderdelen van zijn afweging en uitvoering worden versterkt of herzien.",
+            "sourceNeedRefs": [
+              "SN1",
+              "SN2"
+            ]
+          },
+          "toets": {
+            "demonstrate": "Dat de deelnemer opnieuw een eigen aanpak kan kiezen, uitvoeren en onderbouwen waarin een door een medewerker aangegeven grens en de verantwoordelijkheid voor werk en team beide worden gewogen.",
+            "transferEvidence": "De deelnemer past zijn afweging aan op gewijzigde omstandigheden en maakt in de onderbouwing zichtbaar welke elementen van de nieuwe situatie zijn keuze anders of juist hetzelfde maken.",
+            "newDecisionPoint": "Een vergelijkbaar keuzemoment met de teamleider in een andere fase, bijvoorbeeld een vervolggesprek waarin de gevolgen voor het team inmiddels groter zijn geworden of teamleden ernaar vragen, terwijl de grens van de medewerker blijft bestaan.",
+            "evaluationBasis": [
+              "afweging",
+              "aansluiting_op_situatie",
+              "consequenties",
+              "onderbouwing"
+            ]
+          }
+        }
+      }
+    },
+    "BLP-002": {
+      "source": "evals/training-blueprint/cases/B21-PRESCRIBED-nooduitgang-onder-druk/runs/2026-10-03_training-blueprint-v2.1_claude-opus-5-5_medium.md",
+      "synthetic": false,
+      "blueprint": {
+        "version": "blueprint-contract/v2",
+        "title": "Nooduitgang direct vrijmaken ondanks verzoek collega om te wachten",
+        "targetAudience": "Begeleiders die groepsactiviteiten begeleiden in een werksituatie waarin vaste veiligheidsinstructies gelden.",
+        "learningGoal": "De deelnemer kan de nooduitgang direct vrijmaken en dit daarna melden aan de verantwoordelijke, en kan aan de collega uitleggen waarom het verzoek om te wachten niet wordt gevolgd.",
+        "professionalDilemma": "De begeleider staat voor de vraag of hij de vaste instructie om de nooduitgang direct vrij te maken uitvoert, terwijl een collega vraagt hiermee te wachten om onrust in de groep te voorkomen.",
+        "selectedDirectionId": "instructie-volgen-ondanks-verzoek",
+        "sourceRefs": [
+          "S1",
+          "S2",
+          "S3"
+        ],
+        "participantRole": "Begeleider die tijdens een lopende groepsactiviteit een door gestapelde dozen geblokkeerde nooduitgang opmerkt en door een collega wordt gevraagd hiermee te wachten.",
+        "scenarioPremise": "Tijdens een lopende groepsactiviteit merkt de begeleider dat een nooduitgang geblokkeerd is door gestapelde dozen. Een collega vraagt de dozen pas na afloop weg te halen, omdat het onderbreken van de activiteit volgens de collega onrust geeft in de groep. In deze werksituatie geldt de vaste instructie dat een geblokkeerde nooduitgang direct wordt vrijgemaakt en dat dit daarna wordt gemeld aan de verantwoordelijke. De sector of setting van de activiteit is niet vastgesteld.",
+        "decisionPoint": {
+          "task": "De deelnemer reageert op het verzoek van de collega om te wachten: hij maakt de nooduitgang direct vrij volgens de vaste instructie, legt de collega uit waarom het verzoek niet wordt gevolgd en meldt het vrijmaken daarna aan de verantwoordelijke.",
+          "routePolicy": "prescribed_action"
+        },
+        "ambiguity": "single_best_action",
+        "successCriteria": [
+          "De deelnemer maakt de geblokkeerde nooduitgang direct vrij en meldt dit daarna aan de verantwoordelijke, conform de vaste instructie.",
+          "De deelnemer legt aan de collega uit waarom het verzoek om te wachten niet wordt gevolgd, met verwijzing naar de vaste instructie en het doel van een vrije nooduitgang.",
+          "De deelnemer benoemt de zorg van de collega over onrust in de groep en laat zien hoe hij daarmee rekening houdt zonder de instructie uit te stellen."
+        ],
+        "assumptions": [
+          {
+            "assumption": "De simulatie start op het moment waarop de collega het verzoek doet om te wachten met het weghalen van de dozen.",
+            "reason": "Het keuzemoment ontstaat pas wanneer instructie en verzoek tegenover elkaar staan; dit startmoment maakt de spanning direct voelbaar."
+          },
+          {
+            "assumption": "De deelnemer heeft de handelingsruimte om de dozen zelf weg te halen en weet wie de verantwoordelijke is aan wie gemeld moet worden.",
+            "reason": "Zonder deze handelingsruimte kan de voorgeschreven handelingslijn van vrijmaken en melden niet worden uitgevoerd en beoordeeld."
+          }
+        ],
+        "sourceNeeds": [
+          {
+            "id": "SN1",
+            "question": "Welke onderbouwing ligt ten grondslag aan de eis dat nooduitgangen te allen tijde vrij moeten zijn, en welke risico's brengt een tijdelijke blokkade met zich mee?",
+            "sourceType": "nog_te_bepalen",
+            "whyNeeded": "De deelnemer moet zijn keuze tegenover de collega inhoudelijk kunnen verantwoorden en de reden achter de vaste instructie kunnen koppelen aan zijn eigen handelen."
+          },
+          {
+            "id": "SN2",
+            "question": "Wat houdt een melding aan de verantwoordelijke na het vrijmaken van een geblokkeerde nooduitgang in, en welke informatie hoort daarin?",
+            "sourceType": "organisatiebeleid",
+            "whyNeeded": "Het melden is een vast onderdeel van de voorgeschreven handelingslijn; de deelnemer moet zijn eigen melding kunnen toetsen aan wat verwacht wordt."
+          }
+        ],
+        "learningArc": {
+          "context": {
+            "participantKnows": "Er loopt een groepsactiviteit, de nooduitgang is geblokkeerd door gestapelde dozen, een collega vraagt te wachten tot na afloop vanwege mogelijke onrust in de groep, en er geldt een vaste instructie om direct vrij te maken en daarna te melden.",
+            "deliberatelyUnknown": "Hoe de groep en de collega zullen reageren op het onderbreken van de activiteit, en of zich tijdens de activiteit een situatie voordoet waarin de nooduitgang nodig is.",
+            "tensionArises": "Tussen de vaste veiligheidsinstructie die onmiddellijk handelen vraagt en het verzoek van een collega die het belang van rust in de groep vooropstelt, waarbij ingaan tegen een collega ongemakkelijk is."
+          },
+          "actie": {
+            "participantMust": "In gesprek met de collega reageren op het verzoek, de nooduitgang direct vrijmaken, de keuze tegenover de collega verantwoorden en het vrijmaken daarna melden aan de verantwoordelijke.",
+            "performanceType": "gesprek_voeren",
+            "routePolicy": "prescribed_action"
+          },
+          "reflectie": {
+            "looksBackOn": "De eigen reactie op het verzoek van de collega: of en wanneer de nooduitgang is vrijgemaakt, hoe de keuze aan de collega is uitgelegd en of de melding is gedaan.",
+            "explicitTradeOff": "De afweging tussen het veiligheidsbelang van een direct vrije nooduitgang en de door de collega genoemde onrust in de groep, en waarom de vaste instructie hier leidend is."
+          },
+          "feedback": {
+            "respondsTo": "Het uitgevoerde handelen (direct vrijmaken en daarna melden) en de onderbouwing die de deelnemer aan de collega geeft, inclusief hoe met de zorg van de collega is omgegaan.",
+            "dimensions": [
+              "Uitvoering van de voorgeschreven handelingslijn: direct vrijmaken en daarna melden",
+              "Verantwoording van de keuze tegenover de collega",
+              "Omgang met de zorg van de collega over onrust in de groep"
+            ],
+            "evaluationBasis": [
+              "voorgeschreven_handeling",
+              "onderbouwing",
+              "uitvoering"
+            ],
+            "multipleDefensibleHandling": null
+          },
+          "bron": {
+            "learningIntent": "Na het handelen koppelt de deelnemer de gevalideerde onderbouwing van vrije nooduitgangen en de verwachtingen rond melden aan zijn eigen keuze en uitleg aan de collega, zodat hij ziet waar zijn verantwoording sterker of vollediger kan.",
+            "sourceNeedRefs": [
+              "SN1",
+              "SN2"
+            ]
+          },
+          "toets": {
+            "demonstrate": "Opnieuw de vaste instructie direct uitvoeren en daarna melden, en de keuze helder verantwoorden tegenover iemand die vraagt te wachten.",
+            "transferEvidence": "De deelnemer past dezelfde handelingslijn toe in een gewijzigde situatie en onderbouwt zijn keuze zelfstandig met de reden achter de instructie, zonder zich te laten afleiden door de nieuwe druk.",
+            "newDecisionPoint": "Een vergelijkbare situatie waarin de nooduitgang opnieuw geblokkeerd is, maar het verzoek om te wachten met meer aandrang wordt gedaan of van een andere betrokkene komt, bijvoorbeeld met tijdsdruk door het einde van de activiteit.",
+            "evaluationBasis": [
+              "voorgeschreven_handeling",
+              "onderbouwing",
+              "uitvoering"
+            ]
+          }
+        }
+      }
+    },
+    "BLP-003": {
+      "source": "synthetisch, afgeleid van evals/training-blueprint/cases/BP-003-volgorde-vervolgcontact/runs/2026-10-03_training-blueprint-v2_claude-opus-5-5_medium.md (title, learningArc.actie.participantMust en learningArc.toets.newDecisionPoint aangepast)",
+      "synthetic": true,
+      "blueprint": {
+        "version": "blueprint-contract/v2",
+        "title": "Synthetisch: volgorde van contacten met route-afhankelijk vervolg",
+        "targetAudience": "Jeugdprofessionals die met gezinnen en scholen samenwerken.",
+        "learningGoal": "De deelnemer kan de voor- en nadelen van eerst school benaderen versus eerst het gezin spreken tegen elkaar afwegen en een gemotiveerde keuze maken.",
+        "professionalDilemma": "De professional moet kiezen tussen vóór het gezinsgesprek eerst bij school verdere verheldering zoeken over de verschillen, of de uiteenlopende perspectieven zonder die extra stap direct en open met ouder en jongere bespreken.",
+        "selectedDirectionId": "volgorde-vervolgcontact",
+        "sourceRefs": [
+          "S4",
+          "S5"
+        ],
+        "participantRole": "Jeugdprofessional die samenwerkt met gezin en school en de dag vóór een gepland gezinsgesprek moet bepalen welk contact eerst plaatsvindt.",
+        "scenarioPremise": "Een jeugdprofessional krijgt van school en van een ouder verschillende beschrijvingen van het gedrag van dezelfde jongere. Volgens school komt de jongere regelmatig teruggetrokken en gespannen over. De ouder herkent dit thuis niet en vindt dat school het probleem groter maakt dan het is. Er zijn geen acute veiligheidszorgen. De volgende dag staat een gesprek met het gezin gepland. De professional twijfelt of hij vóór dat gesprek eerst opnieuw contact opneemt met school om de verschillen te verhelderen, of de uiteenlopende perspectieven eerst open met ouder en jongere bespreekt.",
+        "decisionPoint": {
+          "task": "Bepaal op de dag vóór het gezinsgesprek welke volgorde van contacten je kiest ten aanzien van school en het gezin, en licht toe waarom je deze volgorde kiest gezien de situatie.",
+          "routePolicy": "open_choice"
+        },
+        "ambiguity": "multiple_defensible_actions",
+        "successCriteria": [
+          "De deelnemer maakt een keuze voor de volgorde van contacten en onderbouwt die met de voor- en nadelen van beide routes voor de samenwerking met gezin en school.",
+          "De deelnemer benoemt hoe het ontbreken van acute veiligheidszorgen en de nog onbekende punten in de situatie zijn keuze beïnvloeden.",
+          "De deelnemer benoemt welke consequenties zijn gekozen volgorde kan hebben voor het vertrouwen van ouder en jongere en voor de relatie met school, en hoe hij daarmee omgaat."
+        ],
+        "assumptions": [
+          {
+            "assumption": "De simulatie speelt zich af op de dag vóór het gezinsgesprek, op een moment waarop het voor de deelnemer praktisch nog mogelijk is school te benaderen.",
+            "reason": "Zonder deze tijdsruimte is er geen werkelijke keuze tussen beide volgordes en valt het keuzemoment weg."
+          }
+        ],
+        "sourceNeeds": [
+          {
+            "id": "SN1",
+            "question": "Welke kaders gelden voor het opnieuw contact opnemen met school over een jongere en het delen van informatie, en welke rol spelen bekendheid en instemming van ouder en jongere daarbij.",
+            "sourceType": "wet_regelgeving",
+            "whyNeeded": "De keuze om eerst school te benaderen raakt aan informatiedeling; de deelnemer moet zijn gekozen volgorde achteraf kunnen toetsen aan wat hierover geldt, juist omdat niet vaststaat of het gezin van het schoolcontact weet."
+          },
+          {
+            "id": "SN2",
+            "question": "Welke methodische inzichten bestaan over het werken met uiteenlopende perspectieven van gezin en school en over transparantie richting ouder en jongere bij afstemming met netwerkpartners.",
+            "sourceType": "methodiek",
+            "whyNeeded": "Biedt een gevalideerd referentiekader om de afweging tussen eerst verhelderen bij school en eerst open bespreken met het gezin achteraf te verdiepen, zonder één route als juist neer te zetten."
+          }
+        ],
+        "learningArc": {
+          "context": {
+            "participantKnows": "De deelnemer kent de verschillende beschrijvingen van school en ouder, het oordeel van de ouder dat school het probleem groter maakt, het ontbreken van acute veiligheidszorgen en het geplande gezinsgesprek van de volgende dag.",
+            "deliberatelyUnknown": "Onbekend blijft of ouder en jongere weten van en ingestemd hebben met het contact met school, wat de leeftijd van de jongere is en of de jongere bij het gesprek aanwezig zal zijn.",
+            "tensionArises": "De spanning ontstaat tussen het willen verhelderen van de schoolobservaties vóór het gesprek en het risico dat het gezin dat ervaart als over hen in plaats van met hen praten, terwijl de afwezigheid van acute zorgen ruimte laat voor beide routes."
+          },
+          "actie": {
+            "participantMust": "De deelnemer kiest een volgorde van contacten en voert de eerste stap uit. Afhankelijk van de gekozen volgorde krijgt de deelnemer een ander vervolg: wie eerst school benadert, voert daarna het contact met school; wie eerst het gezin spreekt, voert daarna het gezinsgesprek.",
+            "performanceType": "keuze_maken_en_onderbouwen",
+            "routePolicy": "open_choice"
+          },
+          "reflectie": {
+            "looksBackOn": "De deelnemer kijkt terug op de eigen gekozen volgorde en op de argumenten die daarbij de doorslag gaven.",
+            "explicitTradeOff": "De deelnemer maakt expliciet wat hij wint en wat hij riskeert met zijn volgorde: meer verheldering vooraf tegenover openheid en vertrouwen in het gezinsgesprek, en welke rol de onbekende instemming en positie van de jongere daarin speelden."
+          },
+          "feedback": {
+            "respondsTo": "Feedback reageert op de gekozen volgorde en de concrete uitwerking daarvan én op de kwaliteit van de onderbouwing en de gewogen voor- en nadelen.",
+            "dimensions": [
+              "Afweging van voor- en nadelen van beide volgordes",
+              "Aansluiting van de keuze op de concrete situatie, inclusief het ontbreken van acute zorgen en de onbekende punten",
+              "Oog voor consequenties voor de relatie met gezin en school"
+            ],
+            "evaluationBasis": [
+              "afweging",
+              "aansluiting_op_situatie",
+              "onderbouwing",
+              "consequenties"
+            ],
+            "multipleDefensibleHandling": "Beide volgordes gelden als verdedigbaar. Feedback beoordeelt niet welke route gekozen is, maar of de deelnemer beide routes serieus heeft gewogen, zijn keuze laat aansluiten op de situatie, de risico's van zijn eigen route benoemt en laat zien hoe hij die beperkt."
+          },
+          "bron": {
+            "learningIntent": "Na handelen, reflectie en feedback legt de deelnemer zijn gekozen volgorde naast gevalideerde kaders over informatiedeling met school en methodische inzichten over werken met uiteenlopende perspectieven, zodat hij ziet welke van zijn argumenten worden versterkt, genuanceerd of aangevuld.",
+            "sourceNeedRefs": [
+              "SN1",
+              "SN2"
+            ]
+          },
+          "toets": {
+            "demonstrate": "De deelnemer toont opnieuw dat hij de voor- en nadelen van verschillende volgordes van contacten kan wegen en tot een gemotiveerde keuze komt.",
+            "transferEvidence": "Transfer blijkt wanneer de deelnemer in een gewijzigde situatie zijn afweging aanpast aan de nieuwe omstandigheden en daarbij expliciet de inzichten uit de eerdere keuze en de bronkoppeling gebruikt.",
+            "newDecisionPoint": "Een vergelijkbare situatie waarin het vervolg opnieuw afhangt van de gekozen route: elke route leidt naar een eigen vervolgsituatie die de deelnemer daarna doorloopt.",
+            "evaluationBasis": [
+              "afweging",
+              "aansluiting_op_situatie",
+              "onderbouwing",
+              "consequenties"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
