@@ -36,6 +36,6 @@ Het Block Plan ontwerpt de leerervaring niet opnieuw en schrijft nog geen eindco
 
 | Eval | Blueprint | Ambiguïteit | Wat wordt getest | Status |
 | --- | --- | --- | --- | --- |
-| [BLP-001](cases/BLP-001-open-keuze/case.md) | B21-OPEN | `multiple_defensible_actions` | Open professionele keuze (B21-OPEN) | `NOT_RUN` |
-| [BLP-002](cases/BLP-002-voorgeschreven-handeling/case.md) | B21-PRESCRIBED | `single_best_action` | Voorgeschreven handeling onder druk (B21-PRESCRIBED) | `NOT_RUN` |
-| [BLP-003](cases/BLP-003-branching-gap/case.md) | synthetisch | `multiple_defensible_actions` | Route-afhankelijk vervolg: capability gap (synthetisch) | `NOT_RUN` |
+| [BLP-001](cases/BLP-001-open-keuze/case.md) | B21-OPEN | `multiple_defensible_actions` | Open professionele keuze (B21-OPEN) | [`PENDING_REVIEW`](cases/BLP-001-open-keuze/runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium.md) |
+| [BLP-002](cases/BLP-002-voorgeschreven-handeling/case.md) | B21-PRESCRIBED | `single_best_action` | Voorgeschreven handeling onder druk (B21-PRESCRIBED) | [`PENDING_REVIEW`](cases/BLP-002-voorgeschreven-handeling/runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium.md) |
+| [BLP-003](cases/BLP-003-branching-gap/case.md) | synthetisch | `multiple_defensible_actions` | Route-afhankelijk vervolg: capability gap (synthetisch) | [`PENDING_REVIEW`](cases/BLP-003-branching-gap/runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium.md) |

@@ -6,7 +6,7 @@
 | **Input** | Goedgekeurde Training Blueprint (`blueprint-contract/v2`) |
 | **Bron** | Synthetisch: synthetisch, afgeleid van evals/training-blueprint/cases/BP-003-volgorde-vervolgcontact/runs/2026-10-03_training-blueprint-v2_claude-opus-5-5_medium.md (title, learningArc.actie.participantMust en learningArc.toets.newDecisionPoint aangepast) |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `NOT_RUN` |
+| **Status (laatste run)** | `PENDING_REVIEW` |
 
 ## Input
 
@@ -43,3 +43,4 @@ Vastgelegd vóór de implementatie van de Block Plan-provider. Algemeen (G) en c
 
 | Datum | Versie | Generator | Status | Run |
 | --- | --- | --- | --- | --- |
+| 2026-10-04 | training-block-plan/v1 · bc-online-block-plan/v1 | claude-opus-5-5 · medium | `PENDING_REVIEW` | [run](runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium.md) |
