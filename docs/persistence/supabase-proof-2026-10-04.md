@@ -51,3 +51,35 @@ events zijn append-only en blijven staan.
 
 Totaal: 3 trainingen, 1 training_input, 3 artifact_revisions, 2 workflow_events. Uitsluitend synthetische data.
 Iedere volgende `npm run test:db` voegt één prooftraining toe.
+
+## Step 11C: resume-proof (persistence cut-over)
+
+`npx vitest run --config vitest.db.config.mts src/app/trainings/workflow/persisted-workflow.supabase.test.ts`: de
+persisted workflow met MOCK-providers (0 Claude-aanroepen) tegen dezelfde database. Keten: nieuwe training →
+analyse → richting → Blueprint → goedkeuren → Block Plan → goedkeuren → Training Content (alle blokken; Bron
+deterministisch) → één blok goedkeuren → client sluiten → nieuwe verbinding → training heropenen.
+
+| Controle | Resultaat |
+| --- | --- |
+| Zelfde training en code | PASS |
+| Zelfde gekozen richting | PASS |
+| Blueprint- en Block Plan-goedkeuring intact | PASS |
+| Content revisions intact (zelfde revision-ids per blok) | PASS |
+| Reviewstatus intact (1 goedgekeurd) | PASS |
+| Juiste resume-state (`content_review`) | PASS |
+| Content Package reconstrueert identiek | PASS |
+
+Doorlooptijden van deze run (ms, Supabase via de Session pooler): start en analyse 2.860, richting 1.310, Blueprint
+2.162, Blueprint goedkeuren 1.976, Block Plan 3.378, Block Plan goedkeuren 4.741, Training Content 40.364, blok
+goedkeuren 11.016, heropenen 9.455. De lange tijden komen van veel kleine queries per stap (recursieve approvalcontrole
+per revision en per blok); zie CLAUDE.md, "Bekend aandachtspunt (prestatie)".
+
+### Achtergebleven development-records (Step 11C)
+
+| Code | Herkomst | Inhoud |
+| --- | --- | --- |
+| `TR-0004` | Persisted browserflow (mock) | 1 input, 14 revisions (incl. een geregenereerd blok), 5 events |
+| `TR-0005` | Eerste resume-proof, afgebroken door de testtime-out van 60 s (vóór de blokgoedkeuring) | 1 input, 13 revisions, 3 events |
+| `TR-0006` | Resume-proof, geslaagd | 1 input, 13 revisions, 4 events |
+
+Uitsluitend synthetische invoer (een fictieve praktijkvraag). Niet verwijderd: ze documenteren de proof.
