@@ -29,6 +29,7 @@ Het Block Plan ontwerpt de leerervaring niet opnieuw en schrijft nog geen eindco
 | `PASS` | Voldoet aan alle verwachtingen. |
 | `PASS_WITH_NOTES` | Bruikbaar, met aandachtspunten. |
 | `FAIL` | Wijkt af van een kernverwachting. |
+| `INCONCLUSIVE` | Geen oordeel mogelijk; de uitkomst werd bepaald door een validatorprobleem, niet door de provider. |
 | `PENDING_REVIEW` | Run vastgelegd; menselijke beoordeling volgt. |
 | `NOT_RUN` | Verwachtingen vastgelegd; nog geen run. |
 
@@ -38,7 +39,7 @@ Het Block Plan ontwerpt de leerervaring niet opnieuw en schrijft nog geen eindco
 | --- | --- | --- | --- | --- |
 | [BLP-001](cases/BLP-001-open-keuze/case.md) | B21-OPEN | `multiple_defensible_actions` | Open professionele keuze (B21-OPEN) | [`PASS_WITH_NOTES`](cases/BLP-001-open-keuze/runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium.md) |
 | [BLP-002](cases/BLP-002-voorgeschreven-handeling/case.md) | B21-PRESCRIBED | `single_best_action` | Voorgeschreven handeling onder druk (B21-PRESCRIBED) | [`PASS_WITH_NOTES`](cases/BLP-002-voorgeschreven-handeling/runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium.md) |
-| [BLP-003](cases/BLP-003-branching-gap/case.md) | synthetisch | `multiple_defensible_actions` | Route-afhankelijk vervolg: capability gap (synthetisch) | [`PENDING_REVIEW`](cases/BLP-003-branching-gap/runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium_bevestiging.md) |
+| [BLP-003](cases/BLP-003-branching-gap/case.md) | synthetisch | `multiple_defensible_actions` | Route-afhankelijk vervolg: capability gap (synthetisch) | [`INCONCLUSIVE`](cases/BLP-003-branching-gap/runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium_bevestiging.md) |
 
 ## Baseline conclusions — training-block-plan/v1
 
@@ -65,4 +66,4 @@ Bevindingen:
 ### Bevestigingsrun BLP-003 (2026-10-04, na `e708f2e`)
 
 Eén betaalde run met dezelfde prompt, contract, catalogus en fixture, nu met inhoudsvrije diagnostiek: opnieuw
-`invalid-output`, fase `domain_invariant`, code `branching-als-capability`. Status `PENDING_REVIEW`.
+`invalid-output`, fase `domain_invariant`, code `branching-als-capability`. Beoordeeld als `INCONCLUSIVE` (blocked by validator): de vrije-tekstinvariant kan een eerlijke ontkenning ("geen echte vertakking") niet onderscheiden van een capability-claim. Dit is een validatorprobleem, geen bewijs dat de provider capability honesty heeft geschonden.

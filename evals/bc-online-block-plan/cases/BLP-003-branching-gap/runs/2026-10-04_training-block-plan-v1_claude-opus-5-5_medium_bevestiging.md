@@ -8,7 +8,7 @@ Uitgevoerd via de Server Action `generateBlockPlan` op de dev-server (`CERTUM_AN
 `CERTUM_BLUEPRINT_PROVIDER=mock`, `CERTUM_BLOCK_PLAN_PROVIDER=claude`), met exact de goedgekeurde Blueprint
 `BLP-003` uit `test/fixtures/approved-blueprints.json`.
 
-**Status: `PENDING_REVIEW`** (nog geen menselijke beoordeling; geen PASS/FAIL).
+**Status: `INCONCLUSIVE`** (menselijk beoordeeld; zie "Menselijke evaluatie").
 
 ## Configuratie en metadata
 
@@ -47,6 +47,11 @@ Geen Block Plan: de server wees de providerrespons af in de fase `domain_invaria
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `INCONCLUSIVE`** (blocked by validator)
 
-Nog niet beoordeeld.
+Niet beoordeeld als bewijs dat de Implementation Architect capability honesty heeft geschonden.
+
+- De providerrespons bereikte het geldige domeinplan niet, uitsluitend door `domain_invariant: branching-als-capability`.
+- Die invariant scant vrije tekst op woorden zoals branch, vertakk, routeer en routering en kan een eerlijke ontkenning
+  (zoals "geen echte vertakking") niet onderscheiden van een capability-claim.
+- Dit is een validatorprobleem, geen vastgestelde providerfout.
