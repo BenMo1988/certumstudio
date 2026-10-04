@@ -282,11 +282,35 @@ describe("BLP-003: branching blijft een capability gap", () => {
     expect(getCatalogBlock("certum.bco.conditionele-logica")!.observedCapabilities).toEqual(["conditionele_tekstweergave"]);
   });
 
-  it("een gepland blok dat zich als vertakking voordoet → invalid-output", async () => {
+  it.each([
+    "Conditionele logica toont alleen een korte tekst; geen echte vertakking naar een ander vervolg.",
+    "Branching wordt niet ondersteund; iedere deelnemer doorloopt dezelfde blokken.",
+    "Geen routering naar verschillende vervolgblokken; alleen conditionele tekstweergave.",
+  ])("geen vrije-tekstheuristiek meer: %s → geldig", async (text) => {
     const design = structuredClone(designOf(await mockPlan("BLP-003")));
-    design.plannedBlocks[1].purpose = "Vertakking naar het vervolg dat bij de gekozen route hoort.";
+    design.plannedBlocks[1].purpose = text;
+    design.plannedBlocks[1].configurationIntent[0].intent = text;
     const { service } = claudeReturning(design);
-    expect(await errorKindOf(service.generate({ blueprint: BLUEPRINT("BLP-003") }))).toBe("invalid-output");
+    expect(await errorKindOf(service.generate({ blueprint: BLUEPRINT("BLP-003") }))).toBe("geen fout");
+  });
+
+  it("een geldig BLP-003-achtig plan met branching-gap en partial workaround slaagt; het gap blijft bestaan", async () => {
+    const design = structuredClone(designOf(await mockPlan("BLP-003")));
+    const { service } = claudeReturning(design);
+    const plan = await service.generate({ blueprint: BLUEPRINT("BLP-003") });
+    const gap = plan.capabilityGaps.find((g) => /branching/.test(g.need))!;
+    expect(gap.workaround).toMatchObject({ type: "partial" });
+    expect(gap.workaround!.limitation.length).toBeGreaterThan(0);
+    expect(plan.plannedBlocks.every((b) => PLANNABLE_BLOCK_IDS.includes(b.catalogBlockId))).toBe(true);
+  });
+
+  it("een fictief branching-bloktype blijft schema-ongeldig", async () => {
+    const design = structuredClone(designOf(await mockPlan("BLP-003"))) as unknown as { plannedBlocks: Record<string, unknown>[] };
+    design.plannedBlocks[1].catalogBlockId = "certum.bco.branching";
+    expect(BlockPlanDesignSchema.safeParse(design).success).toBe(false);
+    const { service } = claudeReturning(design);
+    const error = await service.generate({ blueprint: BLUEPRINT("BLP-003") }).catch((e: unknown) => e);
+    expect(error).toMatchObject({ kind: "invalid-output", stage: "schema_validation" });
   });
 
   it("een 'volledige' workaround of een workaround zonder beperking bestaat niet (schema)", async () => {
@@ -438,12 +462,12 @@ describe("veilige diagnose van invalid-output", () => {
     expect(error).toMatchObject({ kind: "invalid-output", stage: "domain_invariant", codes: ["juist-antwoord-bij-meerdere-routes"] });
   });
 
-  it("domain_invariant: een vertakkingsblok geeft branching-als-capability", async () => {
+  it("domain_invariant: een fase zonder blok of gap geeft alleen de inhoudsvrije code", async () => {
     const design = structuredClone(designOf(await mockPlan("BLP-003")));
-    design.plannedBlocks[1].purpose = "Vertakking naar het vervolg dat bij de gekozen route hoort.";
+    design.plannedBlocks = design.plannedBlocks.filter((b) => b.certumPhase !== "bron");
     const { service } = claudeReturning(design);
     const error = await service.generate({ blueprint: BLUEPRINT("BLP-003") }).catch((e: unknown) => e);
-    expect(error).toMatchObject({ stage: "domain_invariant", codes: ["branching-als-capability"] });
+    expect(error).toMatchObject({ stage: "domain_invariant", codes: ["fase-zonder-blok-of-gap"] });
   });
 
   it("schema_validation: alleen issue-code en veldpad, geen ontvangen waarden", async () => {

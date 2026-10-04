@@ -12,8 +12,7 @@ export type BlockPlanViolation =
   | "titel-wijkt-af"
   | "leerdoel-ontbreekt"
   | "juist-antwoord-bij-meerdere-routes"
-  | "bronverwijzing-verzonnen"
-  | "branching-als-capability";
+  | "bronverwijzing-verzonnen";
 
 /**
  * Catalogus-capabilities waarmee open professioneel handelen of afwegen zichtbaar wordt: een rollenspelgesprek, een
@@ -22,8 +21,6 @@ export type BlockPlanViolation =
 const OPEN_PERFORMANCE_CAPABILITIES: readonly BcOnlineCapability[] = ["ai_rollenspel_chat", "open_antwoord", "schriftelijke_productie"];
 /** Een concrete bron in het plan: alleen een URL is betrouwbaar deterministisch te herkennen. */
 const CONCRETE_SOURCE = /https?:\/\/|www\./i;
-/** Branching is niet ondersteund: een gepland blok mag zich niet als vertakking of routering voordoen. */
-const BRANCHING_CLAIM = /\bbranch|vertakk|\brouteer|\broutering/i;
 
 function showsOpenPerformance(catalogBlockId: string): boolean {
   const capabilities: readonly string[] = getCatalogBlock(catalogBlockId)?.observedCapabilities ?? [];
@@ -51,11 +48,14 @@ export interface BlockPlanBlueprintSource {
  * - bij multiple_defensible_actions bevatten Actie en Toets, voor zover ze blokken hebben, minstens één blok waarmee
  *   open professioneel handelen of afwegen zichtbaar wordt (Chat simulatie, Open vraag, Productie). Een blok met één
  *   juist antwoord (Meerkeuze, formele Toets) mag aanvullend bestaan, maar nooit de enige uitvoeringsvorm zijn;
- * - geen concrete bron-URL;
- * - geen gepland blok dat zich als vertakking of routering voordoet (branching blijft een capabilityGap).
+ * - geen concrete bron-URL.
  *
- * Bewust NIET afgedwongen: een formeel Toetsblok in de fase Toets, sleutelwoorden in een Chat simulatie, en
- * tekstheuristieken voor eindcontent (vraagtekens, citaten, jaartallen): die bewaken prompt, evals en human review.
+ * Branching is structureel uitgesloten: het bestaat niet als catalogus-capability en niet als bloktype (gesloten lijst
+ * via het schema); wat niet kan, staat in een capabilityGap met hooguit een `partial` workaround met beperking.
+ *
+ * Bewust NIET afgedwongen: een formeel Toetsblok in de fase Toets, sleutelwoorden in een Chat simulatie, en elke
+ * vrije-tekstheuristiek (eindcontent, of een blok dat een capability semantisch overclaimt). Code kan niet betrouwbaar
+ * vaststellen wat natuurlijke taal bedoelt; dat bewaken catalogus-context, prompt, evals en human approval.
  */
 export function checkBlockPlanInvariants(candidate: unknown, blueprint: BlockPlanBlueprintSource): BlockPlanViolation[] {
   const parsed = BcOnlineBlockPlanSchema.safeParse(candidate);
@@ -99,14 +99,6 @@ export function checkBlockPlanInvariants(candidate: unknown, blueprint: BlockPla
     ...plan.capabilityGaps.flatMap((g) => [g.need, g.whyNeeded, g.workaround?.description ?? "", g.workaround?.limitation ?? ""]),
   ];
   if (allTexts.some((t) => CONCRETE_SOURCE.test(t))) violations.add("bronverwijzing-verzonnen");
-
-  if (
-    plan.plannedBlocks.some((b) =>
-      [b.purpose, b.whyThisBlock, ...b.configurationIntent.flatMap((c) => [c.setting, c.intent])].some((t) => BRANCHING_CLAIM.test(t)),
-    )
-  ) {
-    violations.add("branching-als-capability");
-  }
 
   return [...violations];
 }

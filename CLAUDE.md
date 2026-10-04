@@ -259,10 +259,14 @@ Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
   - Invarianten (ook voor de mock): alleen planbare catalogus-ids. Bij `multiple_defensible_actions` bevatten Actie en
     Toets, voor zover ze blokken hebben, minstens één blok met open handelen of afwegen (catalogus-capability
     `ai_rollenspel_chat`, `open_antwoord` of `schriftelijke_productie`); Meerkeuze of een formele Toets mag aanvullend,
-    maar nooit de enige uitvoeringsvorm zijn. Geen bron-URL; geen gepland blok als vertakking of routering. Branching
-    blijft een `capabilityGap`; een workaround is altijd `partial`.
-  - Bewust geen tekstheuristieken voor eindcontent (vraagtekens, citaten, jaartallen, artikelnummers): te veel valse
-    treffers. "Plan, geen inhoud" bewaken de prompt, de evals en de human review.
+    maar nooit de enige uitvoeringsvorm zijn. Geen bron-URL. Branching is structureel uitgesloten: geen catalogus-
+    capability, geen bloktype (gesloten lijst), en wat niet kan staat in een `capabilityGap` met hooguit een `partial`
+    workaround met verplichte beperking.
+  - **V1-grens: geen vrije-tekstheuristieken.** Het systeem controleert in Block Plan V1 structureel welke bloktypes
+    bestaan en welke capabilities aantoonbaar zijn. Het kan niet betrouwbaar met deterministische code vaststellen of
+    vrije natuurlijke taal (purpose, whyThisBlock, configurationIntent) semantisch een capability overclaimt of
+    eindcontent bevat. Dat wordt bewaakt via catalogus-context → prompt → eval → human approval, niet via woordenlijsten,
+    regexes of negatieherkenning. Een Block Plan gaat sowieso door de human approval gate vóór verdere productie.
   - Logging: `certum.block_plan_generation` met alleen provider, model, effort, versies, duur, uitkomst en aantallen.
 - **Bekende blocker `approval_integrity_required_before_export`.** In de huidige V1-fase zonder persistence controleert
   de server het Blueprint-schema, het routebeleid en de approval-flag, maar komen de goedgekeurde Blueprint en de
