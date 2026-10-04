@@ -136,7 +136,8 @@ V2 blijft ongewijzigd en reproduceerbaar (tag `analysis-v2-baseline`), maar is n
   staat voorlopig op `medium`. Structured output loopt via `client.messages.parse()` met `zodOutputFormat`.
 - **Geen model-fallback.** Een refusal wordt een providerneutrale `refusal`-fout. Een fallback kan later bewust
   worden toegevoegd, nadat kwaliteit, privacy en providerbeleid zijn geëvalueerd.
-- De UI roept alleen de Server Action `analyzeInput` aan. De UI kent geen provider. De analyse wordt niet opgeslagen.
+- De UI kent geen provider. De analyse loopt via de persisted workflow (`runAnalysis` op de opgeslagen invoer) en wordt
+  opgeslagen als `analysis`-revision (zie Persistence cut-over).
 - `rationale` is een korte uitleg voor de gebruiker, geen opgeslagen interne redenering.
 
 ### Analysecontract V1 (historisch, niet meer aangesloten)
@@ -269,12 +270,12 @@ Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
     eindcontent bevat. Dat wordt bewaakt via catalogus-context → prompt → eval → human approval, niet via woordenlijsten,
     regexes of negatieherkenning. Een Block Plan gaat sowieso door de human approval gate vóór verdere productie.
   - Logging: `certum.block_plan_generation` met alleen provider, model, effort, versies, duur, uitkomst en aantallen.
-- **Bekende blocker `approval_integrity_required_before_export`.** In de huidige V1-fase zonder persistence controleert
-  de server het Blueprint-schema, het routebeleid en de approval-flag, maar komen de goedgekeurde Blueprint en de
-  goedkeuring van de client terug. Een client kan de teruggestuurde Blueprint dus inhoudelijk wijzigen. Dat is
-  aanvaardbaar voor de huidige gecontroleerde ontwikkeling en evals. Vóór echte productie of export naar BC Online is
-  server-side persistence of een cryptografisch of anderszins integriteitsgebonden goedkeuring vereist. Nog niet
-  gebouwd (geen database, geen signing).
+- **Blocker `approval_integrity_required_before_export`: principieel opgelost (stap 11C).** De UI-workflow stuurt geen
+  goedgekeurde artifacts of approval-flags meer terug; de server laadt Blueprint, Block Plan en inhoud zelf uit Postgres
+  en goedkeuringen zijn workflow events op exact één revision en content_hash. De oude client-authoritative Server
+  Actions bestaan niet meer. De flow-functies (`runBlockPlanFlow`, `runTrainingContentFlow`, …) accepteren nog
+  artifacts als argument, maar zijn geen Server Actions; de persisted workflow voedt ze uit de database. Een toekomstige
+  export moet ook uitsluitend uit opgeslagen, goedgekeurde revisions lezen.
 - Er is nog geen BC Online-adapter, API, MCP of export.
 
 ### Persistence: Certum Training Record V1 (stap 11B, fundering)
@@ -301,8 +302,33 @@ server-owned snapshot**; een goedgekeurd onderdeel dat inhoudelijk verandert, ve
   `npm run test:db` is een opt-in test tegen Supabase.
 - **Governance:** persistence geeft geen toestemming voor echte casuïstiek; `saveTrainingInput` herhaalt preflight en
   synthetic_only-attestatie.
-- **Nog niet:** de `/trainings/new`-flow gebruikt de database nog niet (cut-over volgt), geen auth, geen RLS, geen
-  publieke deployment. Volgorde: persistence → Training Review/Editor → auth → hosted Certum Studio.
+- **Nog niet:** geen auth, geen RLS, geen publieke deployment. Volgorde: persistence → Training Review/Editor → auth
+  → hosted Certum Studio.
+
+### Persistence cut-over V1 (stap 11C)
+
+De Studio gebruikt de database als waarheid; React-state is alleen een weergave van de laatste server-snapshot.
+
+- **Instroom:** `/trainings/new` is alleen de invoer. `startTrainingAction` maakt `training` + `training_input` in één
+  transactie (na preflight en synthetic_only-attestatie) en voert direct de analyse uit; daarna gaat de gebruiker naar
+  `/trainings/[id]`. Verversen of later heropenen toont exact dezelfde stand.
+- **Server Actions** (`src/app/trainings/workflow/actions.ts`) nemen alleen ids en keuzes aan: `runAnalysisAction(trainingId)`,
+  `selectDirectionAction(trainingId, analysisRevisionId, directionId)`, `generateBlueprintAction(trainingId)`,
+  `decideRevisionAction(trainingId, revisionId, "approved" | "needs_revision")`, `generateBlockPlanAction(trainingId)`,
+  `generateContentAction(trainingId)`, `regenerateBlockAction(trainingId, plannedBlockId, expectedRevisionId)`.
+- **Logica:** `src/app/trainings/workflow/persisted-workflow.ts` laadt de upstream uit Postgres, voert de bestaande
+  poorten uit (`runGatedAnalysis`, `runBlueprintFlowV21`, `runBlockPlanFlow`, `runBlockRegenerationFlow`) en slaat op
+  vóór succes. Iedere blokinhoud wordt direct opgeslagen; `generateContent` hervat waar hij stopte. Geen automatische
+  retry.
+- **Concurrency:** besluiten zijn idempotent (hetzelfde besluit twee keer voegt niets toe); nieuwe revisions gebruiken
+  `expectedCurrentRevisionId` (dubbele of verouderde acties → `stale_revision`); een besluit op een niet-current revision
+  wordt geweigerd. De richting ligt vast zodra er een Blueprint op de analyse is gebaseerd.
+- **Resume-state:** `loadTrainingWorkspace` (`services/storage/workspace.ts`) leidt de `stage` af uit revisions en
+  events (`intake_complete` … `training_ready`); niets wordt dubbel opgeslagen. `/` en `/trainings` tonen echte
+  records via `listTrainingSummaries` (code, titel, status, voortgang, laatst gewijzigd).
+- **Bekend aandachtspunt (prestatie):** de loader en de approvalregel doen veel kleine queries (recursief per revision
+  en per blok). Tegen Supabase kost heropenen ~9,5 s en een blokbesluit ~11 s. Oplossing voor een volgende stap: per
+  training alle revisions en events in enkele queries laden en de regels in het geheugen toepassen.
 
 ### Block Content en Training Content Package (stap 10A)
 
@@ -347,8 +373,8 @@ server-owned snapshot**; een goedgekeurd onderdeel dat inhoudelijk verandert, ve
   `assessmentRole` (`none | formative | summative | transfer`), `estimatedMinutes` (geheel getal 1–120 of `null`),
   `sourceNeedRefs`.
 - **Review:** per blok `draft | approved | needs_revision`; alleen `generated` kan worden goedgekeurd. Readiness van
-  het pakket: `incomplete | in_review | approved`. Alles leeft in de client-state; niets wordt opgeslagen. De blocker
-  `approval_integrity_required_before_export` geldt hier evengoed.
+  het pakket: `incomplete | in_review | approved`. Sinds stap 11C opgeslagen: reviewstatus = workflow events op de
+  current block revision.
 - **Provider:** `CERTUM_BLOCK_CONTENT_PROVIDER` (standaard `mock`, los van de andere providers, geen terugval).
   `CLAUDE_BLOCK_CONTENT_DEFAULTS`: `claude-opus-5-5`, `medium`, `maxRetries: 0`.
   - Actieve prompt `training-block-content/v1.1` (`src/knowledge/prompts/training-block-content-v1-1.ts`): de v1-kern
@@ -406,7 +432,7 @@ src/
   app/                 Routes en pagina's (alleen routing en compositie, geen domeinlogica)
   components/
     studio/            Studio-interface: StudioLayout, SidebarNav, PageHeader, ActionCard, ChoiceCard,
-                       StatusBadge, TrainingList, TrainingSection, ContentBlocks, NewTrainingForm,
+                       StatusBadge, TrainingList, NewTrainingIntake, TrainingWorkflow, review-componenten,
                        Button, Icon (inline SVG, geen icon-library)
   lib/                 Kleine generieke helpers (bijv. datumopmaak)
   modules/             Domein, per onderdeel
@@ -431,15 +457,10 @@ Regels:
 
 - **Scheid UI, domein en externe koppelingen.** Componenten en pagina's roepen modules aan. Modules gebruiken
   services via een interface. Een pagina of component praat nooit rechtstreeks met een AI-SDK of database.
-- **Data via module-functies.** Pagina's halen data op via functies als `listTrainings()` (async), nooit
-  rechtstreeks uit voorbeelddata. Voorbeelddata staat in `sample-data.ts` en wordt later vervangen door opslag.
-- **Inhoud als blokken.** Een methodiekonderdeel bevat `blocks: ContentBlock[]`, geen losse string.
-  De onderdelen krijgen later elk eigen gestructureerde inhoud (keuzeopties, bronnen, toetsvragen). Die voeg je toe als
-  nieuw bloktype in `modules/trainings/types.ts`, met een weergave in `ContentBlocks`. Voeg pas een bloktype toe als
-  het echt nodig is.
+- **Data via de storage-laag.** Pagina's halen trainingen op via `services/storage` (`loadTrainingWorkspace`,
+  `listTrainingSummaries`), nooit met losse SQL. Er is geen voorbeelddata meer.
 - **Methodiek nooit hardcoden.** Namen, volgorde en beschrijvingen van de stappen komen altijd uit `METHODOLOGY_STEPS`.
-- **Geen tijdelijke opslag.** Geen localStorage, JSON-bestanden of server actions als tussenoplossing: de echte
-  persistente opslag wordt later gekozen.
+- **Geen tijdelijke opslag.** Geen localStorage of JSON-bestanden: de enige opslag is Postgres via `services/storage`.
 - AI-provider (bijv. Anthropic), database, externe leeromgeving, API's en MCP-tools komen later in `services/`.
   Zo blijft de provider of opslag te vervangen zonder de UI aan te passen.
 - API-sleutels en secrets alleen server-side (`.env.local`, nooit committen, nooit in client components).
@@ -471,22 +492,22 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 9A, Claude-provider voor het BC Online Block Plan: klaar; BLP-baseline beoordeeld (3× PASS_WITH_NOTES), gesloten.
 - Stap 10A/10B, Block Content V1/V1.1 en Training Content Package: klaar en gesloten (BC-001 t/m BC-007 beoordeeld;
   WATCH: `persona_fact_drift`, `reflection_question_density`). Verdere wijzigingen vragen nieuw bewijs uit trainingsgebruik.
-- Stap 11A (ontwerp) en 11B (persistence-fundering, Supabase): fundering klaar en getest; UI nog niet aangesloten.
+- Stap 11A (ontwerp) en 11B (persistence-fundering, Supabase): klaar en bewezen tegen Supabase.
+- Stap 11C, persistence cut-over V1: de Studio onthoudt en hervat trainingen (bewezen tegen Supabase).
 
 Routes:
 - `/`: dashboard.
-- `/trainings`: overzicht van trainingen.
-- `/trainings/new`: kies een soort input, voer tekst in, voer de Certum Analyse uit, kies een trainingsrichting en
-  beoordeel en keur daarna de Blueprint en het Block Plan goed. Daarna: Training Content per blok bekijken,
-  goedkeuren, laten herzien of opnieuw genereren.
-- `/trainings/[id]`: Training Workspace met de zes methodiekonderdelen.
+- `/trainings`: opgeslagen trainingen met code, titel, status en voortgang.
+- `/trainings/new`: kies een soort input en voer de tekst in; na indienen bestaat de training in de database.
+- `/trainings/[id]`: de hervatbare workflow van één training: analyse en richting, Blueprint, Block Plan en Training
+  Content per blok (bekijken, goedkeuren, laten herzien, opnieuw genereren).
 
 Er is één centrale instroom voor het maken van trainingen: `/trainings/new`. `?input=casus` (of `onderwerp`, of
 `praktijkvraag`) selecteert vooraf een soort; de dashboardactie "Casus invoeren" gebruikt dat. Er komt geen aparte
 casusflow naast deze instroom.
 
-Gebruik voor trainingen altijd `/trainings/...` (meervoud). "Gebruik deze trainingsrichting" maakt een Blueprint (mock); goedkeuren maakt nog niets aan in BC Online. "Bewerken" in de
-Workspace doet nog niets. Er wordt nergens iets opgeslagen.
+Gebruik voor trainingen altijd `/trainings/...` (meervoud). Goedkeuren maakt nog niets aan in BC Online. Inhoud
+handmatig wijzigen kan nog niet (Training Review/Editor volgt).
 
 ## Evals
 
@@ -508,8 +529,8 @@ als verbetering geldt. Er is nog geen geautomatiseerde scorer of runner.
   als basis voor trainingen. Die komt los van de instroom op `/trainings/new`. Het type `PracticeCase` in
   `modules/cases` staat hiervoor al klaar.
 
-Er is een database-fundering (Supabase Postgres, nog niet aangesloten op de UI), maar nog geen authenticatie of
-koppeling met BC Online.
+De Studio gebruikt een database (Supabase Postgres, Frankfurt), maar heeft nog geen authenticatie en geen koppeling
+met BC Online. Niet publiek deployen vóór er auth is.
 
 ## Commando's
 

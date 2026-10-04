@@ -2,10 +2,19 @@ import Link from "next/link";
 import { ActionCard } from "@/components/studio/ActionCard";
 import { PageHeader } from "@/components/studio/PageHeader";
 import { TrainingList } from "@/components/studio/TrainingList";
-import { listTrainings } from "@/modules/trainings";
+import { connection } from "next/server";
+import { DatabaseNotice } from "@/components/studio/DatabaseNotice";
+import { StorageError, getDb } from "@/services/storage";
+import { listTrainingSummaries, type TrainingSummary } from "@/services/storage/workspace";
 
 export default async function DashboardPage() {
-  const recent = await listTrainings({ limit: 3 });
+  await connection();
+  let recent: TrainingSummary[] | null = null;
+  try {
+    recent = await listTrainingSummaries(getDb(), { limit: 3 });
+  } catch (error) {
+    if (!(error instanceof StorageError && error.code === "not_configured")) throw error;
+  }
 
   return (
     <>
@@ -37,12 +46,12 @@ export default async function DashboardPage() {
 
       <section className="mt-16">
         <div className="mb-4 flex items-baseline justify-between">
-          <h2 className="text-lg font-semibold tracking-tight text-ink">Recente projecten</h2>
+          <h2 className="text-lg font-semibold tracking-tight text-ink">Recente trainingen</h2>
           <Link href="/trainings" className="text-sm font-medium text-petrol-600 hover:text-petrol-800">
             Alles bekijken
           </Link>
         </div>
-        <TrainingList trainings={recent} />
+        {recent ? <TrainingList trainings={recent} /> : <DatabaseNotice />}
       </section>
     </>
   );

@@ -36,12 +36,14 @@ const bases = (items: EvaluationBasis[]) => items.map((b) => EVALUATION_BASIS_LA
 interface BlueprintReviewProps {
   blueprint: TrainingBlueprint;
   pending: boolean;
+  /** Al goedgekeurd (opgeslagen): de knop gaat dan naar de volgende stap. */
+  approved?: boolean;
   onApprove: () => void;
   onBack: () => void;
 }
 
 /** Review van de Training Blueprint (Blueprint Contract V2): het didactisch ontwerp. Geen edit-interface. */
-export function BlueprintReview({ blueprint, pending, onApprove, onBack }: BlueprintReviewProps) {
+export function BlueprintReview({ blueprint, pending, approved = false, onApprove, onBack }: BlueprintReviewProps) {
   const arc = blueprint.learningArc;
   const phaseContent: Record<string, ReactNode> = {
     context: (
@@ -157,7 +159,7 @@ export function BlueprintReview({ blueprint, pending, onApprove, onBack }: Bluep
           Terug naar analyse
         </Button>
         <Button onClick={onApprove} disabled={pending}>
-          {pending ? "Block Plan wordt gemaakt…" : "Blueprint goedkeuren"}
+          {pending ? "Block Plan wordt gemaakt…" : approved ? "Goedgekeurd · verder naar Block Plan" : "Blueprint goedkeuren"}
         </Button>
       </div>
     </div>

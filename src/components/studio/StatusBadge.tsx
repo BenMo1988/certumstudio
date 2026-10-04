@@ -1,16 +1,15 @@
-import type { TrainingStatus } from "@/modules/trainings";
+type Tone = "new" | "active" | "done";
 
-const STATUS: Record<TrainingStatus, { label: string; dot: string }> = {
-  concept: { label: "Concept", dot: "bg-subtle" },
-  review: { label: "Review", dot: "bg-attention" },
-  gereed: { label: "Gereed", dot: "bg-petrol-600" },
+const DOT: Record<Tone, string> = {
+  new: "bg-subtle",
+  active: "bg-attention",
+  done: "bg-petrol-600",
 };
 
-export function StatusBadge({ status }: { status: TrainingStatus }) {
-  const { label, dot } = STATUS[status];
+export function StatusBadge({ label, tone }: { label: string; tone: Tone }) {
   return (
     <span className="inline-flex items-center gap-2 rounded-full border border-line px-2.5 py-0.5 text-xs font-medium text-ink">
-      <span className={`size-1.5 rounded-full ${dot}`} aria-hidden="true" />
+      <span className={`size-1.5 rounded-full ${DOT[tone]}`} aria-hidden="true" />
       {label}
     </span>
   );

@@ -43,6 +43,8 @@ interface AnalysisReviewProps {
   onDirectionChosen?: (directionId: string) => void;
   /** True zolang de volgende stap wordt voorbereid. */
   pendingNext?: boolean;
+  /** Een al opgeslagen richtingkeuze (na herladen): vooraf geselecteerd en bevestigd. */
+  selectedDirectionId?: string | null;
 }
 
 /** Stap 2: de gebruiker beoordeelt de V2-analyse. Alleen `ready` levert selecteerbare trainingsrichtingen. */
@@ -55,6 +57,7 @@ export function AnalysisReview({
   onBack,
   onDirectionChosen,
   pendingNext = false,
+  selectedDirectionId = null,
 }: AnalysisReviewProps) {
   const kindLabel = INPUT_KINDS.find((option) => option.kind === input.kind)?.label;
 
@@ -78,6 +81,7 @@ export function AnalysisReview({
           onBack={onBack}
           onDirectionChosen={onDirectionChosen}
           pendingNext={pendingNext}
+          selectedDirectionId={selectedDirectionId}
         />
       )}
     </div>
@@ -183,6 +187,7 @@ function ReadyView({
   onBack,
   onDirectionChosen,
   pendingNext,
+  selectedDirectionId,
 }: {
   analysis: ReadyOutcome;
   segments: SourceSegment[];
@@ -190,9 +195,10 @@ function ReadyView({
   onBack: () => void;
   onDirectionChosen?: (directionId: string) => void;
   pendingNext: boolean;
+  selectedDirectionId: string | null;
 }) {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [confirmedId, setConfirmedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(selectedDirectionId);
+  const [confirmedId, setConfirmedId] = useState<string | null>(selectedDirectionId);
   const blocker = getProceedBlockerV2(analysis, selectedId, gate);
   const confirmed = analysis.trainingDirections.find((d) => d.id === confirmedId);
   const segmentText = (id: string) => segments.find((s) => s.id === id)?.text;
