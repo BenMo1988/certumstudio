@@ -6,7 +6,7 @@
 | **Input** | Goedgekeurde Blueprint `BLP-003` (`test/fixtures/approved-blueprints.json`) en goedgekeurd Block Plan `BLP-003` (`test/fixtures/approved-block-plans.json`) |
 | **Doelblok** | `blok-8` · feedback · `certum.bco.ai-feedback` |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `INCONCLUSIVE` |
+| **Status (laatste run)** | `PENDING_REVIEW` |
 
 ## Doelblok (uit het Block Plan)
 
@@ -40,3 +40,4 @@ Vastgelegd vóór de eerste run met een AI-provider. Algemeen (G) en casusspecif
 | Datum | Versie | Generator | Status | Run |
 | --- | --- | --- | --- | --- |
 | 2026-10-04 | training-block-content/v1 · block-content/v1 | claude-opus-5-5 · medium | `INCONCLUSIVE` | [run](runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium.md) |
+| 2026-10-04 | training-block-content/v1 · block-content/v1 (vervanging: evidence herstellen) | claude-opus-5-5 · medium | `PENDING_REVIEW` | [run](runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium_vervanging.md) |

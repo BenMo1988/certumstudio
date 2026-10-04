@@ -34,13 +34,13 @@ persistence → preview → Accreditation Readiness. De BC Online Adapter blijft
 
 | Eval | Block Plan | Doelblok | Wat wordt getest | Status |
 | --- | --- | --- | --- | --- |
-| [BC-001](cases/BC-001-open-chat-simulatie/case.md) | BLP-001 | `blok-2` · `certum.bco.chat-simulatie` | Open Chat simulatie | [`INCONCLUSIVE`](cases/BC-001-open-chat-simulatie/runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium.md) |
+| [BC-001](cases/BC-001-open-chat-simulatie/case.md) | BLP-001 | `blok-2` · `certum.bco.chat-simulatie` | Open Chat simulatie | [`PENDING_REVIEW`](cases/BC-001-open-chat-simulatie/runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium_vervanging.md) |
 | [BC-002](cases/BC-002-voorgeschreven-productie/case.md) | BLP-002 | `blok-3` · `certum.bco.productie` | Voorgeschreven Productie | [`PENDING_REVIEW`](cases/BC-002-voorgeschreven-productie/runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium.md) |
 | [BC-003](cases/BC-003-bron-zonder-gevalideerde-bron/case.md) | BLP-001 | `blok-5` · `certum.bco.tekst` | Bron zonder gevalideerde bron | [`PENDING_REVIEW`](cases/BC-003-bron-zonder-gevalideerde-bron/runs/2026-10-04_deterministisch.md) |
 | [BC-004](cases/BC-004-media-zonder-asset/case.md) | BLP-001-MEDIA | `blok-1` · `certum.bco.video` | Media zonder asset | [`PENDING_REVIEW`](cases/BC-004-media-zonder-asset/runs/2026-10-04_deterministisch.md) |
 | [BC-005](cases/BC-005-ai-feedback-onbewezen-context/case.md) | BLP-002-UNPROVEN-FEEDBACK | `blok-5` · `certum.bco.ai-feedback` | AI Feedback met uitsluitend onbewezen context (deterministisch) | [`PENDING_REVIEW`](cases/BC-005-ai-feedback-onbewezen-context/runs/2026-10-04_deterministisch.md) |
 | [BC-006](cases/BC-006-reflectieve-open-vraag/case.md) | BLP-001 | `blok-3` · `certum.bco.open-vraag` | Reflectieve Open vraag | [`PENDING_REVIEW`](cases/BC-006-reflectieve-open-vraag/runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium.md) |
-| [BC-007](cases/BC-007-ai-feedback-bewezen-context/case.md) | BLP-003 | `blok-8` · `certum.bco.ai-feedback` | AI Feedback met bewezen context | [`INCONCLUSIVE`](cases/BC-007-ai-feedback-bewezen-context/runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium.md) |
+| [BC-007](cases/BC-007-ai-feedback-bewezen-context/case.md) | BLP-003 | `blok-8` · `certum.bco.ai-feedback` | AI Feedback met bewezen context | [`PENDING_REVIEW`](cases/BC-007-ai-feedback-bewezen-context/runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium_vervanging.md) |
 
 ## Betaald en deterministisch
 
@@ -78,3 +78,26 @@ aantoonbare context bepaalt de server zelf, zonder provider.
 | Capability overclaims | 1 (BC-002: Productie-uitwerking "wordt gebruikt bij de feedback") |
 | Mogelijke content creep | 1 klein (BC-002: `minimumWords: 40` zonder vraag in het Block Plan) |
 | Niet vastgelegd (harnessfout) | 2 (BC-001, BC-007): `INCONCLUSIVE`; herhaling vraagt toestemming |
+
+### Vervangende runs BC-001 en BC-007 (2026-10-04)
+
+De oorspronkelijke calls waren technisch geslaagd, maar hun inhoud is niet opgeslagen (harnessfout; die runs blijven
+`INCONCLUSIVE`). Met expliciete toestemming exact twee extra calls onder dezelfde condities, uitsluitend om de
+human-review evidence te herstellen. Alleen `certum.block_content`-events in de serverlog: Analysis, Blueprint en
+Block Plan deden geen calls.
+
+| ID | type | result | ms | minutes | assessmentRole | content grounded? | usable? | opvallend |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| BC-001 | chat-simulatie | generated | 27147 | 15 | formative | ja | ja | Geen gespreksdoel of keywords; persona reageert op gesprekskwaliteit; doelgroep van "Scenario/context" niet aangetoond |
+| BC-007 | ai-feedback | generated | 19851 | 8 | formative | ja | ja | Alleen `availableContext`; Productie expliciet uitgesloten (corrigeert de Block Plan-intentie); route-neutraal |
+
+| Totaal (bijgewerkt) | Aantal |
+| --- | --- |
+| Betaalde Block Content-calls | 6 (4 baseline + 2 vervangende) |
+| Vastgelegde `generated` outputs | 4 (BC-001, BC-002, BC-006, BC-007) |
+| `invalid-output` / invariantfouten | 0 / 0 |
+| Nieuwe feiten | 0 |
+| Ongevalideerde bronclaims | 0 |
+| Capability overclaims | 1 (BC-002); BC-007 corrigeert juist een overclaim uit het Block Plan |
+| Capability-onzekerheid | 1 (BC-001: aan wie BC Online "Scenario/context" toont) |
+| Mogelijke content creep | 1 klein (BC-002: `minimumWords: 40`) |
