@@ -10,6 +10,7 @@ import { toAnalysisError, type ClaudeMessagesClient } from "../analysis/claude/c
 import { AnalysisError } from "../analysis/errors";
 import type { BlockPlanRequest, BlockPlanService } from "../blueprint/services";
 import type { ClaudeBlockPlanSettings } from "./config";
+import { BlockPlanValidationError, zodIssueCodes } from "./diagnostics";
 import { BlockPlanDesignSchema } from "./design";
 
 /**
@@ -18,6 +19,7 @@ import { BlockPlanDesignSchema } from "./design";
  * Input: uitsluitend de goedgekeurde Blueprint, de catalogus en versies. Claude ontwerpt `BlockPlanDesignSchema`; de
  * server voegt de vaste velden toe. Geldig pas na: 1. structured output, 2. Zod op het ontwerp, 3. samenstellen,
  * 4. Zod op het volledige Block Plan, 5. `checkBlockPlanInvariants`. Geen reparatie of tweede aanroep, geen fallback.
+ * Een ongeldige output geeft een `BlockPlanValidationError` met een inhoudsvrije fase en codes (zie diagnostics.ts).
  */
 export class ClaudeBlockPlanService implements BlockPlanService {
   constructor(
@@ -48,7 +50,10 @@ export class ClaudeBlockPlanService implements BlockPlanService {
         },
       });
     } catch (error) {
-      throw toAnalysisError(error);
+      const mapped = toAnalysisError(error);
+      // De SDK kon de output niet als ontwerpschema lezen; de SDK-melding kan inhoud bevatten en wordt niet doorgegeven.
+      if (mapped.kind === "invalid-output") throw new BlockPlanValidationError("structured_output", []);
+      throw mapped;
     }
 
     if (response.stop_reason === "refusal") {
@@ -64,17 +69,11 @@ export class ClaudeBlockPlanService implements BlockPlanService {
     }
 
     const design = BlockPlanDesignSchema.safeParse(candidate);
-    if (!design.success) {
-      throw new AnalysisError("invalid-output", "Block Plan-ontwerp voldoet niet aan het schema.");
-    }
+    if (!design.success) throw new BlockPlanValidationError("schema_validation", zodIssueCodes(design.error));
     const parsed = BcOnlineBlockPlanSchema.safeParse(composeBlockPlan(design.data, blueprint));
-    if (!parsed.success) {
-      throw new AnalysisError("invalid-output", "Block Plan voldoet niet aan het schema.");
-    }
+    if (!parsed.success) throw new BlockPlanValidationError("schema_validation", zodIssueCodes(parsed.error));
     const violations = checkBlockPlanInvariants(parsed.data, blueprint);
-    if (violations.length > 0) {
-      throw new AnalysisError("invalid-output", `Block Plan schendt domeinregels: ${violations.join(", ")}.`);
-    }
+    if (violations.length > 0) throw new BlockPlanValidationError("domain_invariant", violations);
     return parsed.data;
   }
 }

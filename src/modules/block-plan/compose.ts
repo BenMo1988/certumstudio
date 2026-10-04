@@ -6,10 +6,14 @@ import type { BlockPlanBlueprintSource } from "./validation";
  * eindintentie en eventuele capability gaps. Alles wat uit de goedgekeurde Blueprint of vaste Certum-regels volgt, voegt
  * de server toe (zie `composeBlockPlan`).
  */
-export type BlockPlanDesign = Omit<BcOnlineBlockPlan, "version" | "blueprintVersion" | "courseShell" | "startIntent" | "plannedBlocks"> & {
+export type BlockPlanDesign = Omit<
+  BcOnlineBlockPlan,
+  "version" | "blueprintVersion" | "courseShell" | "startIntent" | "plannedBlocks" | "endIntent"
+> & {
   courseShell: Pick<BcOnlineBlockPlan["courseShell"], "description">;
   startIntent: Pick<BcOnlineBlockPlan["startIntent"], "explanationIntent">;
   plannedBlocks: Omit<PlannedBlock, "id" | "sequence">[];
+  endIntent: Omit<BcOnlineBlockPlan["endIntent"], "followUpRecommendation">;
 };
 
 /**
@@ -18,7 +22,9 @@ export type BlockPlanDesign = Omit<BcOnlineBlockPlan, "version" | "blueprintVers
  * - de titel (letterlijk uit de Blueprint) en het leerdoel als enige leerdoel;
  * - `skjPoints: null` en `status: "concept"` (vaste Certum-regels);
  * - tijdsduur `null`: die is pas te schatten als de blokinhoud bestaat (Block Content, later);
- * - blok-ids (`blok-n`) en `sequence` (1..n) in de volgorde van het ontwerp.
+ * - blok-ids (`blok-n`) en `sequence` (1..n) in de volgorde van het ontwerp;
+ * - `followUpRecommendation: null`: de Blueprint modelleert (nog) geen vervolgactiviteit, dus het Block Plan voegt er
+ *   geen toe (geen intervisie, coaching of vervolgopdracht).
  * De trusted velden worden als laatste gezet; daarna volgen Zod en `checkBlockPlanInvariants`.
  */
 export function composeBlockPlan(design: BlockPlanDesign, blueprint: BlockPlanBlueprintSource): BcOnlineBlockPlan {
@@ -39,5 +45,6 @@ export function composeBlockPlan(design: BlockPlanDesign, blueprint: BlockPlanBl
       learningGoals: [blueprint.learningGoal],
     },
     plannedBlocks: design.plannedBlocks.map((block, i) => ({ ...block, id: `blok-${i + 1}`, sequence: i + 1 })),
+    endIntent: { ...design.endIntent, followUpRecommendation: null },
   };
 }

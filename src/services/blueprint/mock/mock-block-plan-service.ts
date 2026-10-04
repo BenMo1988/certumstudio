@@ -136,7 +136,6 @@ export class MockBlockPlanService implements BlockPlanService {
       endIntent: {
         closingIntent: "Afronden met de kern van de afweging.",
         summaryIntent: "Samenvatting van het keuzemoment en de belangrijkste afwegingen.",
-        followUpRecommendation: null,
       },
       capabilityGaps:
         multiple && !conversation

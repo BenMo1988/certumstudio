@@ -24,7 +24,9 @@ import { ClaudeBlockPlanService } from "./claude-block-plan-service";
 import { CLAUDE_BLOCK_PLAN_DEFAULTS, readBlockPlanConfig } from "./config";
 import { BlockPlanDesignSchema } from "./design";
 import { createBlockPlanService } from "./factory";
+import { BlockPlanValidationError } from "./diagnostics";
 import { withBlockPlanLogging, type BlockPlanGenerationLogEntry } from "./logging";
+import Anthropic from "@anthropic-ai/sdk";
 
 type BlpId = "BLP-001" | "BLP-002" | "BLP-003";
 const BLUEPRINT = (id: BlpId) => structuredClone((blueprints.cases as unknown as Record<BlpId, { blueprint: TrainingBlueprintV2 }>)[id].blueprint);
@@ -41,7 +43,7 @@ function designOf(plan: BcOnlineBlockPlan): BlockPlanDesign {
       void sequence;
       return rest;
     }),
-    endIntent: plan.endIntent,
+    endIntent: { closingIntent: plan.endIntent.closingIntent, summaryIntent: plan.endIntent.summaryIntent },
     capabilityGaps: plan.capabilityGaps,
   });
 }
@@ -414,5 +416,112 @@ describe("logging", () => {
     await createBlockPlanService({}).generate({ blueprint: BLUEPRINT("BLP-003") });
     expect(JSON.parse(String(info.mock.calls.at(-1)![0]))).toMatchObject({ event: "certum.block_plan_generation", provider: "mock" });
     info.mockRestore();
+  });
+});
+
+describe("veilige diagnose van invalid-output", () => {
+  const validationOf = async (output: unknown) => {
+    const { service } = claudeReturning(output);
+    try {
+      await service.generate({ blueprint: BLUEPRINT("BLP-001") });
+    } catch (error) {
+      return error;
+    }
+    throw new Error("verwacht een fout");
+  };
+
+  it("domain_invariant: alleen inhoudsvrije violation codes", async () => {
+    const design = structuredClone(designOf(await mockPlan("BLP-001")));
+    for (const b of design.plannedBlocks.filter((b) => b.certumPhase === "actie")) b.catalogBlockId = "certum.bco.meerkeuze";
+    const error = await validationOf(design);
+    expect(error).toBeInstanceOf(BlockPlanValidationError);
+    expect(error).toMatchObject({ kind: "invalid-output", stage: "domain_invariant", codes: ["juist-antwoord-bij-meerdere-routes"] });
+  });
+
+  it("domain_invariant: een vertakkingsblok geeft branching-als-capability", async () => {
+    const design = structuredClone(designOf(await mockPlan("BLP-003")));
+    design.plannedBlocks[1].purpose = "Vertakking naar het vervolg dat bij de gekozen route hoort.";
+    const { service } = claudeReturning(design);
+    const error = await service.generate({ blueprint: BLUEPRINT("BLP-003") }).catch((e: unknown) => e);
+    expect(error).toMatchObject({ stage: "domain_invariant", codes: ["branching-als-capability"] });
+  });
+
+  it("schema_validation: alleen issue-code en veldpad, geen ontvangen waarden", async () => {
+    const secret = "GEHEIME-INHOUD-die-nooit-gelogd-mag-worden";
+    const design = structuredClone(designOf(await mockPlan("BLP-001"))) as unknown as { plannedBlocks: Record<string, unknown>[] };
+    design.plannedBlocks[0].catalogBlockId = secret;
+    const error = (await validationOf(design)) as BlockPlanValidationError;
+    expect(error.stage).toBe("schema_validation");
+    expect(error.codes.length).toBeGreaterThan(0);
+    expect(error.codes.every((c) => /^[a-z_]+@[A-Za-z0-9_.()]+$/.test(c))).toBe(true);
+    expect(error.codes.join(" ")).toContain("plannedBlocks.0.catalogBlockId");
+    expect(JSON.stringify(error.codes) + error.message).not.toContain(secret);
+  });
+
+  it("structured_output: SDK-parsefout zonder details", async () => {
+    const parse = vi.fn(async () => {
+      throw new Anthropic.AnthropicError("Failed to parse structured output: GEHEIM");
+    });
+    const service = new ClaudeBlockPlanService({ messages: { parse } } as unknown as ClaudeMessagesClient, CLAUDE_BLOCK_PLAN_DEFAULTS);
+    const error = await service.generate({ blueprint: BLUEPRINT("BLP-001") }).catch((e: unknown) => e);
+    expect(error).toMatchObject({ kind: "invalid-output", stage: "structured_output", codes: [] });
+    expect((error as Error).message).not.toContain("GEHEIM");
+  });
+
+  it("de logregel bevat de validatiefase en codes, maar geen inhoud", async () => {
+    const design = structuredClone(designOf(await mockPlan("BLP-001")));
+    for (const b of design.plannedBlocks.filter((b) => b.certumPhase === "actie")) b.catalogBlockId = "certum.bco.meerkeuze";
+    const { service } = claudeReturning(design);
+    const logs: BlockPlanGenerationLogEntry[] = [];
+    await withBlockPlanLogging(service, { provider: "claude" }, (e) => logs.push(e))
+      .generate({ blueprint: BLUEPRINT("BLP-001") })
+      .catch(() => {});
+    expect(logs[0]).toMatchObject({
+      outcome: "error",
+      errorKind: "invalid-output",
+      validationStage: "domain_invariant",
+      violationCodes: ["juist-antwoord-bij-meerdere-routes"],
+    });
+    const line = JSON.stringify(logs);
+    for (const forbidden of [design.plannedBlocks[0].purpose, BLUEPRINT("BLP-001").learningGoal]) expect(line).not.toContain(forbidden);
+  });
+
+  it("de flow meldt invalid_block_plan; de reden staat in de generatielog", async () => {
+    const design = structuredClone(designOf(await mockPlan("BLP-001")));
+    for (const b of design.plannedBlocks.filter((b) => b.certumPhase === "actie")) b.catalogBlockId = "certum.bco.meerkeuze";
+    const { service } = claudeReturning(design);
+    const result = await runBlockPlanFlow(BLUEPRINT("BLP-001"), { status: "approved" }, { getService: () => service, log: () => {} });
+    expect(result).toEqual({ status: "rejected", reason: "invalid_block_plan" });
+  });
+});
+
+describe("geen vervolgactiviteit verzinnen", () => {
+  it("followUpRecommendation zit niet in het Claude-designschema", async () => {
+    const { service, parse } = claudeReturning(designOf(await mockPlan("BLP-002")));
+    await service.generate({ blueprint: BLUEPRINT("BLP-002") });
+    const schema = (parse.mock.calls[0][0] as { output_config: { format: { schema: unknown } } }).output_config.format.schema;
+    expect(JSON.stringify(schema)).not.toContain("followUpRecommendation");
+  });
+
+  it("Claude kan geen vervolgaanbeveling injecteren (invalid-output, schema_validation)", async () => {
+    const design = structuredClone(designOf(await mockPlan("BLP-001"))) as unknown as { endIntent: Record<string, unknown> };
+    design.endIntent.followUpRecommendation = "Bespreek de afweging in intervisie.";
+    const { service } = claudeReturning(design);
+    const error = await service.generate({ blueprint: BLUEPRINT("BLP-001") }).catch((e: unknown) => e);
+    expect(error).toMatchObject({ kind: "invalid-output", stage: "schema_validation" });
+  });
+
+  it.each(["BLP-001", "BLP-002", "BLP-003"] as const)("%s: de server zet followUpRecommendation op null; plan blijft geldig", async (id) => {
+    const { service } = claudeReturning(designOf(await mockPlan(id)));
+    const plan = await service.generate({ blueprint: BLUEPRINT(id) });
+    expect(plan.endIntent.followUpRecommendation).toBeNull();
+    expect(checkBlockPlanInvariants(plan, BLUEPRINT(id))).toEqual([]);
+  });
+
+  it("bestaande capability gaps blijven gelijk (mock BLP-003: één branching-gap met partial workaround)", async () => {
+    const plan = await mockPlan("BLP-003");
+    expect(plan.capabilityGaps).toHaveLength(1);
+    expect(plan.capabilityGaps[0].workaround?.type).toBe("partial");
+    expect((await mockPlan("BLP-001")).capabilityGaps).toHaveLength(0);
   });
 });

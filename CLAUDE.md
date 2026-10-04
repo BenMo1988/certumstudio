@@ -251,7 +251,11 @@ Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
     (`runBlockPlanFlow`).
   - Claude ontwerpt `BlockPlanDesignSchema` (afgeleid van het domeinschema). `composeBlockPlan` zet server-side: versie,
     `blueprintVersion`, titel, leerdoel, `skjPoints: null`, `status: concept`, tijdsduur `null` (pas te schatten met Block
-    Content), blok-ids en volgorde.
+    Content), blok-ids, volgorde en `endIntent.followUpRecommendation: null` (de Blueprint modelleert geen
+    vervolgactiviteit; het Block Plan verzint er geen).
+  - Inhoudsvrije diagnose bij `invalid-output` (`BlockPlanValidationError`): fase `structured_output`,
+    `schema_validation` (alleen `<zod-code>@<veldpad>`) of `domain_invariant` (alleen violation codes). Gelogd als
+    `validationStage` en `violationCodes`; nooit ontvangen waarden, Zod-meldingen of gegenereerde tekst.
   - Invarianten (ook voor de mock): alleen planbare catalogus-ids. Bij `multiple_defensible_actions` bevatten Actie en
     Toets, voor zover ze blokken hebben, minstens één blok met open handelen of afwegen (catalogus-capability
     `ai_rollenspel_chat`, `open_antwoord` of `schriftelijke_productie`); Meerkeuze of een formele Toets mag aanvullend,

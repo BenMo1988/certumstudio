@@ -2,6 +2,7 @@ import { BC_ONLINE_CATALOG_VERSION } from "@/knowledge/platform/bc-online-block-
 import { BC_ONLINE_BLOCK_PLAN_VERSION } from "@/modules/block-plan/schema";
 import { AnalysisError, type AnalysisErrorKind } from "../analysis/errors";
 import type { BlockPlanService } from "../blueprint/services";
+import { BlockPlanValidationError, type BlockPlanValidationStage } from "./diagnostics";
 
 export interface BlockPlanServiceInfo {
   provider: "mock" | "claude";
@@ -27,6 +28,9 @@ export interface BlockPlanGenerationLogEntry {
   durationMs: number;
   outcome: "success" | "error";
   errorKind?: AnalysisErrorKind | "unknown";
+  /** Alleen bij invalid-output: de validatiefase en inhoudsvrije codes (violation codes of `<zod-code>@<veldpad>`). */
+  validationStage?: BlockPlanValidationStage;
+  violationCodes?: string[];
   plannedBlocks?: number;
   capabilityGaps?: number;
 }
@@ -70,6 +74,7 @@ export function withBlockPlanLogging(service: BlockPlanService, info: BlockPlanS
           durationMs: Math.round(performance.now() - startedAt),
           outcome: "error",
           errorKind: error instanceof AnalysisError ? error.kind : "unknown",
+          ...(error instanceof BlockPlanValidationError && { validationStage: error.stage, violationCodes: [...error.codes] }),
         });
         throw error;
       }

@@ -16,10 +16,13 @@ export const BlockPlanDesignSchema = BcOnlineBlockPlanSchema.omit({
   courseShell: true,
   startIntent: true,
   plannedBlocks: true,
+  endIntent: true,
 }).extend({
   courseShell: shape.courseShell.pick({ description: true }),
   startIntent: shape.startIntent.pick({ explanationIntent: true }),
   plannedBlocks: z.array(PlannedBlockSchema.omit({ id: true, sequence: true })).min(1).max(20),
+  // Geen vervolgaanbeveling: die zet de server op null (de Blueprint modelleert geen vervolgactiviteit).
+  endIntent: shape.endIntent.omit({ followUpRecommendation: true }),
 });
 
 export type BlockPlanDesignOutput = z.infer<typeof BlockPlanDesignSchema>;
