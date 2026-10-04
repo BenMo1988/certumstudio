@@ -286,6 +286,14 @@ Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
 - **Granulariteit:** `BlockContentService.generate(request)` is precies één `plannedBlockId` → één `BlockContentResult`;
   `generateFrame` maakt Vaste Start/Vast Einde. De orchestrator (`services/block-content/orchestrator.ts`) genereert
   alle blokken één voor één in planvolgorde en stopt bij de eerste fout (rest blijft `not_generated`).
+- **Claude alleen als het resultaat werkelijk `generated` kan zijn** (kostenvermenigvuldigende laag: één aanroep per
+  blok). `generateBlockContent`: eerst `resolveBlockTarget`; kan het blok niet gegenereerd worden, dan maakt
+  `resolveDeterministicResult` (`modules/block-content/deterministic.ts`) server-side `needs_source`, `needs_asset` of
+  `blocked_by_capability` uit trusted Blueprint-, plan- en catalogusinformatie: **0 providercreaties, 0 aanroepen**. De
+  provider wordt lazy en hooguit één keer per flow aangemaakt; een provider weigert een deterministisch doelblok
+  (`config`-fout). Spy-tests in `content-flow.test.ts` bewaken dit.
+- **Start en Einde één keer per training.** `generateFrame` draait alleen bij het maken van het pakket; een
+  regeneratie van een blok raakt Start en Einde nooit. Alleen de afgeleide totaalduur van Start volgt de blokschattingen.
 - **Downstream-only input** (`buildBlockContentGenerationInput`): goedgekeurde Blueprint (zonder `sourceRefs` en
   `selectedDirectionId`), goedgekeurd Block Plan, doelblok, catalogusdefinitie, eerder goedgekeurde blokinhoud en de
   trusted context. Nooit de casus, de analyse, niet-gekozen richtingen of bronsegmenten.

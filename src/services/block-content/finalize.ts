@@ -3,6 +3,7 @@ import {
   checkBlockContentInvariants,
   composeBlockContent,
   composeFrame,
+  needsProvider,
   resolveBlockTarget,
   type BlockContentResult,
   type BlockTarget,
@@ -13,10 +14,15 @@ import { buildBlockContentDesignSchema, FrameDesignSchema } from "./design";
 import { BlockContentValidationError, zodIssueCodes } from "./diagnostics";
 import type { BlockContentRequest, FrameContentRequest } from "./services";
 
-/** Het doelblok van een request; een onbekend `plannedBlockId` is een fout van de aanroeper, geen providerfout. */
+/**
+ * Het doelblok van een request. Een onbekend `plannedBlockId` of een blok dat niet gegenereerd kan worden (Bron, media,
+ * geen aantoonbare context) is een fout van de aanroeper: zo'n blok lost de server op zonder provider
+ * (`resolveDeterministicResult`) en mag hier nooit aankomen.
+ */
 export function targetOf(request: BlockContentRequest): BlockTarget {
   const target = resolveBlockTarget(request.blueprint, request.blockPlan, request.plannedBlockId);
   if (!target) throw new AnalysisError("config", "Onbekend gepland blok.");
+  if (!needsProvider(target)) throw new AnalysisError("config", "Dit blok wordt server-side bepaald; geen provider nodig.");
   return target;
 }
 

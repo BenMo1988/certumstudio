@@ -13,7 +13,7 @@ import { TrainingBlueprintSchema, type ApprovalState } from "@/modules/training-
 import { TrainingBlueprintV2Schema, routePolicyFor, type TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
 import { AnalysisError, type AnalysisErrorKind } from "@/services/analysis/errors";
 import type { BlockContentService } from "@/services/block-content/services";
-import { generateTrainingContentPackage } from "@/services/block-content/orchestrator";
+import { generateBlockContent, generateTrainingContentPackage } from "@/services/block-content/orchestrator";
 
 /** Waarom er geen Block Content mag ontstaan. Bevat geen inhoud. */
 export type ContentFlowRejection =
@@ -46,6 +46,8 @@ export interface ContentFlowLogEntry {
   blocks?: number;
   generated?: number;
   unresolved?: number;
+  /** Blokken die de server zonder provider bepaalde (needs_source, needs_asset, blocked_by_capability). */
+  deterministic?: number;
   failedBlockId?: string;
 }
 
@@ -90,7 +92,10 @@ function gate(blueprintCandidate: unknown, blueprintApproval: ApprovalState, pla
   return { ok: true, blueprint, blockPlan: plan.data };
 }
 
-/** Training Content Package: Start/Einde en ieder gepland blok, één aanroep per blok. Slaat niets op. */
+/**
+ * Training Content Package: Start/Einde één keer per training, daarna ieder gepland blok. Alleen blokken die gegenereerd
+ * kunnen worden gaan naar de provider (één aanroep per blok); de rest bepaalt de server zelf. Slaat niets op.
+ */
 export async function runTrainingContentFlow(
   blueprintCandidate: unknown,
   blueprintApproval: ApprovalState,
@@ -107,10 +112,10 @@ export async function runTrainingContentFlow(
   const gated = gate(blueprintCandidate, blueprintApproval, planCandidate, planApproval);
   if (!gated.ok) return reject(gated.reason);
 
-  // Pas hier, na alle poorten, wordt de provider aangemaakt. Geen terugval naar mock.
+  // Pas na alle poorten, en pas bij de eerste echte aanroep, wordt de provider aangemaakt. Geen terugval naar mock.
   let generated;
   try {
-    generated = await generateTrainingContentPackage(deps.getService(), gated);
+    generated = await generateTrainingContentPackage(deps.getService, gated);
   } catch (error) {
     if (error instanceof AnalysisError && error.kind === "invalid-output") return reject("invalid_block_content", error.kind);
     return reject("provider_error", error instanceof AnalysisError ? error.kind : "unknown");
@@ -127,6 +132,7 @@ export async function runTrainingContentFlow(
     blocks: gated.blockPlan.plannedBlocks.length,
     generated: pkg.blocks.filter((b) => b.body.status === "generated").length,
     unresolved: pkg.unresolvedRequirements.length,
+    deterministic: generated.deterministicBlocks,
     ...(generated.failure && { failedBlockId: generated.failure.plannedBlockId, errorKind: generated.failure.errorKind }),
   });
   return { status: "content_package", package: pkg, failedBlockId: generated.failure?.plannedBlockId ?? null };
@@ -134,7 +140,8 @@ export async function runTrainingContentFlow(
 
 /**
  * Eén blok (opnieuw) genereren. Dezelfde poorten; daarnaast gaat alleen eerdere, goedgekeurde en geldige blokinhoud
- * mee. Ongeldige eerdere inhoud wordt geweigerd, niet stil weggelaten.
+ * mee. Ongeldige eerdere inhoud wordt geweigerd, niet stil weggelaten. Kan het blok niet gegenereerd worden, dan
+ * bepaalt de server het resultaat zonder provider. Vaste Start en Vast Einde worden hier nooit opnieuw gemaakt.
  */
 export async function runBlockRegenerationFlow(
   blueprintCandidate: unknown,
@@ -165,8 +172,13 @@ export async function runBlockRegenerationFlow(
   }
 
   let block: BlockContentResult;
+  let deterministic: boolean;
   try {
-    block = await deps.getService().generate({ ...gated, plannedBlockId: target.id, approvedEarlierContent: approvedEarlier });
+    ({ block, deterministic } = await generateBlockContent(deps.getService, {
+      ...gated,
+      plannedBlockId: target.id,
+      approvedEarlierContent: approvedEarlier,
+    }));
   } catch (error) {
     if (error instanceof AnalysisError && error.kind === "invalid-output") return reject("invalid_block_content", error.kind);
     return reject("provider_error", error instanceof AnalysisError ? error.kind : "unknown");
@@ -175,6 +187,6 @@ export async function runBlockRegenerationFlow(
     return reject("invalid_block_content");
   }
 
-  log({ event: "certum.block_content", version: BLOCK_CONTENT_VERSION, operation: "regenerate", outcome: "success", blocks: 1, generated: block.body.status === "generated" ? 1 : 0 });
+  log({ event: "certum.block_content", version: BLOCK_CONTENT_VERSION, operation: "regenerate", outcome: "success", blocks: 1, generated: block.body.status === "generated" ? 1 : 0, deterministic: deterministic ? 1 : 0 });
   return { status: "block_content", block };
 }

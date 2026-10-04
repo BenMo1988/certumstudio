@@ -3,6 +3,7 @@ import { AnalysisError } from "@/services/analysis/errors";
 import { MockBlockContentService } from "@/services/block-content/mock/mock-block-content-service";
 import type { BlockContentService } from "@/services/block-content/services";
 import { fixtureCase } from "../../../../test/block-content-fixtures";
+import { replaceBlockContent } from "@/modules/block-content";
 import { runBlockRegenerationFlow, runTrainingContentFlow, type ContentFlowLogEntry } from "./content-flow";
 
 const APPROVED = { status: "approved" as const };
@@ -66,9 +67,11 @@ describe("runTrainingContentFlow: poorten", () => {
     if (result.status !== "content_package") throw new Error(result.reason);
     expect(result.failedBlockId).toBeNull();
     expect(result.package.blocks).toHaveLength(11);
-    expect(generate).toHaveBeenCalledTimes(11);
+    // blok-6 en blok-7 (Bron) bepaalt de server zelf: 9 provideraanroepen voor 11 blokken, één providercreatie.
+    expect(generate).toHaveBeenCalledTimes(9);
+    expect(d.getService).toHaveBeenCalledTimes(1);
     expect(d.entries).toEqual([
-      expect.objectContaining({ event: "certum.block_content", operation: "package", outcome: "success", blocks: 11, generated: 9, unresolved: result.package.unresolvedRequirements.length }),
+      expect.objectContaining({ event: "certum.block_content", operation: "package", outcome: "success", blocks: 11, generated: 9, deterministic: 2, unresolved: result.package.unresolvedRequirements.length }),
     ]);
     expect(JSON.stringify(d.entries)).not.toContain(blueprint.title);
   });
@@ -120,5 +123,89 @@ describe("runBlockRegenerationFlow", () => {
     const poll = { ...(await new MockBlockContentService().generate({ blueprint, blockPlan, plannedBlockId: "blok-3", approvedEarlierContent: [] })), reviewStatus: "approved", sequence: 4 };
     expect(await runBlockRegenerationFlow(blueprint, APPROVED, blockPlan, APPROVED, "blok-5", [poll], d)).toMatchObject({ reason: "invalid_earlier_content" });
     expect(d.getService).not.toHaveBeenCalled();
+  });
+});
+
+describe("deterministische resultaten vóór providercreatie", () => {
+  /** Een service die elke aanroep telt; `getService` telt de providercreaties. */
+  function counting() {
+    const mock = new MockBlockContentService();
+    const service: BlockContentService = { generate: vi.fn((r) => mock.generate(r)), generateFrame: vi.fn((r) => mock.generateFrame(r)) };
+    return { service, ...deps(service) };
+  }
+
+  /** Synthetisch: BLP-002 met Reflectie als Productie, zodat AI Feedback (blok-5) geen eerder vraagblok heeft. */
+  function unprovenFeedbackCase() {
+    const ctx = fixtureCase("BLP-002");
+    ctx.blockPlan.plannedBlocks[3] = { ...ctx.blockPlan.plannedBlocks[3], catalogBlockId: "certum.bco.productie" };
+    return ctx;
+  }
+
+  it.each([
+    ["needs_source (Bron)", () => fixtureCase("BLP-001"), "blok-5", "needs_source"],
+    ["needs_asset (Video)", () => fixtureCase("BLP-001-MEDIA"), "blok-1", "needs_asset"],
+    ["blocked_by_capability (AI Feedback zonder vraagblok)", unprovenFeedbackCase, "blok-5", "blocked_by_capability"],
+  ] as const)("%s → 0 providercreaties, 0 aanroepen", async (_name, ctxOf, plannedBlockId, status) => {
+    const { blueprint, blockPlan } = ctxOf();
+    const c = counting();
+    const result = await runBlockRegenerationFlow(blueprint, APPROVED, blockPlan, APPROVED, plannedBlockId, [], c);
+    expect(result).toMatchObject({ status: "block_content", block: { plannedBlockId, body: { status } } });
+    expect(c.getService).not.toHaveBeenCalled();
+    expect(c.service.generate).not.toHaveBeenCalled();
+    expect(c.entries.at(-1)).toMatchObject({ outcome: "success", deterministic: 1, generated: 0 });
+  });
+
+  it("blocked_by_capability legt de concrete, trusted afhankelijkheid vast", async () => {
+    const { blueprint, blockPlan } = unprovenFeedbackCase();
+    const result = await runBlockRegenerationFlow(blueprint, APPROVED, blockPlan, APPROVED, "blok-5", [], deps());
+    if (result.status !== "block_content" || result.block.body.status !== "blocked_by_capability") throw new Error();
+    expect(result.block.body.missingCapability).toMatch(/^ai_context_buiten_vraagblokken: /);
+    expect(result.block.body.why).toContain("blok-2, blok-3, blok-4");
+  });
+
+  it("needs_asset en needs_source bevatten alleen trusted informatie, geen URL of kennis", async () => {
+    const media = fixtureCase("BLP-001-MEDIA");
+    const asset = await runBlockRegenerationFlow(media.blueprint, APPROVED, media.blockPlan, APPROVED, "blok-1", [], deps());
+    expect(asset).toMatchObject({ block: { body: { status: "needs_asset", assetRequirement: { assetType: "video" } } } });
+    expect(JSON.stringify(asset)).not.toMatch(/https?:\/\/|www\./);
+    const { blueprint, blockPlan } = fixtureCase("BLP-001");
+    const source = await runBlockRegenerationFlow(blueprint, APPROVED, blockPlan, APPROVED, "blok-5", [], deps());
+    if (source.status !== "block_content" || source.block.body.status !== "needs_source") throw new Error();
+    expect(source.block.accreditation.sourceNeedRefs).toEqual(["SN1", "SN2"]);
+    expect(source.block.body.whatToValidate).toBe(blueprint.sourceNeeds.map((s) => `${s.id}: ${s.question}`).join(" "));
+  });
+
+  it("generated → precies één providercreatie en één aanroep, zonder Start/Einde", async () => {
+    const { blueprint, blockPlan } = fixtureCase("BLP-001");
+    const c = counting();
+    const result = await runBlockRegenerationFlow(blueprint, APPROVED, blockPlan, APPROVED, "blok-2", [], c);
+    expect(result).toMatchObject({ block: { body: { status: "generated" } } });
+    expect(c.getService).toHaveBeenCalledTimes(1);
+    expect(c.service.generate).toHaveBeenCalledTimes(1);
+    expect(c.service.generateFrame).not.toHaveBeenCalled();
+  });
+
+  it("pakket: Start/Einde één keer per training, één providercreatie, deterministische blokken zonder aanroep", async () => {
+    const { blueprint, blockPlan } = fixtureCase("BLP-003");
+    const c = counting();
+    await runTrainingContentFlow(blueprint, APPROVED, blockPlan, APPROVED, c);
+    expect(c.getService).toHaveBeenCalledTimes(1);
+    expect(c.service.generateFrame).toHaveBeenCalledTimes(1);
+    expect(c.service.generate).toHaveBeenCalledTimes(13); // 14 blokken, blok-9 (Bron) server-side
+  });
+
+  it("regeneratie van één blok verandert Start en Einde niet", async () => {
+    const { blueprint, blockPlan } = fixtureCase("BLP-001");
+    const c = counting();
+    const first = await runTrainingContentFlow(blueprint, APPROVED, blockPlan, APPROVED, c);
+    if (first.status !== "content_package") throw new Error();
+    for (const plannedBlockId of ["blok-2", "blok-5"]) {
+      const regen = await runBlockRegenerationFlow(blueprint, APPROVED, blockPlan, APPROVED, plannedBlockId, first.package.blocks, c);
+      if (regen.status !== "block_content") throw new Error();
+      const after = replaceBlockContent(first.package, blockPlan, regen.block);
+      expect(after.start).toEqual(first.package.start);
+      expect(after.end).toEqual(first.package.end);
+    }
+    expect(c.service.generateFrame).toHaveBeenCalledTimes(1);
   });
 });

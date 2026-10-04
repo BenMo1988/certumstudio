@@ -1,5 +1,12 @@
 import { METHODOLOGY_STEPS } from "@/knowledge";
-import type { BlockContentDesign, BlockContentResult, BlockPayloadDesign, BlockTarget, FrameContent } from "@/modules/block-content";
+import {
+  DEFAULT_ASSESSMENT_ROLE,
+  type BlockContentDesign,
+  type BlockContentResult,
+  type BlockPayloadDesign,
+  type BlockTarget,
+  type FrameContent,
+} from "@/modules/block-content";
 import type { TrainingBlueprintV2 } from "@/modules/training-blueprint/v2/schema";
 import { finalizeBlockContent, finalizeFrame, targetOf } from "../finalize";
 import type { BlockContentRequest, BlockContentService, FrameContentRequest } from "../services";
@@ -21,21 +28,12 @@ const MINUTES: Partial<Record<string, number>> = {
   "certum.bco.toets": 10,
 };
 
-const ASSESSMENT_ROLE = {
-  context: "none",
-  actie: "formative",
-  reflectie: "formative",
-  feedback: "formative",
-  bron: "none",
-  toets: "transfer",
-} as const;
-
 /**
  * Mock Block Content. Deterministisch, zonder netwerk; leidt alle inhoud af uit de goedgekeurde Blueprint en het
  * doelblok en volgt daarna exact dezelfde weg als de Claude-provider (ontwerpschema → compose → Zod → invarianten).
  *
- * - Media → `needs_asset`; Bron → `needs_source` met de sourceNeed-refs van de Blueprint; AI Feedback of Conditionele
- *   logica zonder eerder vraagblok → `blocked_by_capability`.
+ * Krijgt alleen doelblokken die gegenereerd kunnen worden: Bron, media en blokken zonder aantoonbare context lost de
+ * server zelf op (`resolveDeterministicResult`), zonder provider.
  * - Chat simulatie zonder gespreksdoel en zonder tijdslimiet (sleutelwoorden zijn geen beoordeling van redeneren).
  * - AI Feedback noemt alleen de aantoonbare context; niet-aangetoonde context wordt expliciet uitgesloten.
  */
@@ -60,45 +58,16 @@ export class MockBlockContentService implements BlockContentService {
 
 function designFor(target: BlockTarget, blueprint: TrainingBlueprintV2): BlockContentDesign {
   const { block } = target;
-  const status = target.allowedStatuses[0];
-  const bronRefs = blueprint.learningArc.bron.sourceNeedRefs.filter((r) => target.sourceNeedIds.includes(r));
-  const accreditation = {
-    learningGoalContribution: fit(block.purpose, 500),
-    assessmentRole: ASSESSMENT_ROLE[block.certumPhase],
-    estimatedMinutes: status === "generated" ? (MINUTES[block.catalogBlockId] ?? null) : null,
-    sourceNeedRefs: status === "needs_source" ? (bronRefs.length > 0 ? bronRefs : target.sourceNeedIds) : [],
+  return {
+    status: "generated",
+    accreditation: {
+      learningGoalContribution: fit(block.purpose, 500),
+      assessmentRole: DEFAULT_ASSESSMENT_ROLE[block.certumPhase],
+      estimatedMinutes: MINUTES[block.catalogBlockId] ?? null,
+      sourceNeedRefs: [],
+    },
+    content: contentFor(target, blueprint),
   };
-
-  switch (status) {
-    case "needs_asset":
-      return {
-        status,
-        accreditation,
-        assetRequirement: {
-          why: fit(block.whyThisBlock, 800),
-          desiredContent: fit(block.configurationIntent.map((c) => c.intent).join(" ") || block.purpose, 1200),
-          captionIntent: null,
-        },
-      };
-    case "needs_source": {
-      const questions = blueprint.sourceNeeds.filter((s) => accreditation.sourceNeedRefs.includes(s.id));
-      return {
-        status,
-        accreditation,
-        whatToValidate: fit(questions.map((s) => `${s.id}: ${s.question}`).join(" "), 1000),
-        generatableAfterValidation: fit(`Na validatie: ${block.purpose}`, 1000),
-      };
-    }
-    case "blocked_by_capability":
-      return {
-        status,
-        accreditation,
-        missingCapability: "Aantoonbare context voor dit blok: er gaat geen vraagblok aan vooraf.",
-        why: "Zonder eerder vraagblok is niet aangetoond dat dit blok antwoorden van de deelnemer ontvangt.",
-      };
-    case "generated":
-      return { status, accreditation, content: contentFor(target, blueprint) };
-  }
 }
 
 function contentFor(target: BlockTarget, blueprint: TrainingBlueprintV2): BlockPayloadDesign {

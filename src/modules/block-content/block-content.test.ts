@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { PLANNABLE_BLOCK_IDS } from "@/knowledge/platform/bc-online-block-catalog";
 import { MockBlockContentService } from "@/services/block-content/mock/mock-block-content-service";
+import { generateBlockContent } from "@/services/block-content/orchestrator";
+import type { BlockContentRequest } from "@/services/block-content/services";
 import { fixtureCase, type PlanCaseId } from "../../../test/block-content-fixtures";
 import {
   BlockContentResultSchema,
@@ -21,16 +23,18 @@ import {
 } from ".";
 
 const mock = new MockBlockContentService();
+/** Zoals de flow: eerst de server-side beslissing, alleen genereerbare blokken naar de mock. */
+const gen = async (request: BlockContentRequest) => (await generateBlockContent(() => mock, request)).block;
 
 async function blockOf(id: PlanCaseId, plannedBlockId: string): Promise<BlockContentResult> {
-  return mock.generate({ ...fixtureCase(id), plannedBlockId, approvedEarlierContent: [] });
+  return gen({ ...fixtureCase(id), plannedBlockId, approvedEarlierContent: [] });
 }
 
 async function packageOf(id: PlanCaseId): Promise<TrainingContentPackage> {
   const input = fixtureCase(id);
   const frame = await mock.generateFrame(input);
   const blocks = [];
-  for (const b of input.blockPlan.plannedBlocks) blocks.push(await mock.generate({ ...input, plannedBlockId: b.id, approvedEarlierContent: [] }));
+  for (const b of input.blockPlan.plannedBlocks) blocks.push(await gen({ ...input, plannedBlockId: b.id, approvedEarlierContent: [] }));
   return composeContentPackage({ ...input, frame, blocks });
 }
 
@@ -171,7 +175,7 @@ describe("Bron, media en AI Feedback (structureel)", () => {
     const ctx = fixtureCase("BLP-001");
     ctx.blockPlan.plannedBlocks = ctx.blockPlan.plannedBlocks.filter((b) => b.id !== "blok-3");
     expect(resolveBlockTarget(ctx.blueprint, ctx.blockPlan, "blok-4")!.allowedStatuses).toEqual(["blocked_by_capability"]);
-    const block = await mock.generate({ ...ctx, plannedBlockId: "blok-4", approvedEarlierContent: [] });
+    const block = await gen({ ...ctx, plannedBlockId: "blok-4", approvedEarlierContent: [] });
     expect(block.body.status).toBe("blocked_by_capability");
   });
 
@@ -242,7 +246,7 @@ describe("goedkeuringspoorten en review", () => {
     // Zonder Bron-blok (synthetisch): alles gegenereerd → in_review → approved.
     ctx.blockPlan.plannedBlocks = ctx.blockPlan.plannedBlocks.filter((b) => b.certumPhase !== "bron");
     const frame = await mock.generateFrame(ctx);
-    const blocks = await Promise.all(ctx.blockPlan.plannedBlocks.map((b) => mock.generate({ ...ctx, plannedBlockId: b.id, approvedEarlierContent: [] })));
+    const blocks = await Promise.all(ctx.blockPlan.plannedBlocks.map((b) => gen({ ...ctx, plannedBlockId: b.id, approvedEarlierContent: [] })));
     let full = composeContentPackage({ ...ctx, frame, blocks });
     expect(full.readiness).toBe("in_review");
     expect(full.start.estimatedDurationMinutes).toBe(blocks.reduce((s, b) => s + b.accreditation.estimatedMinutes!, 0));

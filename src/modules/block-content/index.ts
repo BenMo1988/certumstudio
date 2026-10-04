@@ -51,3 +51,4 @@ export {
   type BlockContentGenerationBlocker,
 } from "./gates";
 export { buildBlockContentGenerationInput, type BlockContentGenerationInput } from "./generation-input";
+export { DEFAULT_ASSESSMENT_ROLE, needsProvider, resolveDeterministicResult } from "./deterministic";
