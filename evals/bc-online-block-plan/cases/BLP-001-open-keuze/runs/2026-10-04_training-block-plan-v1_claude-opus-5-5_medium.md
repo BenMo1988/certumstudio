@@ -7,7 +7,7 @@ Uitgevoerd via de Server Action `generateBlockPlan` op de dev-server (`CERTUM_AN
 `CERTUM_BLUEPRINT_PROVIDER=mock`, `CERTUM_BLOCK_PLAN_PROVIDER=claude`), met exact de goedgekeurde Blueprint
 `BLP-001` uit `test/fixtures/approved-blueprints.json`.
 
-**Status: `PENDING_REVIEW`** (nog geen menselijke beoordeling; geen PASS/FAIL).
+**Status: `PASS_WITH_NOTES`** (menselijk beoordeeld; zie "Menselijke evaluatie").
 
 ## Configuratie en metadata
 
@@ -371,6 +371,20 @@ Overgenomen uit de metadata-logregel `certum.block_plan_generation` van deze run
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS_WITH_NOTES`**
 
-Nog niet beoordeeld.
+Menselijke review van de baseline training-block-plan/v1.
+
+### Sterk
+
+- De open professionele keuze blijft behouden.
+- Actie en Toets gebruiken open uitvoeringsvormen.
+- Feedback beoordeelt niet welke route gekozen wordt.
+- Geen fictieve capabilities.
+- De beperking dat AI Feedback het chatverloop niet als context krijgt, wordt zelfstandig als capability gap benoemd.
+- De workaround blijft `partial` en de beperking blijft zichtbaar.
+- Geen content creep in de blokken.
+
+### Note
+
+- `followUpRecommendation` introduceert intervisie, terwijl dit niet uit de goedgekeurde Blueprint volgt.

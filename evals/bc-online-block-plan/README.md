@@ -36,6 +36,28 @@ Het Block Plan ontwerpt de leerervaring niet opnieuw en schrijft nog geen eindco
 
 | Eval | Blueprint | Ambiguïteit | Wat wordt getest | Status |
 | --- | --- | --- | --- | --- |
-| [BLP-001](cases/BLP-001-open-keuze/case.md) | B21-OPEN | `multiple_defensible_actions` | Open professionele keuze (B21-OPEN) | [`PENDING_REVIEW`](cases/BLP-001-open-keuze/runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium.md) |
-| [BLP-002](cases/BLP-002-voorgeschreven-handeling/case.md) | B21-PRESCRIBED | `single_best_action` | Voorgeschreven handeling onder druk (B21-PRESCRIBED) | [`PENDING_REVIEW`](cases/BLP-002-voorgeschreven-handeling/runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium.md) |
-| [BLP-003](cases/BLP-003-branching-gap/case.md) | synthetisch | `multiple_defensible_actions` | Route-afhankelijk vervolg: capability gap (synthetisch) | [`PENDING_REVIEW`](cases/BLP-003-branching-gap/runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium.md) |
+| [BLP-001](cases/BLP-001-open-keuze/case.md) | B21-OPEN | `multiple_defensible_actions` | Open professionele keuze (B21-OPEN) | [`PASS_WITH_NOTES`](cases/BLP-001-open-keuze/runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium.md) |
+| [BLP-002](cases/BLP-002-voorgeschreven-handeling/case.md) | B21-PRESCRIBED | `single_best_action` | Voorgeschreven handeling onder druk (B21-PRESCRIBED) | [`PASS_WITH_NOTES`](cases/BLP-002-voorgeschreven-handeling/runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium.md) |
+| [BLP-003](cases/BLP-003-branching-gap/case.md) | synthetisch | `multiple_defensible_actions` | Route-afhankelijk vervolg: capability gap (synthetisch) | [`FAIL`](cases/BLP-003-branching-gap/runs/2026-10-04_training-block-plan-v1_claude-opus-5-5_medium.md) |
+
+## Baseline conclusions — training-block-plan/v1
+
+Baseline van 2026-10-04 (prompt `training-block-plan/v1`, contract `bc-online-block-plan/v1`, catalogus
+`bc-online-block-catalog/v1`, `claude-opus-5-5`, effort `medium`, `maxRetries: 0`), menselijk beoordeeld.
+
+| Uitkomst | Aantal | Cases |
+| --- | --- | --- |
+| `PASS` | 0 | – |
+| `PASS_WITH_NOTES` | 2 | BLP-001, BLP-002 |
+| `FAIL` | 1 | BLP-003 |
+
+**Conclusie:** Block Plan V1 toont sterke capability honesty in BLP-001 en BLP-002, maar capability-gap planning voor
+expliciete branching moet nog met een geldige provideroutput worden bewezen.
+
+Bevindingen:
+
+1. In beide geldige plannen benoemt de provider zelfstandig dat AI Feedback het chatverloop niet aantoonbaar als context
+   krijgt, en legt dat vast als gap met een `partial` workaround.
+2. `followUpRecommendation` introduceert in beide plannen een vervolgactiviteit die niet in de Blueprint staat.
+3. Een `invalid-output` was niet te verklaren: het log bevatte alleen het fouttype, niet de validatiefase of de
+   inhoudsvrije schendingscodes.

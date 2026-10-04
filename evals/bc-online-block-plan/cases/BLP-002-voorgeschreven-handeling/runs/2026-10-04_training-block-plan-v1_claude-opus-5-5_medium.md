@@ -7,7 +7,7 @@ Uitgevoerd via de Server Action `generateBlockPlan` op de dev-server (`CERTUM_AN
 `CERTUM_BLUEPRINT_PROVIDER=mock`, `CERTUM_BLOCK_PLAN_PROVIDER=claude`), met exact de goedgekeurde Blueprint
 `BLP-002` uit `test/fixtures/approved-blueprints.json`.
 
-**Status: `PENDING_REVIEW`** (nog geen menselijke beoordeling; geen PASS/FAIL).
+**Status: `PASS_WITH_NOTES`** (menselijk beoordeeld; zie "Menselijke evaluatie").
 
 ## Configuratie en metadata
 
@@ -432,6 +432,19 @@ Overgenomen uit de metadata-logregel `certum.block_plan_generation` van deze run
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS_WITH_NOTES`**
 
-Nog niet beoordeeld.
+Menselijke review van de baseline training-block-plan/v1.
+
+### Sterk
+
+- De voorgeschreven handeling blijft leidend.
+- Productie is functioneel gekozen voor de melding.
+- Professionele uitvoering onder druk blijft zichtbaar.
+- De fysieke uitvoering en timing en de context van AI Feedback worden eerlijk als gaps geregistreerd.
+- Geen externe bronclaims.
+
+### Notes
+
+- Het tweede Bron-blok kan mogelijk overbodig zijn, maar is nog geen bewezen systeemfout.
+- `followUpRecommendation` voegt "nagaan wie de verantwoordelijke is" toe zonder dat de Blueprint dit vraagt.

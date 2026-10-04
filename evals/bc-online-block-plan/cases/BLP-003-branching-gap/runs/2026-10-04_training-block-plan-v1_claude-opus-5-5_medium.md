@@ -7,7 +7,7 @@ Uitgevoerd via de Server Action `generateBlockPlan` op de dev-server (`CERTUM_AN
 `CERTUM_BLUEPRINT_PROVIDER=mock`, `CERTUM_BLOCK_PLAN_PROVIDER=claude`), met exact de goedgekeurde Blueprint
 `BLP-003` uit `test/fixtures/approved-blueprints.json`.
 
-**Status: `PENDING_REVIEW`** (nog geen menselijke beoordeling; geen PASS/FAIL).
+**Status: `FAIL`** (menselijk beoordeeld; zie "Menselijke evaluatie").
 
 ## Configuratie en metadata
 
@@ -46,6 +46,15 @@ Geen Block Plan: de server wees de providerrespons af als `invalid-output` (rede
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `FAIL`**
 
-Nog niet beoordeeld.
+Menselijke review van de baseline training-block-plan/v1.
+
+De server heeft ongeldige output correct tegengehouden. Maar de vooraf gewenste capability-gap-prestatie is niet
+bewezen:
+
+- geen geldig Block Plan;
+- niet vastgesteld of branching correct als gap werd behouden;
+- niet vastgesteld of Conditionele logica uitsluitend als `partial` workaround werd gebruikt.
+
+De exacte faalreden is bovendien niet observeerbaar.
