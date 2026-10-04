@@ -7,7 +7,7 @@ Uitgevoerd via de Server Action `generateBlueprint` op de dev-server (`CERTUM_AN
 `CERTUM_BLUEPRINT_PROVIDER=claude`), met exact de Analysis V2.1-fixture `CA-010`
 (`test/fixtures/v21-ready-analyses.json`). Er is geen analyse door Claude gedaan.
 
-**Status: `PENDING_REVIEW`** (nog geen menselijke beoordeling; geen PASS/FAIL).
+**Status: `PASS_WITH_NOTES`** (menselijk beoordeeld; zie "Menselijke evaluatie").
 
 ## Configuratie en metadata
 
@@ -171,6 +171,17 @@ Uitgevoerd via de Server Action `generateBlueprint` op de dev-server (`CERTUM_AN
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS_WITH_NOTES`**
 
-Nog niet beoordeeld.
+Menselijke review van de integratierun training-blueprint/v2.1.
+
+De keten Analysis `prescribed_action` → Blueprint `single_best_action` → decisionPoint `prescribed_action` → Actie
+`prescribed_action` blijft inhoudelijk consistent. De vaste handelingslijn blijft leidend, terwijl professionele ruimte
+blijft bestaan in de wijze van uitvoering.
+
+### Notes (geen functionele fout, geen aanleiding voor een nieuwe Analysis- of Blueprintversie)
+
+- Het reeds bekende trusted `professionalDilemma` bevat nog de formulering "of hij …".
+- Reflectie gebruikt "of en wanneer", wat taalkundig opener klinkt dan het routebeleid.
+- SN1 generaliseert de veiligheidsinstructie enigszins, maar uitsluitend als te valideren sourceNeed en niet als
+  vastgesteld feit.

@@ -7,7 +7,7 @@ Uitgevoerd via de Server Action `generateBlueprint` op de dev-server (`CERTUM_AN
 `CERTUM_BLUEPRINT_PROVIDER=claude`), met exact de Analysis V2.1-fixture `CA-006`
 (`test/fixtures/v21-ready-analyses.json`). Er is geen analyse door Claude gedaan.
 
-**Status: `PENDING_REVIEW`** (nog geen menselijke beoordeling; geen PASS/FAIL).
+**Status: `PASS`** (menselijk beoordeeld; zie "Menselijke evaluatie").
 
 ## Configuratie en metadata
 
@@ -167,6 +167,18 @@ Uitgevoerd via de Server Action `generateBlueprint` op de dev-server (`CERTUM_AN
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS`**
 
-Nog niet beoordeeld.
+Menselijke review van de integratierun training-blueprint/v2.1.
+
+De keten Analysis `open_choice` → Blueprint `multiple_defensible_actions` → decisionPoint `open_choice` → Actie
+`open_choice` blijft inhoudelijk consistent.
+
+Het oorspronkelijke BP-002-probleem is opgelost:
+
+- geen voorgeschreven volgorde in het learningGoal;
+- geen voorgeschreven route in het decisionPoint;
+- geen voorgeschreven route in Actie;
+- succescriteria beoordelen beide belangen en de kwaliteit van de gekozen aanpak;
+- Feedback beoordeelt niet welke route gekozen werd;
+- Toets vraagt opnieuw om een eigen professionele afweging.
