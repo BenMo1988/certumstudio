@@ -196,15 +196,50 @@ describe("BLP-001: open keuze niet reduceren tot één juist antwoord", () => {
     expect(coreBlocks).not.toContain("certum.bco.toets");
   });
 
-  it.each([
-    ["Meerkeuze in Actie", "actie", "certum.bco.meerkeuze"],
-    ["formele Toets in Toets", "toets", "certum.bco.toets"],
-  ])("%s → invalid-output", async (_, phase, blockId) => {
+  type Id = BlockPlanDesign["plannedBlocks"][number]["catalogBlockId"];
+  /** Zet in één fase de blokken om: `from` → `to` (alle blokken van dat type in die fase). */
+  const swap = (d: BlockPlanDesign, phase: string, from: Id, to: Id) => {
+    for (const b of d.plannedBlocks.filter((b) => b.certumPhase === phase && b.catalogBlockId === from)) b.catalogBlockId = to;
+  };
+  const verdict = async (change: (d: BlockPlanDesign) => void) => {
     const design = structuredClone(designOf(await mockPlan("BLP-001")));
-    const target = design.plannedBlocks.find((b) => b.certumPhase === phase)!;
-    target.catalogBlockId = blockId as typeof target.catalogBlockId;
+    change(design);
     const { service } = claudeReturning(design);
-    expect(await errorKindOf(service.generate({ blueprint: BLUEPRINT("BLP-001") }))).toBe("invalid-output");
+    return errorKindOf(service.generate({ blueprint: BLUEPRINT("BLP-001") }));
+  };
+
+  it("open keuze + alleen Meerkeuze in Actie → invalid-output", async () => {
+    expect(await verdict((d) => swap(d, "actie", "certum.bco.chat-simulatie", "certum.bco.meerkeuze"))).toBe("invalid-output");
+  });
+
+  it("open keuze + Chat simulatie in Actie → geldig", async () => {
+    expect(await verdict(() => {})).toBe("geen fout");
+  });
+
+  it("open keuze + alleen een formele Toets als transfer → invalid-output", async () => {
+    expect(await verdict((d) => swap(d, "toets", "certum.bco.chat-simulatie", "certum.bco.toets"))).toBe("invalid-output");
+  });
+
+  it("open keuze + Chat simulatie plus aanvullende formele Toets → geldig", async () => {
+    expect(await verdict((d) => swap(d, "toets", "certum.bco.tekst", "certum.bco.toets"))).toBe("geen fout");
+  });
+
+  it("open keuze + Productie plus aanvullende formele Toets → geldig", async () => {
+    expect(
+      await verdict((d) => {
+        swap(d, "toets", "certum.bco.chat-simulatie", "certum.bco.productie");
+        swap(d, "toets", "certum.bco.tekst", "certum.bco.toets");
+      }),
+    ).toBe("geen fout");
+  });
+
+  it("open keuze + Meerkeuze naast een open blok in Actie → geldig (aanvullend kennisblok)", async () => {
+    expect(
+      await verdict((d) => {
+        const actie = d.plannedBlocks.findIndex((b) => b.certumPhase === "actie");
+        d.plannedBlocks.splice(actie, 0, { ...structuredClone(d.plannedBlocks[actie]), catalogBlockId: "certum.bco.meerkeuze" });
+      }),
+    ).toBe("geen fout");
   });
 });
 
@@ -217,9 +252,12 @@ describe("BLP-002: voorgeschreven handeling blijft uitvoerbaar", () => {
     expect(actie).not.toContain("certum.bco.poll");
   });
 
-  it("bij single_best_action is een vorm met één leidende handeling niet structureel uitgesloten", async () => {
+  it("prescribed_action ongewijzigd: alleen Meerkeuze in Actie of alleen een formele Toets is niet structureel uitgesloten", async () => {
     const design = structuredClone(designOf(await mockPlan("BLP-002")));
-    design.plannedBlocks.find((b) => b.certumPhase === "toets" && b.catalogBlockId !== "certum.bco.tekst")!.catalogBlockId = "certum.bco.meerkeuze";
+    for (const b of design.plannedBlocks.filter((b) => b.certumPhase === "actie")) b.catalogBlockId = "certum.bco.meerkeuze";
+    for (const b of design.plannedBlocks.filter((b) => b.certumPhase === "toets" && b.catalogBlockId === "certum.bco.chat-simulatie")) {
+      b.catalogBlockId = "certum.bco.toets";
+    }
     const { service } = claudeReturning(design);
     await expect(service.generate({ blueprint: BLUEPRINT("BLP-002") })).resolves.toBeTruthy();
   });
@@ -259,17 +297,27 @@ describe("BLP-003: branching blijft een capability gap", () => {
   });
 });
 
-describe("plan, geen inhoud", () => {
-  it.each<[string, (d: BlockPlanDesign) => void]>([
-    ["letterlijke vraag in een configuratie-intentie", (d) => (d.plannedBlocks[1].configurationIntent[0].intent = "Wat zeg je tegen de medewerker?")],
-    ["geciteerde tekst (dialoog) in een configuratie-intentie", (d) => (d.plannedBlocks[1].configurationIntent[0].intent = 'De collega zegt: "Laat die dozen maar staan."')],
-    ["concrete bron (URL)", (d) => (d.plannedBlocks.find((b) => b.certumPhase === "bron")!.purpose = "Toon https://example.org/richtlijn")],
-    ["concrete bron (artikelnummer)", (d) => (d.endIntent.closingIntent = "Afsluiten met artikel 12 van de regeling.")],
-  ])("%s → invalid-output", async (_, change) => {
+describe("plan, geen inhoud: alleen deterministische controles", () => {
+  const run = async (change: (d: BlockPlanDesign) => void) => {
     const design = structuredClone(designOf(await mockPlan("BLP-002")));
     change(design);
     const { service } = claudeReturning(design);
-    expect(await errorKindOf(service.generate({ blueprint: BLUEPRINT("BLP-002") }))).toBe("invalid-output");
+    return errorKindOf(service.generate({ blueprint: BLUEPRINT("BLP-002") }));
+  };
+
+  it.each<[string, (d: BlockPlanDesign) => void]>([
+    ["concrete bron-URL", (d) => (d.plannedBlocks.find((b) => b.certumPhase === "bron")!.purpose = "Toon https://example.org/richtlijn")],
+    ["www-verwijzing", (d) => (d.endIntent.closingIntent = "Verwijs naar www.voorbeeld.nl voor de achtergrond.")],
+  ])("%s → invalid-output", async (_, change) => {
+    expect(await run(change)).toBe("invalid-output");
+  });
+
+  it.each<[string, (d: BlockPlanDesign) => void]>([
+    ["vraagteken in een planintentie", (d) => (d.plannedBlocks[1].configurationIntent[0].intent = "Welke reactie past bij de zorg van de collega? Dat bepaalt de deelnemer zelf.")],
+    ["aanhalingstekens in een planintentie", (d) => (d.plannedBlocks[1].configurationIntent[0].intent = 'Rol "collega" die vraagt te wachten met het vrijmaken.')],
+    ["het woord artikel met een getal", (d) => (d.endIntent.closingIntent = "Afronden met de kern van de afweging uit artikel 1 van de Blueprint-opzet.")],
+  ])("geen tekstheuristiek meer: %s is toegestaan (bewaakt via prompt, evals en review)", async (_, change) => {
+    expect(await run(change)).toBe("geen fout");
   });
 });
 

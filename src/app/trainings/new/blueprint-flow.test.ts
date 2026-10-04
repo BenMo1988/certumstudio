@@ -312,10 +312,10 @@ describe("BC Online Block Plan", () => {
     expect(BcOnlineBlockPlanSchema.safeParse(copy).success).toBe(false);
   });
 
-  it("Meerkeuze met één juist antwoord in Actie bij meerdere verdedigbare routes wordt geweigerd", async () => {
+  it("alleen Meerkeuze met één juist antwoord in Actie bij meerdere verdedigbare routes wordt geweigerd", async () => {
     const { plan, blueprint } = await planFor("BP-003");
     const copy = structuredClone(plan);
-    copy.plannedBlocks.find((b) => b.certumPhase === "actie")!.catalogBlockId = "certum.bco.meerkeuze";
+    for (const b of copy.plannedBlocks.filter((b) => b.certumPhase === "actie")) b.catalogBlockId = "certum.bco.meerkeuze";
     expect(checkBlockPlanInvariants(copy, blueprint)).toContain("juist-antwoord-bij-meerdere-routes");
   });
 

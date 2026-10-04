@@ -249,8 +249,10 @@ async function runGatedBlueprintFlow<
  * (V2: keuzemoment en Actie volgen uit de ambiguïteit) zijn gecontroleerd. De provider krijgt uitsluitend de Blueprint;
  * nooit de oorspronkelijke input of de analyse.
  *
- * Beperking zolang er geen opslag is: de goedkeuring en de Blueprint komen terug van de client. De server controleert
- * schema en structuur opnieuw, maar kan de inhoud niet tegen de oorspronkelijke analyse controleren.
+ * Bekende blocker `approval_integrity_required_before_export` (zie CLAUDE.md): zolang er geen opslag is, komen de
+ * goedkeuring en de Blueprint terug van de client. De server controleert schema, routebeleid en approval-flag, maar
+ * kan inhoudelijke wijzigingen door een client niet uitsluiten. Vóór export is persistence of integriteitsgebonden
+ * goedkeuring vereist.
  */
 export async function runBlockPlanFlow(
   blueprintCandidate: unknown,

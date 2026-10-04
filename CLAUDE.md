@@ -248,16 +248,24 @@ Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
   - Input: uitsluitend de goedgekeurde Blueprint, de catalogus `bc-online-block-catalog/v1` en versies. Nooit de
     oorspronkelijke input, de analyse of bronsegmenten.
   - De provider wordt pas aangemaakt na de goedkeuring, het Blueprint-schema en de routebeleid-controle
-    (`runBlockPlanFlow`). Zolang er geen opslag is, komen goedkeuring en Blueprint van de client terug; de server
-    controleert schema en structuur, niet de inhoud tegen de analyse.
+    (`runBlockPlanFlow`).
   - Claude ontwerpt `BlockPlanDesignSchema` (afgeleid van het domeinschema). `composeBlockPlan` zet server-side: versie,
     `blueprintVersion`, titel, leerdoel, `skjPoints: null`, `status: concept`, tijdsduur `null` (pas te schatten met Block
     Content), blok-ids en volgorde.
-  - Invarianten (ook voor de mock): alleen planbare catalogus-ids; bij meerdere routes geen Meerkeuze of formele Toets in
-    Actie of Toets; geen eindcontent in configuratie-intenties (geen vraagteken, geen geciteerde tekst); geen concrete
-    bronnen; geen gepland blok als vertakking of routering. Branching blijft een `capabilityGap`; een workaround is
-    altijd `partial`.
+  - Invarianten (ook voor de mock): alleen planbare catalogus-ids. Bij `multiple_defensible_actions` bevatten Actie en
+    Toets, voor zover ze blokken hebben, minstens één blok met open handelen of afwegen (catalogus-capability
+    `ai_rollenspel_chat`, `open_antwoord` of `schriftelijke_productie`); Meerkeuze of een formele Toets mag aanvullend,
+    maar nooit de enige uitvoeringsvorm zijn. Geen bron-URL; geen gepland blok als vertakking of routering. Branching
+    blijft een `capabilityGap`; een workaround is altijd `partial`.
+  - Bewust geen tekstheuristieken voor eindcontent (vraagtekens, citaten, jaartallen, artikelnummers): te veel valse
+    treffers. "Plan, geen inhoud" bewaken de prompt, de evals en de human review.
   - Logging: `certum.block_plan_generation` met alleen provider, model, effort, versies, duur, uitkomst en aantallen.
+- **Bekende blocker `approval_integrity_required_before_export`.** In de huidige V1-fase zonder persistence controleert
+  de server het Blueprint-schema, het routebeleid en de approval-flag, maar komen de goedgekeurde Blueprint en de
+  goedkeuring van de client terug. Een client kan de teruggestuurde Blueprint dus inhoudelijk wijzigen. Dat is
+  aanvaardbaar voor de huidige gecontroleerde ontwikkeling en evals. Vóór echte productie of export naar BC Online is
+  server-side persistence of een cryptografisch of anderszins integriteitsgebonden goedkeuring vereist. Nog niet
+  gebouwd (geen database, geen signing).
 - Er is nog geen Block Content, BC Online-adapter, API, database, MCP of export.
 
 ### Privacy in logs (niet onderhandelbaar)

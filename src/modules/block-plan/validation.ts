@@ -1,3 +1,4 @@
+import { getCatalogBlock, type BcOnlineCapability } from "@/knowledge/platform/bc-online-block-catalog";
 import { CERTUM_PHASES, type Ambiguity, type PerformanceType } from "@/modules/training-blueprint/schema";
 import { BcOnlineBlockPlanSchema, type BcOnlineBlockPlan } from "./schema";
 
@@ -11,18 +12,23 @@ export type BlockPlanViolation =
   | "titel-wijkt-af"
   | "leerdoel-ontbreekt"
   | "juist-antwoord-bij-meerdere-routes"
-  | "eindcontent-in-plan"
   | "bronverwijzing-verzonnen"
   | "branching-als-capability";
 
-/** Blokken met één juist antwoord (Meerkeuze, formele Toets): geen kernactiviteit bij meerdere verdedigbare routes. */
-const ONE_CORRECT_ANSWER_BLOCKS = ["certum.bco.meerkeuze", "certum.bco.toets"] as const;
-/** Een letterlijke vraag of geciteerde tekst in een configuratie-intentie is eindcontent (Block Content, later). */
-const END_CONTENT = /\?|["“”„]/;
-/** Signalen van een concrete bron (gelijk aan de Blueprint-regel): URL, jaartal tussen haakjes, artikelnummer. */
-const CONCRETE_SOURCE = /https?:\/\/|www\.|\(\s*(19|20)\d{2}\s*\)|\bart(ikel)?\.?\s*\d+/i;
+/**
+ * Catalogus-capabilities waarmee open professioneel handelen of afwegen zichtbaar wordt: een rollenspelgesprek, een
+ * open antwoord of een schriftelijke productie. Afgeleid uit `bc-online-block-catalog/v1`, geen nieuw veld.
+ */
+const OPEN_PERFORMANCE_CAPABILITIES: readonly BcOnlineCapability[] = ["ai_rollenspel_chat", "open_antwoord", "schriftelijke_productie"];
+/** Een concrete bron in het plan: alleen een URL is betrouwbaar deterministisch te herkennen. */
+const CONCRETE_SOURCE = /https?:\/\/|www\./i;
 /** Branching is niet ondersteund: een gepland blok mag zich niet als vertakking of routering voordoen. */
-const BRANCHING_CLAIM = /\bbranch|vertakk|\brouteer|\broutering|doorstu(ur|ren)/i;
+const BRANCHING_CLAIM = /\bbranch|vertakk|\brouteer|\broutering/i;
+
+function showsOpenPerformance(catalogBlockId: string): boolean {
+  const capabilities: readonly string[] = getCatalogBlock(catalogBlockId)?.observedCapabilities ?? [];
+  return OPEN_PERFORMANCE_CAPABILITIES.some((c) => capabilities.includes(c));
+}
 
 /**
  * Het deel van een goedgekeurde Blueprint dat het Block Plan leest. Blueprint V1 en V2 voldoen allebei; het Block Plan
@@ -42,12 +48,14 @@ export interface BlockPlanBlueprintSource {
  * - sequence is 1..n zonder gaten, id's uniek;
  * - iedere Certum-fase heeft minstens één blok óf een capabilityGap; fasen volgen de methodiekvolgorde;
  * - titel en leerdoel komen uit de Blueprint (het plan bepaalt de inhoud niet);
- * - bij multiple_defensible_actions geen blok met één juist antwoord (Meerkeuze, formele Toets) in Actie of Toets;
- * - geen eindcontent in configuratie-intenties (geen letterlijke vragen of geciteerde tekst);
- * - geen concrete bronverwijzingen;
+ * - bij multiple_defensible_actions bevatten Actie en Toets, voor zover ze blokken hebben, minstens één blok waarmee
+ *   open professioneel handelen of afwegen zichtbaar wordt (Chat simulatie, Open vraag, Productie). Een blok met één
+ *   juist antwoord (Meerkeuze, formele Toets) mag aanvullend bestaan, maar nooit de enige uitvoeringsvorm zijn;
+ * - geen concrete bron-URL;
  * - geen gepland blok dat zich als vertakking of routering voordoet (branching blijft een capabilityGap).
  *
- * Bewust NIET afgedwongen: een formeel Toetsblok in de fase Toets, sleutelwoorden in een Chat simulatie.
+ * Bewust NIET afgedwongen: een formeel Toetsblok in de fase Toets, sleutelwoorden in een Chat simulatie, en
+ * tekstheuristieken voor eindcontent (vraagtekens, citaten, jaartallen): die bewaken prompt, evals en human review.
  */
 export function checkBlockPlanInvariants(candidate: unknown, blueprint: BlockPlanBlueprintSource): BlockPlanViolation[] {
   const parsed = BcOnlineBlockPlanSchema.safeParse(candidate);
@@ -72,19 +80,13 @@ export function checkBlockPlanInvariants(candidate: unknown, blueprint: BlockPla
   if (plan.courseShell.title !== blueprint.title) violations.add("titel-wijkt-af");
   if (!plan.startIntent.learningGoals.includes(blueprint.learningGoal)) violations.add("leerdoel-ontbreekt");
 
-  if (
-    blueprint.ambiguity === "multiple_defensible_actions" &&
-    plan.plannedBlocks.some(
-      (b) =>
-        (b.certumPhase === "actie" || b.certumPhase === "toets") &&
-        (ONE_CORRECT_ANSWER_BLOCKS as readonly string[]).includes(b.catalogBlockId),
-    )
-  ) {
-    violations.add("juist-antwoord-bij-meerdere-routes");
-  }
-
-  if (plan.plannedBlocks.some((b) => b.configurationIntent.some((c) => END_CONTENT.test(c.intent)))) {
-    violations.add("eindcontent-in-plan");
+  if (blueprint.ambiguity === "multiple_defensible_actions") {
+    for (const phase of ["actie", "toets"] as const) {
+      const blocks = plan.plannedBlocks.filter((b) => b.certumPhase === phase);
+      if (blocks.length > 0 && !blocks.some((b) => showsOpenPerformance(b.catalogBlockId))) {
+        violations.add("juist-antwoord-bij-meerdere-routes");
+      }
+    }
   }
 
   const allTexts = [
