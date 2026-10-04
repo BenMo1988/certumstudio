@@ -28,6 +28,7 @@ import {
   type WorkflowDeps,
   type WorkflowResult,
 } from "./persisted-workflow";
+import { revisionHistory, saveBlockEdit, saveFrameEdit, type RevisionHistoryEntry } from "./editing";
 
 /*
  * Server Actions van de persisted workflow. Ze nemen uitsluitend ids en eenvoudige keuzes aan; Blueprint, Block Plan,
@@ -116,4 +117,36 @@ export async function generateContentAction(trainingId: unknown) {
 export async function regenerateBlockAction(trainingId: unknown, plannedBlockId: unknown, expectedRevisionId: unknown) {
   if (!isId(trainingId) || !isId(plannedBlockId) || (expectedRevisionId !== null && !isId(expectedRevisionId))) return invalid;
   return guarded(() => regenerateBlock(deps(), trainingId, plannedBlockId, expectedRevisionId));
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Training Review & Editor V1: handmatig bewerken (0 AI-aanroepen)
+// ---------------------------------------------------------------------------------------------------------------
+
+/** Handmatige bewerking van één blok: alleen de bewerkbare velden en eventueel de geschatte minuten. */
+export async function saveBlockEditAction(trainingId: unknown, plannedBlockId: unknown, expectedRevisionId: unknown, edit: unknown) {
+  if (!isId(trainingId) || !isId(plannedBlockId) || !isId(expectedRevisionId) || typeof edit !== "object" || edit === null) return invalid;
+  const { content, estimatedMinutes } = edit as { content?: unknown; estimatedMinutes?: unknown };
+  return guarded(() => saveBlockEdit(deps(), trainingId, plannedBlockId, expectedRevisionId, { content, estimatedMinutes }));
+}
+
+/** Handmatige bewerking van Vaste Start (`introduction`) of Vast Einde (`closingText`, `summary`). */
+export async function saveFrameEditAction(trainingId: unknown, part: unknown, expectedRevisionId: unknown, fields: unknown) {
+  if (!isId(trainingId) || (part !== "start" && part !== "end") || !isId(expectedRevisionId)) return invalid;
+  return guarded(() => saveFrameEdit(deps(), trainingId, part, expectedRevisionId, fields));
+}
+
+/** Read-only historie van één blok of van Start/Einde. */
+export async function revisionHistoryAction(trainingId: unknown, target: unknown): Promise<RevisionHistoryEntry[] | null> {
+  if (!isId(trainingId) || typeof target !== "object" || target === null) return null;
+  const t = target as { part?: unknown; plannedBlockId?: unknown };
+  const which: { part: "start" | "end" } | { plannedBlockId: string } | null =
+    t.part === "start" || t.part === "end" ? { part: t.part } : isId(t.plannedBlockId) ? { plannedBlockId: t.plannedBlockId } : null;
+  if (!which) return null;
+  try {
+    return await revisionHistory(deps(), trainingId, which);
+  } catch (error) {
+    if (error instanceof StorageError) return null;
+    throw error;
+  }
 }

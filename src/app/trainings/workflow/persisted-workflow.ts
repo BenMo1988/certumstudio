@@ -75,7 +75,14 @@ export type WorkflowRejection =
 
 export type WorkflowResult =
   | { status: "ok"; workspace: TrainingWorkspaceView; failedBlockId?: string | null }
-  | { status: "rejected"; reason: WorkflowRejection; gateReason?: InputGateRejection; workspace?: TrainingWorkspaceView };
+  | {
+      status: "rejected";
+      reason: WorkflowRejection;
+      gateReason?: InputGateRejection;
+      workspace?: TrainingWorkspaceView;
+      /** Inhoudsvrije validatiecodes bij een afgewezen bewerking (bijv. `too_small@options`). */
+      issues?: string[];
+    };
 
 export type StartTrainingResult =
   | { status: "created"; trainingId: string; analysis: WorkflowResult }
@@ -95,20 +102,20 @@ const defaultLog = (entry: WorkflowLogEntry) => console.info(JSON.stringify(entr
 // Hulpfuncties
 // ---------------------------------------------------------------------------------------------------------------
 
-async function ok(deps: WorkflowDeps, trainingId: string, action: string, extra: { failedBlockId?: string | null } = {}): Promise<WorkflowResult> {
+export async function ok(deps: WorkflowDeps, trainingId: string, action: string, extra: { failedBlockId?: string | null } = {}): Promise<WorkflowResult> {
   const workspace = await loadTrainingWorkspace(deps.db, trainingId);
   if (!workspace) return reject(deps, action, "not_found");
   (deps.log ?? defaultLog)({ event: "certum.training_workflow", action, outcome: "ok" });
   return { status: "ok", workspace, ...extra };
 }
 
-function reject(deps: WorkflowDeps, action: string, reason: WorkflowRejection, errorKind?: string, gateReason?: InputGateRejection): WorkflowResult & { status: "rejected" } {
+export function reject(deps: WorkflowDeps, action: string, reason: WorkflowRejection, errorKind?: string, gateReason?: InputGateRejection): WorkflowResult & { status: "rejected" } {
   (deps.log ?? defaultLog)({ event: "certum.training_workflow", action, outcome: "rejected", reason, ...(errorKind && { errorKind }) });
   return { status: "rejected", reason, ...(gateReason && { gateReason }) };
 }
 
 /** Fouten van provider of opslag als inhoudsvrije afwijzing. */
-function rejectError(deps: WorkflowDeps, action: string, error: unknown): WorkflowResult {
+export function rejectError(deps: WorkflowDeps, action: string, error: unknown): WorkflowResult {
   if (error instanceof StorageError) {
     if (error.code === "stale_revision" || error.code === "not_current" || error.code === "stale_based_on") return reject(deps, action, "stale_revision", error.code);
     if (error.code === "not_found") return reject(deps, action, "not_found", error.code);
@@ -283,7 +290,7 @@ export async function decideRevision(deps: WorkflowDeps, trainingId: string, rev
 // ---------------------------------------------------------------------------------------------------------------
 
 /** Goedgekeurde Blueprint op de current analyse, en het Block Plan daarop (indien aanwezig), uit de snapshot. */
-function approvedUpstream(snap: TrainingRecordSnapshot) {
+export function approvedUpstream(snap: TrainingRecordSnapshot) {
   const analysis = currentRevision(snap, "analysis");
   const blueprint = currentRevision(snap, "blueprint");
   if (!analysis || !builtOn(blueprint, [analysis.id]) || !isApproved(snap, blueprint.id)) return null;
@@ -321,7 +328,7 @@ export async function generateBlockPlan(deps: WorkflowDeps, trainingId: string):
 }
 
 /** Eerder goedgekeurde inhoud van blokken vóór dit blok, uit de snapshot (nooit uit de browser). */
-function approvedEarlierContent(snap: TrainingRecordSnapshot, plan: BcOnlineBlockPlan, plannedBlockId: string, upstream: string[]): BlockContentResult[] {
+export function approvedEarlierContent(snap: TrainingRecordSnapshot, plan: BcOnlineBlockPlan, plannedBlockId: string, upstream: string[]): BlockContentResult[] {
   const target = plan.plannedBlocks.find((b) => b.id === plannedBlockId)!;
   return plan.plannedBlocks
     .filter((p) => p.sequence < target.sequence)

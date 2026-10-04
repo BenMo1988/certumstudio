@@ -40,7 +40,7 @@ function variant(status: BlockContentStatus, target: BlockTarget, accreditation:
   const base = { status: z.literal(status), accreditation };
   switch (status) {
     case "generated":
-      return z.strictObject({ ...base, content: contentSchema(target) });
+      return z.strictObject({ ...base, content: editableContentSchema(target) });
     case "needs_source":
       return z.strictObject({ ...base, ...NEEDS_SOURCE_FIELDS });
     case "needs_asset":
@@ -50,7 +50,13 @@ function variant(status: BlockContentStatus, target: BlockTarget, accreditation:
   }
 }
 
-function contentSchema(target: BlockTarget): z.ZodObject {
+/**
+ * De velden van één bloktype die een provider genereert, en dus ook de velden die een mens mag bewerken: zonder trusted
+ * velden (`catalogBlockId`, AI Feedback-context, `minimumWords`), met de structurele beperkingen van het doelblok
+ * (geen gespreksdoel bij `open_choice`, alleen eerdere vraagblokken als bron van Conditionele logica). Strict: een
+ * onbekend of trusted veld wordt geweigerd.
+ */
+export function editableContentSchema(target: BlockTarget): z.ZodObject {
   const id = target.block.catalogBlockId;
   if (isMediaBlock(id)) throw new Error("Een mediablok heeft geen te genereren inhoud.");
   const fields: Record<string, z.ZodType> = { ...CONTENT_FIELDS[id as ContentBlockId] };

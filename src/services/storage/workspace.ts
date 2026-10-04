@@ -55,7 +55,7 @@ export const STAGE_LABELS: Record<WorkflowStage, string> = {
   block_plan_approved: "Block Plan goedgekeurd",
   content_in_progress: "Content in uitvoering",
   content_review: "Content ter beoordeling",
-  training_ready: "Alle blokken goedgekeurd",
+  training_ready: "Training gereed",
 };
 
 export interface WorkflowProgress {
@@ -67,6 +67,44 @@ export interface WorkflowProgress {
   generatedBlocks: number;
   approvedBlocks: number;
   unresolved: { source: number; asset: number; capability: number };
+}
+
+/** Herkomst van een opgeslagen revision: door een provider gemaakt of handmatig bewerkt. */
+export const MANUAL_EDIT = "manual-edit";
+export type RevisionSource = "generated" | "manual";
+
+export interface RevisionMeta {
+  revisionId: string;
+  revisionNo: number;
+  /** Aantal eerdere revisions van hetzelfde onderdeel (historie). */
+  previousRevisions: number;
+  source: RevisionSource;
+}
+
+/**
+ * De reviewstatus van de training als geheel (intern; geen export of accreditatie), afgeleid uit de current revisions
+ * en besluiten:
+ * - `incomplete`: niet ieder gepland blok heeft gegenereerde inhoud (ontbrekend, bron nodig, asset nodig, technische
+ *   beperking) of Start/Einde ontbreekt;
+ * - `in_review`: alles bestaat, maar niet ieder blok én Start en Einde zijn current goedgekeurd;
+ * - `approved`: ieder blok gegenereerd en goedgekeurd, Start en Einde goedgekeurd.
+ * Bouwt voort op de readiness van het Content Package (geen tweede waarheid).
+ */
+export interface TrainingReview {
+  readiness: "incomplete" | "in_review" | "approved";
+  totalBlocks: number;
+  approved: number;
+  /** Gegenereerd, nog niet goedgekeurd en niet als "moet aangepast" gemarkeerd. */
+  draft: number;
+  needsRevision: number;
+  notGenerated: number;
+  source: number;
+  asset: number;
+  capability: number;
+  /** Start en Einde die nog goedgekeurd moeten worden (0–2). */
+  frameToReview: number;
+  /** Onderdelen (blokken, Start, Einde) die nog een besluit van de opleider vragen. */
+  toReview: number;
 }
 
 interface StoredArtifactView<T> {
@@ -90,8 +128,11 @@ export interface TrainingWorkspaceView {
   blockPlan: StoredArtifactView<BcOnlineBlockPlan> | null;
   content: {
     package: TrainingContentPackage;
-    /** Current revision per gepland blok (voor besluiten en regeneratie met stale-controle). */
-    blockRevisions: Record<string, { revisionId: string; revisionNo: number }>;
+    /** Current revision per gepland blok (voor besluiten, bewerken en regeneratie met stale-controle). */
+    blockRevisions: Record<string, RevisionMeta>;
+    /** Vaste Start en Vast Einde: eigen revisions met een eigen goedkeuring. */
+    frame: { start: RevisionMeta & { approved: boolean }; end: RevisionMeta & { approved: boolean } };
+    review: TrainingReview;
   } | null;
   progress: WorkflowProgress;
 }
@@ -132,12 +173,18 @@ export function deriveWorkspace(snap: TrainingRecordSnapshot): TrainingWorkspace
   if (blueprint?.approved && blockPlan?.approved) {
     const stored = composeContentFromSnapshot(snap);
     if (stored.status === "ok") {
-      const blockRevisions: Record<string, { revisionId: string; revisionNo: number }> = {};
+      const blockRevisions: Record<string, RevisionMeta> = {};
       for (const block of stored.package.blocks) {
         const rev = currentRevision(snap, "block_content", block.plannedBlockId);
-        if (rev) blockRevisions[block.plannedBlockId] = { revisionId: rev.id, revisionNo: rev.revisionNo };
+        if (rev) blockRevisions[block.plannedBlockId] = revisionMeta(snap, rev);
       }
-      content = { package: stored.package, blockRevisions };
+      const startRev = currentRevision(snap, "start_content")!;
+      const endRev = currentRevision(snap, "end_content")!;
+      const frame = {
+        start: { ...revisionMeta(snap, startRev), approved: isApproved(snap, startRev.id) },
+        end: { ...revisionMeta(snap, endRev), approved: isApproved(snap, endRev.id) },
+      };
+      content = { package: stored.package, blockRevisions, frame, review: deriveReview(stored.package, blockPlan.payload, frame) };
     }
   }
 
@@ -150,6 +197,43 @@ export function deriveWorkspace(snap: TrainingRecordSnapshot): TrainingWorkspace
     content,
   };
   return { ...view, progress: deriveProgress(view) };
+}
+
+function revisionMeta(snap: TrainingRecordSnapshot, rev: ArtifactRevision): RevisionMeta {
+  return {
+    revisionId: rev.id,
+    revisionNo: rev.revisionNo,
+    previousRevisions: snap.revisions.filter((r) => r.artifactType === rev.artifactType && r.artifactKey === rev.artifactKey && r.revisionNo < rev.revisionNo).length,
+    source: rev.modelVersion === MANUAL_EDIT ? "manual" : "generated",
+  };
+}
+
+/** De reviewstatus van de training; zie `TrainingReview`. */
+export function deriveReview(
+  pkg: TrainingContentPackage,
+  plan: BcOnlineBlockPlan,
+  frame: { start: { approved: boolean }; end: { approved: boolean } },
+): TrainingReview {
+  const blocks = pkg.blocks;
+  const generated = blocks.filter((b) => b.body.status === "generated");
+  const approved = generated.filter((b) => b.reviewStatus === "approved").length;
+  const needsRevision = generated.filter((b) => b.reviewStatus === "needs_revision").length;
+  const frameToReview = [frame.start, frame.end].filter((f) => !f.approved).length;
+  const review = {
+    totalBlocks: plan.plannedBlocks.length,
+    approved,
+    draft: generated.length - approved - needsRevision,
+    needsRevision,
+    notGenerated: plan.plannedBlocks.length - blocks.length,
+    source: blocks.filter((b) => b.body.status === "needs_source").length,
+    asset: blocks.filter((b) => b.body.status === "needs_asset").length,
+    capability: blocks.filter((b) => b.body.status === "blocked_by_capability").length,
+    frameToReview,
+    toReview: generated.length - approved + frameToReview,
+  };
+  const readiness =
+    pkg.readiness === "incomplete" ? "incomplete" : pkg.readiness === "approved" && frameToReview === 0 ? "approved" : "in_review";
+  return { readiness, ...review };
 }
 
 /** De titel van de Blueprint zodra die er is; daarvoor de neutrale titel van het trainingsrecord. */
@@ -185,7 +269,7 @@ export function deriveProgress(view: Omit<TrainingWorkspaceView, "progress">): W
   if (!view.blockPlan.approved) return progress("block_plan_ready");
   if (!pkg) return progress("block_plan_approved");
   if (blocks.length < totalBlocks) return progress("content_in_progress");
-  if (pkg.readiness === "approved") return progress("training_ready");
+  if (view.content?.review.readiness === "approved") return progress("training_ready");
   return progress("content_review");
 }
 
