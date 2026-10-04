@@ -6,7 +6,7 @@
 | **Input** | Goedgekeurde Blueprint `BLP-002` (`test/fixtures/approved-blueprints.json`) en goedgekeurd Block Plan `BLP-002-UNPROVEN-FEEDBACK` (`test/fixtures/approved-block-plans.json`) (synthetisch) |
 | **Doelblok** | `blok-5` · feedback · `certum.bco.ai-feedback` |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `PENDING_REVIEW` |
+| **Status (laatste run)** | `PASS` |
 
 > **Input gewijzigd vóór de eerste run (2026-10-04).** Eerst `BLP-003` `blok-8`. Dat blok heeft aantoonbare context
 > (Poll blok-3, Open vraag blok-4 en blok-7) naast een niet-aantoonbare Productie (blok-6); structureel is het dus een
@@ -43,4 +43,4 @@ Vastgelegd vóór de eerste run met een AI-provider. Algemeen (G) en casusspecif
 
 | Datum | Versie | Generator | Status | Run |
 | --- | --- | --- | --- | --- |
-| 2026-10-04 | training-block-content/v1 · block-content/v1 | server-side (geen provider) | `PENDING_REVIEW` | [run](runs/2026-10-04_deterministisch.md) |
+| 2026-10-04 | training-block-content/v1 · block-content/v1 | server-side (geen provider) | `PASS` | [run](runs/2026-10-04_deterministisch.md) |

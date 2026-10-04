@@ -6,7 +6,7 @@
 | **Input** | Goedgekeurde Blueprint `BLP-001` (`test/fixtures/approved-blueprints.json`) en goedgekeurd Block Plan `BLP-001-MEDIA` (`test/fixtures/approved-block-plans.json`) (synthetisch) |
 | **Doelblok** | `blok-1` · context · `certum.bco.video` |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `PENDING_REVIEW` |
+| **Status (laatste run)** | `PASS` |
 
 ## Doelblok (uit het Block Plan)
 
@@ -34,4 +34,4 @@ Vastgelegd vóór de implementatie van de Block Content Engine. Algemeen (G) en 
 
 | Datum | Versie | Generator | Status | Run |
 | --- | --- | --- | --- | --- |
-| 2026-10-04 | training-block-content/v1 · block-content/v1 | server-side (geen provider) | `PENDING_REVIEW` | [run](runs/2026-10-04_deterministisch.md) |
+| 2026-10-04 | training-block-content/v1 · block-content/v1 | server-side (geen provider) | `PASS` | [run](runs/2026-10-04_deterministisch.md) |

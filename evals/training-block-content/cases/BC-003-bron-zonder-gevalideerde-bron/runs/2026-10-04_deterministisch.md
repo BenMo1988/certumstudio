@@ -43,7 +43,6 @@ Bron → `needs_source` met SN1 en SN2 en de kennisvragen letterlijk uit de Blue
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS`** (beoordeeld 2026-10-04)
 
-Nog niet beoordeeld. Feitelijk: expliciete status, alleen trusted informatie, geen verzonnen inhoud, URL of bron, en
-geen AI-aanroep.
+Bron zonder gevalideerde bron → `needs_source` met SN-refs, zonder kennisinhoud en zonder AI-call (0 providercreaties).

@@ -115,6 +115,10 @@ aanroep, geen retry. Gerepareerd runscript (ruwe respons bewaard, tekstchunks op
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS_WITH_NOTES`** (beoordeeld 2026-10-04)
 
-Nog niet beoordeeld.
+Route-neutrale, geloofwaardige chatsimulatie: `goal: null`, geen sleutelwoorden of tijdslimiet, een
+consequente persona en een ontvanger-neutrale `scenarioContext` (de baseline-note is opgelost).
+
+**Note / WATCH `persona_fact_drift`:** "een ervaren medewerker" is een niet-gegeven eigenschap die niet in de
+Blueprint staat. Eén waarneming is onvoldoende reden voor een nieuwe promptversie.

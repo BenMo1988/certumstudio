@@ -44,7 +44,6 @@ Video → `needs_asset`, `assetType: video` (trusted), beschrijving uit het Bloc
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS`** (beoordeeld 2026-10-04)
 
-Nog niet beoordeeld. Feitelijk: expliciete status, alleen trusted informatie, geen verzonnen inhoud, URL of bron, en
-geen AI-aanroep.
+Media zonder asset → `needs_asset` met trusted assettype, zonder URL of bestand en zonder AI-call (0 providercreaties).

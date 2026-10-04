@@ -40,7 +40,6 @@ AI Feedback zonder eerder vraagblok → `blocked_by_capability` met `ai_context_
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS`** (beoordeeld 2026-10-04)
 
-Nog niet beoordeeld. Feitelijk: expliciete status, alleen trusted informatie, geen verzonnen inhoud, URL of bron, en
-geen AI-aanroep.
+AI Feedback met uitsluitend onbewezen context → `blocked_by_capability` met de concrete trusted afhankelijkheid, zonder AI-call (0 providercreaties).

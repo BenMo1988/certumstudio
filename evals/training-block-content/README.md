@@ -34,11 +34,11 @@ persistence → preview → Accreditation Readiness. De BC Online Adapter blijft
 
 | Eval | Block Plan | Doelblok | Wat wordt getest | Status |
 | --- | --- | --- | --- | --- |
-| [BC-001](cases/BC-001-open-chat-simulatie/case.md) | BLP-001 | `blok-2` · `certum.bco.chat-simulatie` | Open Chat simulatie | [`PENDING_REVIEW`](cases/BC-001-open-chat-simulatie/runs/2026-10-04_training-block-content-v1.1_claude-opus-5-5_medium_bevestiging.md) |
-| [BC-002](cases/BC-002-voorgeschreven-productie/case.md) | BLP-002 | `blok-3` · `certum.bco.productie` | Voorgeschreven Productie | [`PENDING_REVIEW`](cases/BC-002-voorgeschreven-productie/runs/2026-10-04_training-block-content-v1.1_claude-opus-5-5_medium_bevestiging.md) |
-| [BC-003](cases/BC-003-bron-zonder-gevalideerde-bron/case.md) | BLP-001 | `blok-5` · `certum.bco.tekst` | Bron zonder gevalideerde bron | [`PENDING_REVIEW`](cases/BC-003-bron-zonder-gevalideerde-bron/runs/2026-10-04_deterministisch.md) |
-| [BC-004](cases/BC-004-media-zonder-asset/case.md) | BLP-001-MEDIA | `blok-1` · `certum.bco.video` | Media zonder asset | [`PENDING_REVIEW`](cases/BC-004-media-zonder-asset/runs/2026-10-04_deterministisch.md) |
-| [BC-005](cases/BC-005-ai-feedback-onbewezen-context/case.md) | BLP-002-UNPROVEN-FEEDBACK | `blok-5` · `certum.bco.ai-feedback` | AI Feedback met uitsluitend onbewezen context (deterministisch) | [`PENDING_REVIEW`](cases/BC-005-ai-feedback-onbewezen-context/runs/2026-10-04_deterministisch.md) |
+| [BC-001](cases/BC-001-open-chat-simulatie/case.md) | BLP-001 | `blok-2` · `certum.bco.chat-simulatie` | Open Chat simulatie | [`PASS_WITH_NOTES`](cases/BC-001-open-chat-simulatie/runs/2026-10-04_training-block-content-v1.1_claude-opus-5-5_medium_bevestiging.md) |
+| [BC-002](cases/BC-002-voorgeschreven-productie/case.md) | BLP-002 | `blok-3` · `certum.bco.productie` | Voorgeschreven Productie | [`PASS`](cases/BC-002-voorgeschreven-productie/runs/2026-10-04_training-block-content-v1.1_claude-opus-5-5_medium_bevestiging.md) |
+| [BC-003](cases/BC-003-bron-zonder-gevalideerde-bron/case.md) | BLP-001 | `blok-5` · `certum.bco.tekst` | Bron zonder gevalideerde bron | [`PASS`](cases/BC-003-bron-zonder-gevalideerde-bron/runs/2026-10-04_deterministisch.md) |
+| [BC-004](cases/BC-004-media-zonder-asset/case.md) | BLP-001-MEDIA | `blok-1` · `certum.bco.video` | Media zonder asset | [`PASS`](cases/BC-004-media-zonder-asset/runs/2026-10-04_deterministisch.md) |
+| [BC-005](cases/BC-005-ai-feedback-onbewezen-context/case.md) | BLP-002-UNPROVEN-FEEDBACK | `blok-5` · `certum.bco.ai-feedback` | AI Feedback met uitsluitend onbewezen context (deterministisch) | [`PASS`](cases/BC-005-ai-feedback-onbewezen-context/runs/2026-10-04_deterministisch.md) |
 | [BC-006](cases/BC-006-reflectieve-open-vraag/case.md) | BLP-001 | `blok-3` · `certum.bco.open-vraag` | Reflectieve Open vraag | [`PASS_WITH_NOTES`](cases/BC-006-reflectieve-open-vraag/runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium.md) |
 | [BC-007](cases/BC-007-ai-feedback-bewezen-context/case.md) | BLP-003 | `blok-8` · `certum.bco.ai-feedback` | AI Feedback met bewezen context | [`PASS`](cases/BC-007-ai-feedback-bewezen-context/runs/2026-10-04_training-block-content-v1_claude-opus-5-5_medium_vervanging.md) |
 
@@ -128,3 +128,44 @@ de serverlog (Analysis, Blueprint en Block Plan deden geen calls).
 | BC-002 | productie | generated | 13077 | 8 | formative | ja | ja | Geen downstream-claim; `minimumWords: null` (trusted); geen andere lengte-eis |
 
 Betaalde Block Content-calls in totaal: 8 (4 baseline, 2 vervangend, 2 bevestiging).
+
+## Afsluiting Training Block Content V1/V1.1 (2026-10-04)
+
+| Eval | Definitieve status |
+| --- | --- |
+| BC-001 | `PASS_WITH_NOTES` |
+| BC-002 | `PASS` |
+| BC-003 | `PASS` |
+| BC-004 | `PASS` |
+| BC-005 | `PASS` |
+| BC-006 | `PASS_WITH_NOTES` |
+| BC-007 | `PASS` |
+
+### WATCH-items
+
+- **`persona_fact_drift`**: een fictieve identificatie (zoals een naam) mag nodig zijn voor een simulatie, maar
+  niet-gegeven eigenschappen (ervaring, leeftijd, functieduur, gezinssituatie of andere scenario-relevante
+  achtergrond) mogen niet ongemerkt als waarheid aan het scenario worden toegevoegd. Waarneming: "ervaren medewerker"
+  (BC-001, bevestiging v1.1). Eén waarneming is onvoldoende reden voor een nieuwe promptversie.
+- **`reflection_question_density`**: BC-006 bevatte vier deelvragen binnen één reflectievraag. Geen systeemwijziging;
+  monitoren in echte trainingen.
+
+### Interpretatie
+
+`sourceNeedRefs: []` (BC-002, bevestiging) is geen fout wanneer het contentblok zelf geen bronkennis nodig heeft.
+
+### Conclusie
+
+**Training Block Content V1/V1.1 is voldoende stabiel om te sluiten.**
+
+Bewezen is nu:
+
+- open simulatie → bruikbare route-neutrale content;
+- prescribed action → bruikbare beroepsopdracht;
+- reflectie → inhoudelijk gekoppelde reflectie;
+- AI Feedback → alleen bewezen context;
+- ontbrekende bron → `needs_source` zonder AI-call;
+- ontbrekende asset → `needs_asset` zonder AI-call;
+- onmogelijke capability → `blocked_by_capability` zonder AI-call.
+
+Verdere wijzigingen aan Block Content vereisen nieuw bewijs uit daadwerkelijk trainingsgebruik.

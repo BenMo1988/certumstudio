@@ -110,6 +110,11 @@ aanroep, geen retry. Gerepareerd runscript (ruwe respons bewaard, tekstchunks op
 
 ## Menselijke evaluatie
 
-**Status: `PENDING_REVIEW`**
+**Status: `PASS`** (beoordeeld 2026-10-04)
 
-Nog niet beoordeeld.
+De twee baseline-bevindingen zijn opgelost: geen claim dat de Productie later voor Feedback wordt gebruikt en
+`minimumWords: null` (trusted). De voorgeschreven handeling blijft intact, de opdracht is bruikbaar en er zijn geen
+nieuwe feiten, procedures of kwantitatieve eisen.
+
+`sourceNeedRefs: []` is **geen fout**: deze opdracht vraagt de deelnemer een melding te schrijven en steunt zelf niet
+op bronkennis. Een leeg `sourceNeedRefs` is juist wanneer een contentblok geen bronkennis nodig heeft.

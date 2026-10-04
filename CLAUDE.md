@@ -441,8 +441,8 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 8C, Blueprint Contract V2 en `training-blueprint/v2`: klaar en beoordeeld (2 PASS, 1 PASS_WITH_NOTES); gesloten.
 - Analysis Direction V2.1/V2.1.1 en Blueprint met trusted routebeleid: gesloten als één didactische keten.
 - Stap 9A, Claude-provider voor het BC Online Block Plan: klaar; BLP-baseline beoordeeld (3× PASS_WITH_NOTES), gesloten.
-- Stap 10A, Block Content Engine V1 en Training Content Package: fundering klaar, getest met mocks. Nog geen BC-run met
-  Claude.
+- Stap 10A/10B, Block Content V1/V1.1 en Training Content Package: klaar en gesloten (BC-001 t/m BC-007 beoordeeld;
+  WATCH: `persona_fact_drift`, `reflection_question_density`). Verdere wijzigingen vragen nieuw bewijs uit trainingsgebruik.
 
 Routes:
 - `/`: dashboard.
@@ -466,7 +466,7 @@ Er zijn vijf evalsets, elk met een eigen README:
 - `evals/privacy-preflight/` (PP-001 t/m PP-003): de lokale Privacy Preflight, zonder externe AI.
 - `evals/training-blueprint/` (BP-001 t/m BP-003): Blueprint en Block Plan; V1-baseline beoordeeld, V2-verwachtingen vastgelegd.
 - `evals/bc-online-block-plan/` (BLP-001 t/m BLP-003): Block Plan uit een goedgekeurde Blueprint; baseline beoordeeld.
-- `evals/training-block-content/` (BC-001 t/m BC-005): Block Content per blok; verwachtingen vastgelegd, nog geen run.
+- `evals/training-block-content/` (BC-001 t/m BC-007): Block Content per blok; baseline, bevestiging v1.1 en review; gesloten.
 
 Kwaliteitsbasis voor Certum Analyse staat in `evals/training-analysis/`. Er staat alleen
 synthetische data in en het is geen productiecode. Elke run wordt vastgelegd met promptVersion, model en effort.
