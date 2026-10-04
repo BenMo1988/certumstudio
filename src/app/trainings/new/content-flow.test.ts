@@ -134,12 +134,8 @@ describe("deterministische resultaten vóór providercreatie", () => {
     return { service, ...deps(service) };
   }
 
-  /** Synthetisch: BLP-002 met Reflectie als Productie, zodat AI Feedback (blok-5) geen eerder vraagblok heeft. */
-  function unprovenFeedbackCase() {
-    const ctx = fixtureCase("BLP-002");
-    ctx.blockPlan.plannedBlocks[3] = { ...ctx.blockPlan.plannedBlocks[3], catalogBlockId: "certum.bco.productie" };
-    return ctx;
-  }
+  /** BC-005: BLP-002 met Reflectie als Productie (synthetisch), zodat AI Feedback (blok-5) geen eerder vraagblok heeft. */
+  const unprovenFeedbackCase = () => fixtureCase("BLP-002-UNPROVEN-FEEDBACK");
 
   it.each([
     ["needs_source (Bron)", () => fixtureCase("BLP-001"), "blok-5", "needs_source"],

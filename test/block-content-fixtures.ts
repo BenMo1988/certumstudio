@@ -4,7 +4,7 @@ import blueprints from "./fixtures/approved-blueprints.json";
 import plans from "./fixtures/approved-block-plans.json";
 
 /** Alleen voor tests: goedgekeurde Blueprints en Block Plans uit de BLP-evals (synthetische data). */
-export type PlanCaseId = "BLP-001" | "BLP-002" | "BLP-003" | "BLP-001-MEDIA";
+export type PlanCaseId = "BLP-001" | "BLP-002" | "BLP-003" | "BLP-001-MEDIA" | "BLP-002-UNPROVEN-FEEDBACK";
 
 type PlanCase = { blueprint: string; plan: BcOnlineBlockPlan };
 

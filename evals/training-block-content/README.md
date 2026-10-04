@@ -38,4 +38,16 @@ persistence → preview → Accreditation Readiness. De BC Online Adapter blijft
 | [BC-002](cases/BC-002-voorgeschreven-productie/case.md) | BLP-002 | `blok-3` · `certum.bco.productie` | Voorgeschreven Productie | `NOT_RUN` |
 | [BC-003](cases/BC-003-bron-zonder-gevalideerde-bron/case.md) | BLP-001 | `blok-5` · `certum.bco.tekst` | Bron zonder gevalideerde bron | `NOT_RUN` |
 | [BC-004](cases/BC-004-media-zonder-asset/case.md) | BLP-001-MEDIA | `blok-1` · `certum.bco.video` | Media zonder asset | `NOT_RUN` |
-| [BC-005](cases/BC-005-ai-feedback-onbewezen-context/case.md) | BLP-003 | `blok-8` · `certum.bco.ai-feedback` | AI Feedback met onbewezen inputdependency | `NOT_RUN` |
+| [BC-005](cases/BC-005-ai-feedback-onbewezen-context/case.md) | BLP-002-UNPROVEN-FEEDBACK | `blok-5` · `certum.bco.ai-feedback` | AI Feedback met uitsluitend onbewezen context (deterministisch) | `NOT_RUN` |
+| [BC-006](cases/BC-006-reflectieve-open-vraag/case.md) | BLP-001 | `blok-3` · `certum.bco.open-vraag` | Reflectieve Open vraag | `NOT_RUN` |
+| [BC-007](cases/BC-007-ai-feedback-bewezen-context/case.md) | BLP-003 | `blok-8` · `certum.bco.ai-feedback` | AI Feedback met bewezen context | `NOT_RUN` |
+
+## Betaald en deterministisch
+
+Claude wordt alleen aangeroepen als een blok werkelijk `generated` kan worden. Bron, media en AI Feedback zonder
+aantoonbare context bepaalt de server zelf, zonder provider.
+
+| Soort | Evals |
+| --- | --- |
+| Betaald (één Claude-aanroep per case) | BC-001, BC-002, BC-006, BC-007 |
+| Deterministisch (0 providercreaties) | BC-003 (`needs_source`), BC-004 (`needs_asset`), BC-005 (`blocked_by_capability`) |
