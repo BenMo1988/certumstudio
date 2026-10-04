@@ -110,7 +110,8 @@ export function TrainingWorkflow({ initial }: { initial: TrainingWorkspaceView }
       <div className="mt-6">
         <FlowSteps current={step} />
       </div>
-      <ProgressSummary ws={ws} />
+      {/* Op de stap Content staan de blokaantallen in de reviewwerkplek; hier niet nog eens. */}
+      <ProgressSummary ws={ws} showContentCounts={step !== "Content"} />
       {errorNotice}
 
       {step === "Analyse" && (
@@ -212,7 +213,7 @@ export function TrainingWorkflow({ initial }: { initial: TrainingWorkspaceView }
 }
 
 /** Waar de training staat, afgeleid op de server uit de opgeslagen revisions en besluiten. */
-function ProgressSummary({ ws }: { ws: TrainingWorkspaceView }) {
+function ProgressSummary({ ws, showContentCounts }: { ws: TrainingWorkspaceView; showContentCounts: boolean }) {
   const p = ws.progress;
   const done = (stages: WorkflowStage[]) => !stages.includes(p.stage);
   const items: [string, boolean][] = [
@@ -238,7 +239,7 @@ function ProgressSummary({ ws }: { ws: TrainingWorkspaceView }) {
           </li>
         ))}
       </ul>
-      {p.totalBlocks > 0 && (p.storedBlocks > 0 || p.stage.startsWith("content") || p.stage === "training_ready") && (
+      {showContentCounts && p.totalBlocks > 0 && (p.storedBlocks > 0 || p.stage.startsWith("content") || p.stage === "training_ready") && (
         <p className="mt-2 text-sm text-ink" data-testid="content-counts">
           {p.generatedBlocks}/{p.totalBlocks} contentblokken gereed · {p.approvedBlocks}/{p.totalBlocks} goedgekeurd
           {p.unresolved.source > 0 && ` · ${p.unresolved.source} bron vereist`}
