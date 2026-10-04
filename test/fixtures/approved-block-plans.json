@@ -1,0 +1,985 @@
+{
+  "_note": "Goedgekeurde BC Online Block Plans als input voor Block Content Generation. BLP-001/002/003 zijn letterlijk de menselijk beoordeelde Block Plans uit evals/bc-online-block-plan (BLP-003: bevestigingsrun 2). BLP-001-MEDIA is synthetisch: BLP-001 met het Context-blok vervangen door een Video-blok. Niet wijzigen.",
+  "cases": {
+    "BLP-001": {
+      "blueprint": "BLP-001",
+      "synthetic": false,
+      "plan": {
+        "version": "bc-online-block-plan/v1",
+        "blueprintVersion": "blueprint-contract/v2",
+        "courseShell": {
+          "title": "Privégrens respecteren en werkverantwoordelijkheid bewaken",
+          "description": "Praktijksimulatie voor leidinggevenden over een gesprek waarin een medewerker een grens aangeeft rond zijn privésituatie, terwijl deadlines en afspraken onder druk staan. De deelnemer voert het gesprek, weegt grens en werkverantwoordelijkheid af en toetst zijn aanpak aan gevalideerde kennis.",
+          "estimatedDurationMinutes": null,
+          "skjPoints": null,
+          "status": "concept"
+        },
+        "startIntent": {
+          "explanationIntent": "Uitleggen dat de deelnemer de rol van teamleider aanneemt in een lopend gesprek, dat er meerdere verdedigbare aanpakken zijn, dat hij zelf een aanpak kiest, uitvoert en onderbouwt, en dat de training verloopt via context, gesprek, reflectie, feedback, bron en een nieuwe situatie.",
+          "estimatedDurationMinutes": null,
+          "learningGoals": [
+            "De deelnemer kan afwegen hoe hij de door een medewerker aangegeven grens rond privéomstandigheden respecteert en tegelijk verantwoordelijkheid houdt voor het werk en het team, en kan zijn gekozen aanpak onderbouwen in het licht van de situatie en de mogelijke consequenties."
+          ]
+        },
+        "plannedBlocks": [
+          {
+            "id": "blok-1",
+            "sequence": 1,
+            "certumPhase": "context",
+            "catalogBlockId": "certum.bco.tekst",
+            "purpose": "De deelnemer kent de situatie: gemiste deadlines, niet nagekomen afspraken, gevolgen voor het team en het zojuist uitgesproken signaal van de medewerker dat er privé veel speelt maar dat hij daar niet over wil praten.",
+            "whyThisBlock": "Een korte situatieschets volstaat om de spanning neer te zetten direct voor het gesprek; geen extra media nodig.",
+            "configurationIntent": [
+              {
+                "setting": "situatieschets",
+                "intent": "Beschrijven wat de teamleider weet over gemiste deadlines, afspraken en teamgevolgen, en het moment direct nadat de medewerker zijn grens heeft aangegeven."
+              },
+              {
+                "setting": "bewuste onzekerheid",
+                "intent": "Niet invullen wat er privé speelt, hoe lang het duurt of hoe de medewerker de gevolgen inschat."
+              }
+            ]
+          },
+          {
+            "id": "blok-2",
+            "sequence": 2,
+            "certumPhase": "actie",
+            "catalogBlockId": "certum.bco.chat-simulatie",
+            "purpose": "De deelnemer voert het vervolg van het lopende gesprek met de medewerker en bepaalt zelf hoe hij omgaat met de grens en met de gevolgen voor werk en team.",
+            "whyThisBlock": "Het performancetype is gesprek voeren met open keuze; een AI-rollenspel laat de deelnemer handelen in het moment zonder één juist antwoord op te leggen.",
+            "configurationIntent": [
+              {
+                "setting": "rol fictieve persoon",
+                "intent": "De AI speelt de medewerker die zojuist heeft aangegeven niet over zijn privésituatie te willen praten en die grens consequent bewaakt, maar wel reageert op vragen over werk en afspraken."
+              },
+              {
+                "setting": "startmoment",
+                "intent": "Het gesprek begint direct na de uitspraak van de medewerker over zijn grens."
+              },
+              {
+                "setting": "gespreksdoel sleutelwoorden",
+                "intent": "Niet gebruiken, omdat sleutelwoorden geen professioneel redeneren beoordelen en meerdere routes verdedigbaar zijn."
+              },
+              {
+                "setting": "tijdslimiet",
+                "intent": "Ruim instellen of uitlaten zodat de deelnemer zijn gekozen aanpak volledig kan uitvoeren."
+              }
+            ]
+          },
+          {
+            "id": "blok-3",
+            "sequence": 3,
+            "certumPhase": "reflectie",
+            "catalogBlockId": "certum.bco.open-vraag",
+            "purpose": "De deelnemer kijkt terug op zijn gekozen aanpak, beschrijft wat hij wel en niet aansneed, en weegt expliciet de privégrens af tegen werk en team inclusief consequenties voor medewerker, werkrelatie en team.",
+            "whyThisBlock": "Een open antwoord maakt de eigen afweging zichtbaar en levert de input waarop AI Feedback kan reageren.",
+            "configurationIntent": [
+              {
+                "setting": "opdracht",
+                "intent": "Vragen om een korte weergave van het eigen gespreksverloop, de afweging tussen grens en werkverantwoordelijkheid en de verwachte consequenties."
+              },
+              {
+                "setting": "voorbeeldantwoord",
+                "intent": "Geen voorbeeldantwoord tonen dat één route als juist suggereert."
+              }
+            ]
+          },
+          {
+            "id": "blok-4",
+            "sequence": 4,
+            "certumPhase": "feedback",
+            "catalogBlockId": "certum.bco.ai-feedback",
+            "purpose": "De deelnemer krijgt feedback op de omgang met de privégrens, het bewaken van werkverantwoordelijkheid en de onderbouwing van afweging en consequenties.",
+            "whyThisBlock": "AI Feedback kan reageren op het eerdere open antwoord en zo inhoudelijk ingaan op de afweging zonder een route als juist aan te wijzen.",
+            "configurationIntent": [
+              {
+                "setting": "bronantwoorden",
+                "intent": "Het reflectieantwoord als context meegeven."
+              },
+              {
+                "setting": "feedbackdimensies",
+                "intent": "Feedback richten op de drie dimensies uit de Blueprint en op afweging, aansluiting op de situatie, consequenties en uitvoering."
+              },
+              {
+                "setting": "meerdere verdedigbare routes",
+                "intent": "Instrueren dat niet de gekozen route wordt beoordeeld maar de aansluiting, de weging van beide kanten, de consequenties en de consistentie tussen beschreven handelen en onderbouwing."
+              }
+            ]
+          },
+          {
+            "id": "blok-5",
+            "sequence": 5,
+            "certumPhase": "bron",
+            "catalogBlockId": "certum.bco.tekst",
+            "purpose": "De deelnemer legt zijn eigen aanpak naast gevalideerde kennis over de handelingsruimte van een leidinggevende rond privéomstandigheden en over methodische principes voor het bespreken van werkafspraken.",
+            "whyThisBlock": "Tekstweergave is het eenvoudigste middel om later gevalideerde broninhoud bij SN1 en SN2 te tonen na handelen, reflectie en feedback.",
+            "configurationIntent": [
+              {
+                "setting": "broninhoud",
+                "intent": "Later gevalideerde kennis tonen die antwoord geeft op SN1 en SN2; geen inhoud verzinnen voordat validatie heeft plaatsgevonden."
+              },
+              {
+                "setting": "vergelijkingsopdracht",
+                "intent": "De deelnemer uitnodigen zijn eigen afweging en uitvoering naast de bron te leggen en te zien wat wordt versterkt of herzien."
+              }
+            ]
+          },
+          {
+            "id": "blok-6",
+            "sequence": 6,
+            "certumPhase": "toets",
+            "catalogBlockId": "certum.bco.tekst",
+            "purpose": "De deelnemer maakt kennis met een nieuwe situatie: een vervolggesprek waarin de gevolgen voor het team groter zijn geworden of teamleden ernaar vragen, terwijl de grens van de medewerker blijft bestaan.",
+            "whyThisBlock": "Een korte situatieschets introduceert het nieuwe keuzemoment voor transfer zonder extra middelen.",
+            "configurationIntent": [
+              {
+                "setting": "nieuwe situatie",
+                "intent": "De gewijzigde omstandigheden beschrijven ten opzichte van het eerste gesprek, met behoud van de grens van de medewerker."
+              }
+            ]
+          },
+          {
+            "id": "blok-7",
+            "sequence": 7,
+            "certumPhase": "toets",
+            "catalogBlockId": "certum.bco.chat-simulatie",
+            "purpose": "De deelnemer kiest en voert opnieuw een eigen aanpak uit in het vervolggesprek met de medewerker.",
+            "whyThisBlock": "Transfer van het handelen in een gesprek wordt het best zichtbaar in hetzelfde gespreksformat, zonder juist-foutbeoordeling.",
+            "configurationIntent": [
+              {
+                "setting": "rol fictieve persoon",
+                "intent": "De AI speelt dezelfde medewerker in de nieuwe fase, die zijn privégrens handhaaft terwijl de teamgevolgen groter zijn."
+              },
+              {
+                "setting": "gespreksdoel sleutelwoorden",
+                "intent": "Niet gebruiken, omdat meerdere routes verdedigbaar zijn."
+              }
+            ]
+          },
+          {
+            "id": "blok-8",
+            "sequence": 8,
+            "certumPhase": "toets",
+            "catalogBlockId": "certum.bco.open-vraag",
+            "purpose": "De deelnemer onderbouwt zijn aanpak in de nieuwe situatie en maakt zichtbaar welke elementen zijn keuze anders of juist hetzelfde maken, inclusief consequenties.",
+            "whyThisBlock": "Een open antwoord maakt transfer van de afweging en onderbouwing zichtbaar en dient als input voor de terugkoppeling.",
+            "configurationIntent": [
+              {
+                "setting": "opdracht",
+                "intent": "Vragen om een korte weergave van het gevoerde vervolggesprek, de onderbouwing en de vergelijking met de eerdere keuze."
+              }
+            ]
+          },
+          {
+            "id": "blok-9",
+            "sequence": 9,
+            "certumPhase": "toets",
+            "catalogBlockId": "certum.bco.ai-feedback",
+            "purpose": "De deelnemer krijgt terugkoppeling op zijn transferaanpak op afweging, aansluiting op de situatie, consequenties en onderbouwing.",
+            "whyThisBlock": "AI Feedback kan reageren op het toetsantwoord en op de eerdere reflectie, zodat de ontwikkeling in afweging zichtbaar wordt.",
+            "configurationIntent": [
+              {
+                "setting": "bronantwoorden",
+                "intent": "Het toetsantwoord en het eerdere reflectieantwoord als context meegeven."
+              },
+              {
+                "setting": "beoordelingsbasis",
+                "intent": "Terugkoppelen op afweging, aansluiting op situatie, consequenties en onderbouwing zonder een route als enig juiste te behandelen."
+              }
+            ]
+          }
+        ],
+        "endIntent": {
+          "closingIntent": "De deelnemer sluit af met het besef dat er meerdere verdedigbare aanpakken zijn en dat het gaat om een zichtbare afweging tussen de privégrens van de medewerker en de verantwoordelijkheid voor werk en team, inclusief de consequenties daarvan.",
+          "summaryIntent": "Kort terugblikken op de kern van het dilemma en de drie feedbackdimensies: omgaan met de privégrens, bewaken van werkverantwoordelijkheid en onderbouwing van afweging en consequenties.",
+          "followUpRecommendation": "Aanraden om de eigen afweging in een volgend praktijkgesprek bewust toe te passen en te bespreken met een collega-leidinggevende of in intervisie."
+        },
+        "capabilityGaps": [
+          {
+            "certumPhase": "feedback",
+            "need": "Feedback die rechtstreeks reageert op het daadwerkelijk gevoerde gesprek in de chatsimulatie, naast de onderbouwing van de gekozen aanpak.",
+            "whyNeeded": "De Blueprint vraagt feedback op zowel het gevoerde gesprek als de onderbouwing, inclusief de consistentie tussen uitvoering en afweging. Niet aangetoond is dat AI Feedback het chatverloop als context ontvangt; alleen antwoorden op eerdere vraagblokken zijn aangetoond.",
+            "workaround": {
+              "type": "partial",
+              "description": "In het reflectieblok (Open vraag) beschrijft de deelnemer zelf wat hij in het gesprek heeft gezegd en aangesneden; AI Feedback reageert op die beschrijving en op de onderbouwing.",
+              "limitation": "De feedback is gebaseerd op zelfrapportage van de deelnemer en niet op de werkelijke uitvoering in het gesprek, waardoor de consistentie tussen handelen en onderbouwing niet betrouwbaar wordt beoordeeld."
+            }
+          },
+          {
+            "certumPhase": "toets",
+            "need": "Terugkoppeling op de uitvoering van het transfergesprek in de chatsimulatie van de toetsfase.",
+            "whyNeeded": "De toets vraagt dat de deelnemer opnieuw een aanpak kiest, uitvoert en onderbouwt; beoordeling van de uitvoering vereist dat het gesprek zelf als context beschikbaar is, wat niet is aangetoond.",
+            "workaround": {
+              "type": "partial",
+              "description": "Na het transfergesprek beschrijft en onderbouwt de deelnemer in een Open vraag zijn aanpak en wat hij in het gesprek deed; AI Feedback reageert daarop.",
+              "limitation": "De uitvoering in het gesprek zelf wordt niet aantoonbaar beoordeeld; de terugkoppeling steunt op de eigen weergave van de deelnemer."
+            }
+          }
+        ]
+      }
+    },
+    "BLP-002": {
+      "blueprint": "BLP-002",
+      "synthetic": false,
+      "plan": {
+        "version": "bc-online-block-plan/v1",
+        "blueprintVersion": "blueprint-contract/v2",
+        "courseShell": {
+          "title": "Nooduitgang direct vrijmaken ondanks verzoek collega om te wachten",
+          "description": "Praktijksimulatie voor begeleiders van groepsactiviteiten waarin de deelnemer een geblokkeerde nooduitgang direct vrijmaakt ondanks het verzoek van een collega om te wachten, dit aan de collega verantwoordt en daarna meldt aan de verantwoordelijke.",
+          "estimatedDurationMinutes": null,
+          "skjPoints": null,
+          "status": "concept"
+        },
+        "startIntent": {
+          "explanationIntent": "Uitleggen dat de deelnemer als begeleider in een lopende groepsactiviteit terechtkomt, een gesprek voert met een collega en een melding schrijft, daarna terugkijkt, feedback krijgt, gevalideerde kennis bekijkt en tot slot in een gewijzigde situatie opnieuw handelt. Benoemen dat de deelnemer de dozen zelf mag weghalen en weet wie de verantwoordelijke is.",
+          "estimatedDurationMinutes": null,
+          "learningGoals": [
+            "De deelnemer kan de nooduitgang direct vrijmaken en dit daarna melden aan de verantwoordelijke, en kan aan de collega uitleggen waarom het verzoek om te wachten niet wordt gevolgd."
+          ]
+        },
+        "plannedBlocks": [
+          {
+            "id": "blok-1",
+            "sequence": 1,
+            "certumPhase": "context",
+            "catalogBlockId": "certum.bco.tekst",
+            "purpose": "De situatie schetsen op het moment dat de collega vraagt te wachten: lopende groepsactiviteit, geblokkeerde nooduitgang door gestapelde dozen, de zorg over onrust en de geldende vaste instructie.",
+            "whyThisBlock": "Een korte tekstuele situatieschets volstaat om de spanning neer te zetten; de sector blijft bewust onbepaald, wat beeld of video minder geschikt maakt.",
+            "configurationIntent": [
+              {
+                "setting": "situatieschets",
+                "intent": "Startmoment leggen bij het verzoek van de collega, met de vaste instructie en de handelingsruimte van de deelnemer expliciet genoemd en zonder sector of setting vast te leggen."
+              },
+              {
+                "setting": "bewust onbekend",
+                "intent": "Niet beschrijven hoe groep en collega zullen reageren of of de nooduitgang tijdens de activiteit nodig zal zijn."
+              }
+            ]
+          },
+          {
+            "id": "blok-2",
+            "sequence": 2,
+            "certumPhase": "actie",
+            "catalogBlockId": "certum.bco.chat-simulatie",
+            "purpose": "De deelnemer voert in het moment het gesprek met de collega: reageert op het verzoek, geeft aan direct vrij te maken, verantwoordt de keuze en gaat in op de zorg over onrust.",
+            "whyThisBlock": "Het performancetype is gesprek voeren; alleen de chatsimulatie laat de deelnemer reageren op een collega die het belang van rust vooropstelt.",
+            "configurationIntent": [
+              {
+                "setting": "rol fictieve persoon",
+                "intent": "De AI speelt de collega die vriendelijk maar overtuigd vraagt te wachten tot na afloop vanwege onrust in de groep en doorvraagt op de uitleg."
+              },
+              {
+                "setting": "gespreksdoel sleutelwoorden",
+                "intent": "Geen sleutelwoorddoel als beoordeling gebruiken; het gesprek eindigt via een tijdslimiet of natuurlijke afronding."
+              },
+              {
+                "setting": "tijdslimiet",
+                "intent": "Een beperkte gesprekstijd instellen die past bij de urgentie van de situatie en daarna automatisch doorgaan."
+              }
+            ]
+          },
+          {
+            "id": "blok-3",
+            "sequence": 3,
+            "certumPhase": "actie",
+            "catalogBlockId": "certum.bco.productie",
+            "purpose": "De deelnemer schrijft na het vrijmaken de melding aan de verantwoordelijke als professioneel product.",
+            "whyThisBlock": "Melden is een vast onderdeel van de voorgeschreven handelingslijn en levert een concreet product op dat later aan verwachtingen kan worden getoetst.",
+            "configurationIntent": [
+              {
+                "setting": "opdracht",
+                "intent": "De deelnemer vragen de melding te schrijven zoals hij die na het vrijmaken aan de verantwoordelijke zou doen."
+              },
+              {
+                "setting": "sjabloon",
+                "intent": "Geen inhoudelijk sjabloon dat de te melden informatie voorzegt, zodat zichtbaar wordt wat de deelnemer zelf opneemt."
+              },
+              {
+                "setting": "minimum woorden",
+                "intent": "Een laag minimum instellen dat een volledige maar beknopte melding mogelijk maakt."
+              }
+            ]
+          },
+          {
+            "id": "blok-4",
+            "sequence": 4,
+            "certumPhase": "reflectie",
+            "catalogBlockId": "certum.bco.open-vraag",
+            "purpose": "De deelnemer kijkt terug op de eigen reactie: wanneer de nooduitgang is vrijgemaakt, wat hij de collega heeft uitgelegd, hoe hij met de zorg over onrust omging en of hij heeft gemeld, en expliciteert de afweging tussen veiligheid en rust.",
+            "whyThisBlock": "Een open vraag laat de deelnemer de afweging en het eigen handelen in eigen woorden vastleggen en levert tevens context voor AI Feedback.",
+            "configurationIntent": [
+              {
+                "setting": "vraagopdracht",
+                "intent": "Laten beschrijven wat de deelnemer deed en zei in het gesprek, op welk moment hij vrijmaakte en waarom de vaste instructie hier leidend is boven de onrust."
+              },
+              {
+                "setting": "voorbeeldantwoord",
+                "intent": "Een voorbeeldantwoord opnemen dat de voorgeschreven handelingslijn en de afweging illustreert, te tonen na indienen."
+              }
+            ]
+          },
+          {
+            "id": "blok-5",
+            "sequence": 5,
+            "certumPhase": "feedback",
+            "catalogBlockId": "certum.bco.ai-feedback",
+            "purpose": "Feedback geven op uitvoering van de handelingslijn, de verantwoording tegenover de collega en de omgang met diens zorg.",
+            "whyThisBlock": "AI Feedback kan de antwoorden uit de reflectievraag en de melding als context gebruiken en per dimensie terugkoppelen.",
+            "configurationIntent": [
+              {
+                "setting": "context eerdere antwoorden",
+                "intent": "De open reflectievraag en de productie van de melding als input meegeven."
+              },
+              {
+                "setting": "beoordelingsdimensies",
+                "intent": "Feedback structureren langs de drie dimensies uit de Blueprint, op basis van voorgeschreven handeling, onderbouwing en uitvoering, met uitstel van vrijmaken als duidelijk aandachtspunt."
+              }
+            ]
+          },
+          {
+            "id": "blok-6",
+            "sequence": 6,
+            "certumPhase": "bron",
+            "catalogBlockId": "certum.bco.tekst",
+            "purpose": "Later gevalideerde kennis tonen over de onderbouwing van vrije nooduitgangen en risico's van tijdelijke blokkade, en over wat een melding aan de verantwoordelijke inhoudt.",
+            "whyThisBlock": "Tekst is het eenvoudigste middel om gevalideerde broninhoud bij SN1 en SN2 weer te geven; welke bron dat wordt staat nog niet vast.",
+            "configurationIntent": [
+              {
+                "setting": "broninhoud",
+                "intent": "Uitsluitend later gevalideerde inhoud voor SN1 en SN2 opnemen; voor SN2 het organisatiebeleid van de werksituatie, voor SN1 een nog te bepalen brontype."
+              }
+            ]
+          },
+          {
+            "id": "blok-7",
+            "sequence": 7,
+            "certumPhase": "bron",
+            "catalogBlockId": "certum.bco.open-vraag",
+            "purpose": "De deelnemer koppelt de bron aan de eigen uitleg en melding en benoemt waar zijn verantwoording sterker of vollediger kan.",
+            "whyThisBlock": "Het leerdoel van Bron vraagt actieve koppeling aan het eigen handelen; een korte open vraag maakt die koppeling expliciet.",
+            "configurationIntent": [
+              {
+                "setting": "vraagopdracht",
+                "intent": "Laten benoemen welk element uit de bron de uitleg aan de collega of de melding had versterkt of aangevuld."
+              }
+            ]
+          },
+          {
+            "id": "blok-8",
+            "sequence": 8,
+            "certumPhase": "toets",
+            "catalogBlockId": "certum.bco.tekst",
+            "purpose": "De nieuwe situatie schetsen: opnieuw een geblokkeerde nooduitgang, nu met een verzoek om te wachten met meer aandrang of van een andere betrokkene, met tijdsdruk door het einde van de activiteit.",
+            "whyThisBlock": "Een korte tekstuele schets introduceert het nieuwe keuzemoment zonder extra middelen.",
+            "configurationIntent": [
+              {
+                "setting": "transfersituatie",
+                "intent": "De gewijzigde druk en de andere betrokkene neerzetten, met dezelfde vaste instructie en handelingsruimte."
+              }
+            ]
+          },
+          {
+            "id": "blok-9",
+            "sequence": 9,
+            "certumPhase": "toets",
+            "catalogBlockId": "certum.bco.chat-simulatie",
+            "purpose": "De deelnemer laat in het nieuwe gesprek opnieuw zien dat hij direct vrijmaakt en de keuze zelfstandig verantwoordt onder grotere druk.",
+            "whyThisBlock": "Transfer van een gespreksprestatie vraagt opnieuw een gesprek in het moment.",
+            "configurationIntent": [
+              {
+                "setting": "rol fictieve persoon",
+                "intent": "De AI speelt de nieuwe betrokkene die met meer aandrang en verwijzing naar tijdsdruk vraagt te wachten."
+              },
+              {
+                "setting": "gespreksdoel sleutelwoorden",
+                "intent": "Geen sleutelwoorddoel als beoordeling gebruiken."
+              },
+              {
+                "setting": "tijdslimiet",
+                "intent": "Een korte gesprekstijd instellen die de tijdsdruk versterkt en daarna automatisch doorgaan."
+              }
+            ]
+          },
+          {
+            "id": "blok-10",
+            "sequence": 10,
+            "certumPhase": "toets",
+            "catalogBlockId": "certum.bco.open-vraag",
+            "purpose": "De deelnemer legt vast wat hij in de nieuwe situatie deed, hoe hij zijn keuze onderbouwde met de reden achter de instructie en wat hij aan de verantwoordelijke meldt.",
+            "whyThisBlock": "Een open vraag maakt handelen, onderbouwing en melding als transferbewijs beschikbaar voor beoordeling.",
+            "configurationIntent": [
+              {
+                "setting": "vraagopdracht",
+                "intent": "Laten beschrijven wanneer werd vrijgemaakt, welke uitleg aan de betrokkene werd gegeven en welke melding volgt."
+              },
+              {
+                "setting": "voorbeeldantwoord",
+                "intent": "Een voorbeeldantwoord opnemen dat de handelingslijn onder tijdsdruk illustreert."
+              }
+            ]
+          },
+          {
+            "id": "blok-11",
+            "sequence": 11,
+            "certumPhase": "toets",
+            "catalogBlockId": "certum.bco.ai-feedback",
+            "purpose": "Terugkoppeling op de transferopdracht langs voorgeschreven handeling, onderbouwing en uitvoering.",
+            "whyThisBlock": "AI Feedback kan het transferantwoord als context gebruiken en beoordelen of de deelnemer zich niet liet afleiden door de nieuwe druk.",
+            "configurationIntent": [
+              {
+                "setting": "context eerdere antwoorden",
+                "intent": "De open vraag uit de toetsfase als input meegeven."
+              },
+              {
+                "setting": "beoordelingsbasis",
+                "intent": "Beoordelen op direct vrijmaken, daarna melden en zelfstandige onderbouwing met de reden achter de instructie."
+              }
+            ]
+          }
+        ],
+        "endIntent": {
+          "closingIntent": "De training afsluiten met de bevestiging dat de deelnemer de vaste instructie heeft uitgevoerd en verantwoord in twee situaties: direct vrijmaken, daarna melden en de collega of andere betrokkene uitleggen waarom het verzoek om te wachten niet wordt gevolgd.",
+          "summaryIntent": "Kort de voorgeschreven handelingslijn samenvatten: direct vrijmaken, de keuze uitleggen met verwijzing naar de instructie en het doel van een vrije nooduitgang, de zorg over onrust benoemen zonder uit te stellen, en daarna melden aan de verantwoordelijke.",
+          "followUpRecommendation": "De deelnemer aanmoedigen om in de eigen werksituatie na te gaan wie de verantwoordelijke is voor meldingen en hoe de vaste instructie daar is vastgelegd."
+        },
+        "capabilityGaps": [
+          {
+            "certumPhase": "actie",
+            "need": "Het daadwerkelijk en direct vrijmaken van de nooduitgang als handeling uitvoeren en het moment daarvan zichtbaar maken, naast het gesprek met de collega.",
+            "whyNeeded": "Het eerste succescriterium vraagt dat de deelnemer direct vrijmaakt; in een chatgesprek is alleen zichtbaar wat de deelnemer zegt te doen, niet wanneer en of hij het doet.",
+            "workaround": {
+              "type": "partial",
+              "description": "In de chatsimulatie en in de reflectievraag benoemt de deelnemer expliciet wanneer en hoe hij de dozen weghaalt ten opzichte van het gesprek met de collega.",
+              "limitation": "De handeling zelf en de timing ervan worden niet waargenomen maar alleen verwoord; uitstel in de werkelijke uitvoering is niet meetbaar."
+            }
+          },
+          {
+            "certumPhase": "feedback",
+            "need": "AI Feedback die het gevoerde chatgesprek met de collega als context gebruikt om uitvoering, verantwoording en omgang met de zorg van de collega te beoordelen.",
+            "whyNeeded": "Feedback moet reageren op het uitgevoerde handelen en de uitleg aan de collega; dat gebeurt in de chatsimulatie, terwijl niet is aangetoond dat AI Feedback het chatverloop ontvangt.",
+            "workaround": {
+              "type": "partial",
+              "description": "Na de chatsimulatie legt de deelnemer in een open vraag vast wat hij deed en zei; AI Feedback gebruikt die antwoorden en de geschreven melding als context.",
+              "limitation": "De feedback berust op de eigen weergave van de deelnemer, niet op het werkelijke gesprek; verschillen tussen gezegd en gerapporteerd blijven onzichtbaar."
+            }
+          },
+          {
+            "certumPhase": "toets",
+            "need": "Beoordeling van de transferprestatie op basis van het gevoerde gesprek in de nieuwe situatie met meer aandrang of tijdsdruk.",
+            "whyNeeded": "De toets vraagt dat de deelnemer opnieuw handelt en zelfstandig onderbouwt zonder zich te laten afleiden; dat blijkt uit het gesprek, dat niet aantoonbaar als context voor AI Feedback beschikbaar is.",
+            "workaround": {
+              "type": "partial",
+              "description": "Na de transfer-chatsimulatie legt de deelnemer in een open vraag zijn handelen, onderbouwing en melding vast; AI Feedback beoordeelt dat antwoord.",
+              "limitation": "De beoordeling van de transfer steunt op zelfrapportage en niet op het werkelijke gespreksverloop onder druk."
+            }
+          }
+        ]
+      }
+    },
+    "BLP-003": {
+      "blueprint": "BLP-003",
+      "synthetic": false,
+      "plan": {
+        "version": "bc-online-block-plan/v1",
+        "blueprintVersion": "blueprint-contract/v2",
+        "courseShell": {
+          "title": "Synthetisch: volgorde van contacten met route-afhankelijk vervolg",
+          "description": "Praktijksimulatie voor jeugdprofessionals over de volgorde van contacten met school en gezin wanneer beide de jongere verschillend beschrijven. De deelnemer weegt eerst verhelderen bij school af tegen eerst open bespreken met ouder en jongere, maakt een gemotiveerde keuze en werkt de eerste stap uit.",
+          "estimatedDurationMinutes": null,
+          "skjPoints": null,
+          "status": "concept"
+        },
+        "startIntent": {
+          "explanationIntent": "Uitleggen dat de deelnemer een situatie doorloopt met meerdere verdedigbare routes en dat er geen goed of fout antwoord is. Benadrukken dat de kwaliteit van de afweging en onderbouwing centraal staat. Kort de opbouw toelichten: situatie, keuze en uitwerking, terugblik, feedback, bronkoppeling en een nieuwe situatie.",
+          "estimatedDurationMinutes": null,
+          "learningGoals": [
+            "De deelnemer kan de voor- en nadelen van eerst school benaderen versus eerst het gezin spreken tegen elkaar afwegen en een gemotiveerde keuze maken."
+          ]
+        },
+        "plannedBlocks": [
+          {
+            "id": "blok-1",
+            "sequence": 1,
+            "certumPhase": "context",
+            "catalogBlockId": "certum.bco.tekst",
+            "purpose": "De situatie schetsen vanuit de rol van de jeugdprofessional op de dag vóór het geplande gezinsgesprek. Daarin komen het ontbreken van acute veiligheidszorgen en de praktische mogelijkheid om school nog te benaderen aan bod.",
+            "whyThisBlock": "Een tekstuele situatieschets is het eenvoudigste middel om rol, tijdstip en randvoorwaarden helder neer te zetten.",
+            "configurationIntent": [
+              {
+                "setting": "situatieschets",
+                "intent": "De rol, de dag vóór het gezinsgesprek, de afwezigheid van acute zorgen en de nog bestaande mogelijkheid om school te benaderen beschrijven. Dit volgt de aanname uit de Blueprint."
+              },
+              {
+                "setting": "bewust onbekend",
+                "intent": "Niets vermelden over instemming van ouder en jongere met het schoolcontact, over de leeftijd van de jongere of over diens aanwezigheid bij het gesprek."
+              }
+            ]
+          },
+          {
+            "id": "blok-2",
+            "sequence": 2,
+            "certumPhase": "context",
+            "catalogBlockId": "certum.bco.whatsapp-email",
+            "purpose": "De deelnemer laten zien hoe school en ouder de jongere elk verschillend beschrijven. Zo voelt hij de spanning tussen beide perspectieven.",
+            "whyThisBlock": "Gesimuleerde berichten maken de twee uiteenlopende perspectieven realistisch zichtbaar zonder dat de deelnemer hoeft te antwoorden.",
+            "configurationIntent": [
+              {
+                "setting": "bericht school",
+                "intent": "Een bericht van school over teruggetrokken en gespannen gedrag van de jongere."
+              },
+              {
+                "setting": "bericht ouder",
+                "intent": "Een bericht van de ouder die dit thuis niet herkent en vindt dat school het probleem groter maakt dan het is."
+              }
+            ]
+          },
+          {
+            "id": "blok-3",
+            "sequence": 3,
+            "certumPhase": "actie",
+            "catalogBlockId": "certum.bco.poll",
+            "purpose": "De deelnemer kiest welke volgorde van contacten hij hanteert: eerst school of eerst het gezin.",
+            "whyThisBlock": "Een poll legt een routekeuze vast zonder juist antwoord en past daarmee bij meerdere verdedigbare handelingen.",
+            "configurationIntent": [
+              {
+                "setting": "opties",
+                "intent": "Twee neutraal geformuleerde opties voor de twee volgordes, zonder voorkeur of waardering."
+              }
+            ]
+          },
+          {
+            "id": "blok-4",
+            "sequence": 4,
+            "certumPhase": "actie",
+            "catalogBlockId": "certum.bco.open-vraag",
+            "purpose": "De deelnemer onderbouwt zijn gekozen volgorde met de voor- en nadelen van beide routes en met de invloed van de afwezige acute zorgen en de onbekende punten.",
+            "whyThisBlock": "Een open antwoord maakt de afweging zichtbaar. Een meerkeuzeblok zou die afweging reduceren tot één juist antwoord.",
+            "configurationIntent": [
+              {
+                "setting": "opdracht",
+                "intent": "De deelnemer vragen zijn keuze te onderbouwen en beide routes te wegen, met verwijzing naar de concrete situatie."
+              },
+              {
+                "setting": "voorbeeldantwoord",
+                "intent": "Een voorbeeld dat beide routes serieus weegt, zonder een van beide als juist neer te zetten."
+              }
+            ]
+          },
+          {
+            "id": "blok-5",
+            "sequence": 5,
+            "certumPhase": "actie",
+            "catalogBlockId": "certum.bco.conditionele-logica",
+            "purpose": "Op basis van de pollkeuze een korte route-specifieke situatietekst tonen die de eerste stap van de gekozen route inleidt.",
+            "whyThisBlock": "Conditionele tekstweergave is het enige aangetoonde middel om op de gekozen route in te spelen. Het routeert niet; zie de capabilityGap.",
+            "configurationIntent": [
+              {
+                "setting": "conditie",
+                "intent": "Koppelen aan de keuze in de voorgaande poll."
+              },
+              {
+                "setting": "tekst per route",
+                "intent": "Voor eerst school een korte inleiding op het contact met school, voor eerst gezin een korte inleiding op het gezinsgesprek."
+              }
+            ]
+          },
+          {
+            "id": "blok-6",
+            "sequence": 6,
+            "certumPhase": "actie",
+            "catalogBlockId": "certum.bco.productie",
+            "purpose": "De deelnemer werkt de eerste stap van zijn gekozen route schriftelijk uit. Hij beschrijft hoe hij het contact opent en de uiteenlopende perspectieven aan de orde stelt.",
+            "whyThisBlock": "Een schriftelijke productie met sjabloon laat het concrete handelen zien voor beide routes binnen één blok.",
+            "configurationIntent": [
+              {
+                "setting": "sjabloon",
+                "intent": "Ruimte voor de gekozen route, de aanpak van het eerste contact en hoe de deelnemer omgaat met transparantie en de onbekende punten."
+              },
+              {
+                "setting": "minimum woorden",
+                "intent": "Een bescheiden minimum zodat de uitwerking concreet genoeg wordt."
+              }
+            ]
+          },
+          {
+            "id": "blok-7",
+            "sequence": 7,
+            "certumPhase": "reflectie",
+            "catalogBlockId": "certum.bco.open-vraag",
+            "purpose": "De deelnemer kijkt terug op zijn gekozen volgorde en de doorslaggevende argumenten. Hij maakt expliciet wat hij wint en riskeert, inclusief de rol van de onbekende instemming en de positie van de jongere.",
+            "whyThisBlock": "Een open vraag is het eenvoudigste middel voor een persoonlijke terugblik op de eigen afweging.",
+            "configurationIntent": [
+              {
+                "setting": "opdracht",
+                "intent": "Laten benoemen wat de gekozen volgorde oplevert en riskeert voor het vertrouwen van ouder en jongere en voor de relatie met school, en hoe de deelnemer die risico's beperkt."
+              }
+            ]
+          },
+          {
+            "id": "blok-8",
+            "sequence": 8,
+            "certumPhase": "feedback",
+            "catalogBlockId": "certum.bco.ai-feedback",
+            "purpose": "Feedback geven op de gekozen volgorde, de uitwerking en de kwaliteit van de onderbouwing, langs de dimensies uit de Blueprint.",
+            "whyThisBlock": "AI Feedback ontvangt de eerdere antwoorden als context en kan inhoudelijk op afweging en onderbouwing reageren.",
+            "configurationIntent": [
+              {
+                "setting": "beoordelingsbasis",
+                "intent": "Beoordelen op afweging, aansluiting op de situatie, onderbouwing en consequenties."
+              },
+              {
+                "setting": "verdedigbaarheid",
+                "intent": "Beide volgordes als verdedigbaar behandelen. Niet de gekozen route beoordelen, maar of beide routes zijn gewogen en of de risico's van de eigen route zijn benoemd en beperkt."
+              },
+              {
+                "setting": "context",
+                "intent": "De antwoorden uit poll, onderbouwing, productie en reflectie gebruiken."
+              }
+            ]
+          },
+          {
+            "id": "blok-9",
+            "sequence": 9,
+            "certumPhase": "bron",
+            "catalogBlockId": "certum.bco.tekst",
+            "purpose": "De deelnemer legt zijn keuze naast later gevalideerde kaders over informatiedeling met school en naast methodische inzichten over uiteenlopende perspectieven en transparantie.",
+            "whyThisBlock": "Een tekstblok kan later gevalideerde broninhoud tonen en die koppelen aan de eerdere afweging.",
+            "configurationIntent": [
+              {
+                "setting": "broninhoud",
+                "intent": "Later gevalideerde kennis tonen voor SN1 en SN2, zonder één route als juist neer te zetten."
+              },
+              {
+                "setting": "koppeling",
+                "intent": "De deelnemer uitnodigen na te gaan welke van zijn argumenten worden versterkt, genuanceerd of aangevuld."
+              }
+            ]
+          },
+          {
+            "id": "blok-10",
+            "sequence": 10,
+            "certumPhase": "toets",
+            "catalogBlockId": "certum.bco.tekst",
+            "purpose": "Een gewijzigde, vergelijkbare situatie presenteren waarin opnieuw een volgorde van contacten gekozen moet worden.",
+            "whyThisBlock": "Een tekstuele schets is het eenvoudigste middel om een nieuwe transfersituatie neer te zetten.",
+            "configurationIntent": [
+              {
+                "setting": "nieuwe situatie",
+                "intent": "Een vergelijkbare casus met gewijzigde omstandigheden die een aangepaste afweging vragen."
+              }
+            ]
+          },
+          {
+            "id": "blok-11",
+            "sequence": 11,
+            "certumPhase": "toets",
+            "catalogBlockId": "certum.bco.poll",
+            "purpose": "De deelnemer kiest in de nieuwe situatie opnieuw een volgorde van contacten.",
+            "whyThisBlock": "Een poll legt de route vast zonder juist antwoord, passend bij meerdere verdedigbare handelingen.",
+            "configurationIntent": [
+              {
+                "setting": "opties",
+                "intent": "Neutrale opties voor de mogelijke volgordes in de nieuwe situatie."
+              }
+            ]
+          },
+          {
+            "id": "blok-12",
+            "sequence": 12,
+            "certumPhase": "toets",
+            "catalogBlockId": "certum.bco.conditionele-logica",
+            "purpose": "Een korte route-specifieke vervolgsituatie tonen op basis van de gekozen route.",
+            "whyThisBlock": "Conditionele tekstweergave is het enige aangetoonde middel om op de route in te spelen. Het routeert niet; zie de capabilityGap.",
+            "configurationIntent": [
+              {
+                "setting": "conditie",
+                "intent": "Koppelen aan de keuze in de toetspoll."
+              },
+              {
+                "setting": "tekst per route",
+                "intent": "Per route een korte vervolgsituatie die de deelnemer daarna uitwerkt."
+              }
+            ]
+          },
+          {
+            "id": "blok-13",
+            "sequence": 13,
+            "certumPhase": "toets",
+            "catalogBlockId": "certum.bco.open-vraag",
+            "purpose": "De deelnemer onderbouwt zijn keuze en vervolgstap in de nieuwe situatie. Hij laat zien hoe hij zijn afweging aanpast en daarbij inzichten uit de eerdere keuze en de bronkoppeling gebruikt.",
+            "whyThisBlock": "Een open antwoord maakt transfer en afweging zichtbaar. Een toets met één juist antwoord zou de keuze reduceren tot goed of fout.",
+            "configurationIntent": [
+              {
+                "setting": "opdracht",
+                "intent": "Laten onderbouwen met voor- en nadelen, aansluiting op de nieuwe omstandigheden, consequenties voor gezin en school en expliciete verwijzing naar eerdere inzichten."
+              },
+              {
+                "setting": "voorbeeldantwoord",
+                "intent": "Een voorbeeld van een aangepaste, goed onderbouwde afweging zonder voorkeursroute."
+              }
+            ]
+          },
+          {
+            "id": "blok-14",
+            "sequence": 14,
+            "certumPhase": "toets",
+            "catalogBlockId": "certum.bco.ai-feedback",
+            "purpose": "De transferopdracht terugkoppelen langs dezelfde beoordelingsbasis als eerder.",
+            "whyThisBlock": "AI Feedback kan de toetsantwoorden en de eerdere antwoorden gebruiken om transfer zichtbaar te maken.",
+            "configurationIntent": [
+              {
+                "setting": "beoordelingsbasis",
+                "intent": "Beoordelen op afweging, aansluiting op de situatie, onderbouwing en consequenties, met aandacht voor aanpassing aan de gewijzigde omstandigheden."
+              },
+              {
+                "setting": "verdedigbaarheid",
+                "intent": "Geen route als juist beoordelen; de kwaliteit van de afweging staat centraal."
+              }
+            ]
+          }
+        ],
+        "endIntent": {
+          "closingIntent": "De training afronden door te benadrukken dat beide volgordes verdedigbaar zijn en dat professionele kwaliteit zit in het wegen van routes, het aansluiten op de situatie en het bewust omgaan met consequenties voor gezin en school.",
+          "summaryIntent": "Kort samenvatten welke afwegingen bij de volgorde van contacten een rol spelen, en dat transparantie, onbekende punten en de afwezigheid van acute zorgen de keuze mede bepalen.",
+          "followUpRecommendation": null
+        },
+        "capabilityGaps": [
+          {
+            "certumPhase": "actie",
+            "need": "Na de gekozen volgorde een route-afhankelijk vervolg bieden: wie eerst school benadert, voert daarna het contact met school; wie eerst het gezin spreekt, voert daarna het gezinsgesprek, elk in een eigen vervolgblok.",
+            "whyNeeded": "De Blueprint schrijft voor dat de deelnemer de eerste stap van de gekozen route daadwerkelijk uitvoert en een ander vervolg krijgt afhankelijk van de keuze. Dat vraagt routering naar verschillende vervolgblokken, en die is in BC Online niet aangetoond.",
+            "workaround": {
+              "type": "partial",
+              "description": "Een Poll legt de gekozen volgorde vast. Conditionele logica toont daarna een korte route-specifieke situatietekst. In één gezamenlijk Productieblok werkt de deelnemer de eerste stap van zijn eigen route schriftelijk uit.",
+              "limitation": "Er is geen apart vervolgblok per route en geen gesprek in het moment met school of gezin. Alle deelnemers doorlopen dezelfde blokken. De route-afhankelijke uitvoering blijft beperkt tot tekstweergave en een schriftelijke uitwerking, dus het gat blijft bestaan."
+            }
+          },
+          {
+            "certumPhase": "toets",
+            "need": "In de transfersituatie opnieuw een route-afhankelijk vervolg bieden, waarbij elke gekozen route naar een eigen vervolgsituatie leidt die de deelnemer daarna doorloopt.",
+            "whyNeeded": "Het nieuwe keuzemoment in de Toets vraagt volgens de Blueprint dat het vervolg afhangt van de gekozen route. Daarvoor is branching naar verschillende vervolgblokken nodig, en die is niet aangetoond.",
+            "workaround": {
+              "type": "partial",
+              "description": "Een Poll legt de route in de nieuwe situatie vast. Conditionele logica toont een korte route-specifieke vervolgsituatie. Een Open vraag laat de deelnemer daarop zijn aangepaste afweging en vervolgstap uitwerken.",
+              "limitation": "Er is geen eigen vervolgsituatie als apart doorlopen traject per route. Het vervolg blijft een tekstuele variatie binnen dezelfde blokvolgorde, dus het gat blijft bestaan."
+            }
+          }
+        ]
+      }
+    },
+    "BLP-001-MEDIA": {
+      "blueprint": "BLP-001",
+      "synthetic": true,
+      "plan": {
+        "version": "bc-online-block-plan/v1",
+        "blueprintVersion": "blueprint-contract/v2",
+        "courseShell": {
+          "title": "Privégrens respecteren en werkverantwoordelijkheid bewaken",
+          "description": "Praktijksimulatie voor leidinggevenden over een gesprek waarin een medewerker een grens aangeeft rond zijn privésituatie, terwijl deadlines en afspraken onder druk staan. De deelnemer voert het gesprek, weegt grens en werkverantwoordelijkheid af en toetst zijn aanpak aan gevalideerde kennis.",
+          "estimatedDurationMinutes": null,
+          "skjPoints": null,
+          "status": "concept"
+        },
+        "startIntent": {
+          "explanationIntent": "Uitleggen dat de deelnemer de rol van teamleider aanneemt in een lopend gesprek, dat er meerdere verdedigbare aanpakken zijn, dat hij zelf een aanpak kiest, uitvoert en onderbouwt, en dat de training verloopt via context, gesprek, reflectie, feedback, bron en een nieuwe situatie.",
+          "estimatedDurationMinutes": null,
+          "learningGoals": [
+            "De deelnemer kan afwegen hoe hij de door een medewerker aangegeven grens rond privéomstandigheden respecteert en tegelijk verantwoordelijkheid houdt voor het werk en het team, en kan zijn gekozen aanpak onderbouwen in het licht van de situatie en de mogelijke consequenties."
+          ]
+        },
+        "plannedBlocks": [
+          {
+            "id": "blok-1",
+            "sequence": 1,
+            "certumPhase": "context",
+            "catalogBlockId": "certum.bco.video",
+            "purpose": "De situatie laten zien tot direct na het moment waarop de medewerker zijn grens aangeeft.",
+            "whyThisBlock": "Een korte video maakt het gesprek en de toon zichtbaar voordat de deelnemer zelf handelt.",
+            "configurationIntent": [
+              {
+                "setting": "video",
+                "intent": "Korte opname van het gesprek tot en met de uitgesproken grens; nog geen bestaande video beschikbaar."
+              }
+            ]
+          },
+          {
+            "id": "blok-2",
+            "sequence": 2,
+            "certumPhase": "actie",
+            "catalogBlockId": "certum.bco.chat-simulatie",
+            "purpose": "De deelnemer voert het vervolg van het lopende gesprek met de medewerker en bepaalt zelf hoe hij omgaat met de grens en met de gevolgen voor werk en team.",
+            "whyThisBlock": "Het performancetype is gesprek voeren met open keuze; een AI-rollenspel laat de deelnemer handelen in het moment zonder één juist antwoord op te leggen.",
+            "configurationIntent": [
+              {
+                "setting": "rol fictieve persoon",
+                "intent": "De AI speelt de medewerker die zojuist heeft aangegeven niet over zijn privésituatie te willen praten en die grens consequent bewaakt, maar wel reageert op vragen over werk en afspraken."
+              },
+              {
+                "setting": "startmoment",
+                "intent": "Het gesprek begint direct na de uitspraak van de medewerker over zijn grens."
+              },
+              {
+                "setting": "gespreksdoel sleutelwoorden",
+                "intent": "Niet gebruiken, omdat sleutelwoorden geen professioneel redeneren beoordelen en meerdere routes verdedigbaar zijn."
+              },
+              {
+                "setting": "tijdslimiet",
+                "intent": "Ruim instellen of uitlaten zodat de deelnemer zijn gekozen aanpak volledig kan uitvoeren."
+              }
+            ]
+          },
+          {
+            "id": "blok-3",
+            "sequence": 3,
+            "certumPhase": "reflectie",
+            "catalogBlockId": "certum.bco.open-vraag",
+            "purpose": "De deelnemer kijkt terug op zijn gekozen aanpak, beschrijft wat hij wel en niet aansneed, en weegt expliciet de privégrens af tegen werk en team inclusief consequenties voor medewerker, werkrelatie en team.",
+            "whyThisBlock": "Een open antwoord maakt de eigen afweging zichtbaar en levert de input waarop AI Feedback kan reageren.",
+            "configurationIntent": [
+              {
+                "setting": "opdracht",
+                "intent": "Vragen om een korte weergave van het eigen gespreksverloop, de afweging tussen grens en werkverantwoordelijkheid en de verwachte consequenties."
+              },
+              {
+                "setting": "voorbeeldantwoord",
+                "intent": "Geen voorbeeldantwoord tonen dat één route als juist suggereert."
+              }
+            ]
+          },
+          {
+            "id": "blok-4",
+            "sequence": 4,
+            "certumPhase": "feedback",
+            "catalogBlockId": "certum.bco.ai-feedback",
+            "purpose": "De deelnemer krijgt feedback op de omgang met de privégrens, het bewaken van werkverantwoordelijkheid en de onderbouwing van afweging en consequenties.",
+            "whyThisBlock": "AI Feedback kan reageren op het eerdere open antwoord en zo inhoudelijk ingaan op de afweging zonder een route als juist aan te wijzen.",
+            "configurationIntent": [
+              {
+                "setting": "bronantwoorden",
+                "intent": "Het reflectieantwoord als context meegeven."
+              },
+              {
+                "setting": "feedbackdimensies",
+                "intent": "Feedback richten op de drie dimensies uit de Blueprint en op afweging, aansluiting op de situatie, consequenties en uitvoering."
+              },
+              {
+                "setting": "meerdere verdedigbare routes",
+                "intent": "Instrueren dat niet de gekozen route wordt beoordeeld maar de aansluiting, de weging van beide kanten, de consequenties en de consistentie tussen beschreven handelen en onderbouwing."
+              }
+            ]
+          },
+          {
+            "id": "blok-5",
+            "sequence": 5,
+            "certumPhase": "bron",
+            "catalogBlockId": "certum.bco.tekst",
+            "purpose": "De deelnemer legt zijn eigen aanpak naast gevalideerde kennis over de handelingsruimte van een leidinggevende rond privéomstandigheden en over methodische principes voor het bespreken van werkafspraken.",
+            "whyThisBlock": "Tekstweergave is het eenvoudigste middel om later gevalideerde broninhoud bij SN1 en SN2 te tonen na handelen, reflectie en feedback.",
+            "configurationIntent": [
+              {
+                "setting": "broninhoud",
+                "intent": "Later gevalideerde kennis tonen die antwoord geeft op SN1 en SN2; geen inhoud verzinnen voordat validatie heeft plaatsgevonden."
+              },
+              {
+                "setting": "vergelijkingsopdracht",
+                "intent": "De deelnemer uitnodigen zijn eigen afweging en uitvoering naast de bron te leggen en te zien wat wordt versterkt of herzien."
+              }
+            ]
+          },
+          {
+            "id": "blok-6",
+            "sequence": 6,
+            "certumPhase": "toets",
+            "catalogBlockId": "certum.bco.tekst",
+            "purpose": "De deelnemer maakt kennis met een nieuwe situatie: een vervolggesprek waarin de gevolgen voor het team groter zijn geworden of teamleden ernaar vragen, terwijl de grens van de medewerker blijft bestaan.",
+            "whyThisBlock": "Een korte situatieschets introduceert het nieuwe keuzemoment voor transfer zonder extra middelen.",
+            "configurationIntent": [
+              {
+                "setting": "nieuwe situatie",
+                "intent": "De gewijzigde omstandigheden beschrijven ten opzichte van het eerste gesprek, met behoud van de grens van de medewerker."
+              }
+            ]
+          },
+          {
+            "id": "blok-7",
+            "sequence": 7,
+            "certumPhase": "toets",
+            "catalogBlockId": "certum.bco.chat-simulatie",
+            "purpose": "De deelnemer kiest en voert opnieuw een eigen aanpak uit in het vervolggesprek met de medewerker.",
+            "whyThisBlock": "Transfer van het handelen in een gesprek wordt het best zichtbaar in hetzelfde gespreksformat, zonder juist-foutbeoordeling.",
+            "configurationIntent": [
+              {
+                "setting": "rol fictieve persoon",
+                "intent": "De AI speelt dezelfde medewerker in de nieuwe fase, die zijn privégrens handhaaft terwijl de teamgevolgen groter zijn."
+              },
+              {
+                "setting": "gespreksdoel sleutelwoorden",
+                "intent": "Niet gebruiken, omdat meerdere routes verdedigbaar zijn."
+              }
+            ]
+          },
+          {
+            "id": "blok-8",
+            "sequence": 8,
+            "certumPhase": "toets",
+            "catalogBlockId": "certum.bco.open-vraag",
+            "purpose": "De deelnemer onderbouwt zijn aanpak in de nieuwe situatie en maakt zichtbaar welke elementen zijn keuze anders of juist hetzelfde maken, inclusief consequenties.",
+            "whyThisBlock": "Een open antwoord maakt transfer van de afweging en onderbouwing zichtbaar en dient als input voor de terugkoppeling.",
+            "configurationIntent": [
+              {
+                "setting": "opdracht",
+                "intent": "Vragen om een korte weergave van het gevoerde vervolggesprek, de onderbouwing en de vergelijking met de eerdere keuze."
+              }
+            ]
+          },
+          {
+            "id": "blok-9",
+            "sequence": 9,
+            "certumPhase": "toets",
+            "catalogBlockId": "certum.bco.ai-feedback",
+            "purpose": "De deelnemer krijgt terugkoppeling op zijn transferaanpak op afweging, aansluiting op de situatie, consequenties en onderbouwing.",
+            "whyThisBlock": "AI Feedback kan reageren op het toetsantwoord en op de eerdere reflectie, zodat de ontwikkeling in afweging zichtbaar wordt.",
+            "configurationIntent": [
+              {
+                "setting": "bronantwoorden",
+                "intent": "Het toetsantwoord en het eerdere reflectieantwoord als context meegeven."
+              },
+              {
+                "setting": "beoordelingsbasis",
+                "intent": "Terugkoppelen op afweging, aansluiting op situatie, consequenties en onderbouwing zonder een route als enig juiste te behandelen."
+              }
+            ]
+          }
+        ],
+        "endIntent": {
+          "closingIntent": "De deelnemer sluit af met het besef dat er meerdere verdedigbare aanpakken zijn en dat het gaat om een zichtbare afweging tussen de privégrens van de medewerker en de verantwoordelijkheid voor werk en team, inclusief de consequenties daarvan.",
+          "summaryIntent": "Kort terugblikken op de kern van het dilemma en de drie feedbackdimensies: omgaan met de privégrens, bewaken van werkverantwoordelijkheid en onderbouwing van afweging en consequenties.",
+          "followUpRecommendation": "Aanraden om de eigen afweging in een volgend praktijkgesprek bewust toe te passen en te bespreken met een collega-leidinggevende of in intervisie."
+        },
+        "capabilityGaps": [
+          {
+            "certumPhase": "feedback",
+            "need": "Feedback die rechtstreeks reageert op het daadwerkelijk gevoerde gesprek in de chatsimulatie, naast de onderbouwing van de gekozen aanpak.",
+            "whyNeeded": "De Blueprint vraagt feedback op zowel het gevoerde gesprek als de onderbouwing, inclusief de consistentie tussen uitvoering en afweging. Niet aangetoond is dat AI Feedback het chatverloop als context ontvangt; alleen antwoorden op eerdere vraagblokken zijn aangetoond.",
+            "workaround": {
+              "type": "partial",
+              "description": "In het reflectieblok (Open vraag) beschrijft de deelnemer zelf wat hij in het gesprek heeft gezegd en aangesneden; AI Feedback reageert op die beschrijving en op de onderbouwing.",
+              "limitation": "De feedback is gebaseerd op zelfrapportage van de deelnemer en niet op de werkelijke uitvoering in het gesprek, waardoor de consistentie tussen handelen en onderbouwing niet betrouwbaar wordt beoordeeld."
+            }
+          },
+          {
+            "certumPhase": "toets",
+            "need": "Terugkoppeling op de uitvoering van het transfergesprek in de chatsimulatie van de toetsfase.",
+            "whyNeeded": "De toets vraagt dat de deelnemer opnieuw een aanpak kiest, uitvoert en onderbouwt; beoordeling van de uitvoering vereist dat het gesprek zelf als context beschikbaar is, wat niet is aangetoond.",
+            "workaround": {
+              "type": "partial",
+              "description": "Na het transfergesprek beschrijft en onderbouwt de deelnemer in een Open vraag zijn aanpak en wat hij in het gesprek deed; AI Feedback reageert daarop.",
+              "limitation": "De uitvoering in het gesprek zelf wordt niet aantoonbaar beoordeeld; de terugkoppeling steunt op de eigen weergave van de deelnemer."
+            }
+          }
+        ]
+      }
+    }
+  }
+}
