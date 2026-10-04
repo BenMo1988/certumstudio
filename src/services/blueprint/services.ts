@@ -1,7 +1,6 @@
 import type { AgentInput } from "@/modules/training-agent";
 import type { ReadyOutcome, SourceSegment } from "@/modules/training-agent/v2/types";
 import type { BcOnlineBlockPlan } from "@/modules/block-plan/schema";
-import type { BlockPlanBlueprintSource } from "@/modules/block-plan/validation";
 import type { TrainingBlueprint } from "@/modules/training-blueprint/schema";
 import type { TrainingBlueprintV2 } from "@/modules/training-blueprint/v2/schema";
 import type { ReadyOutcomeV21 } from "@/modules/training-agent/v2-1";
@@ -38,7 +37,18 @@ export interface TrainingBlueprintServiceV21 {
   generate(request: BlueprintRequestV21): Promise<TrainingBlueprintV2>;
 }
 
-/** Provider-onafhankelijk contract voor Block Plan Generation op basis van een goedgekeurde Blueprint. V1: mock. */
+/** Een goedgekeurde, server-side gevalideerde Blueprint: de enige didactische input voor het Block Plan. */
+export type ApprovedBlueprint = TrainingBlueprint | TrainingBlueprintV2;
+
+/**
+ * Wat een Block Plan-generator krijgt: uitsluitend de goedgekeurde Blueprint. Nooit de oorspronkelijke input, de
+ * analyse of bronsegmenten. De catalogus en versies voegt de provider zelf toe.
+ */
+export interface BlockPlanRequest {
+  blueprint: ApprovedBlueprint;
+}
+
+/** Provider-onafhankelijk contract voor Block Plan Generation (mock of Claude). */
 export interface BlockPlanService {
-  generate(blueprint: BlockPlanBlueprintSource): Promise<BcOnlineBlockPlan>;
+  generate(request: BlockPlanRequest): Promise<BcOnlineBlockPlan>;
 }

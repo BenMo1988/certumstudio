@@ -237,9 +237,28 @@ Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
   - `runBlueprintFlowV21` accepteert alleen een Analysis V2.1-uitkomst. Een V2-analyse zonder routebeleid geeft
     `incompatible_analysis` (geen stille gok). De flow controleert ook dat de ambiguïteit uit het routebeleid volgt.
   - V1 en V2 (`runBlueprintFlow`, `runBlueprintFlowV2`) blijven als baseline-codepaden bestaan.
-- Het Block Plan is nog mock-only. Het leest alleen titel, leerdoel, ambiguïteit en prestatiesoort
-  (`BlockPlanBlueprintSource`) en werkt daardoor met V1 en V2. Er is geen BC Online-adapter, API, database, MCP of
-  export.
+- **Keten met heldere verantwoordelijkheden per laag:** Training Blueprint (didactische waarheid) → **Block Plan**
+  (welke bestaande BC Online-blokken) → later **Block Content** (uitgeschreven inhoud per blok: dialogen, vragen,
+  feedbacktekst, documenten, broninhoud) → later **BC Online Adapter** (export als concepttraining). Elke laag doet
+  alleen haar eigen werk; het Block Plan schrijft geen inhoud en ontwerpt de leerervaring niet opnieuw.
+- **Block Plan-provider (stap 9A):** `BlockPlanService.generate({ blueprint })`, mock of Claude via
+  `CERTUM_BLOCK_PLAN_PROVIDER` (standaard `mock`, los van de andere providers; geen terugval naar mock). Code in
+  `services/block-plan/`; prompt `training-block-plan/v1` (Certum Implementation Architect), contract blijft
+  `bc-online-block-plan/v1`. `CLAUDE_BLOCK_PLAN_DEFAULTS`: `claude-opus-5-5`, `medium`, `maxRetries: 0`.
+  - Input: uitsluitend de goedgekeurde Blueprint, de catalogus `bc-online-block-catalog/v1` en versies. Nooit de
+    oorspronkelijke input, de analyse of bronsegmenten.
+  - De provider wordt pas aangemaakt na de goedkeuring, het Blueprint-schema en de routebeleid-controle
+    (`runBlockPlanFlow`). Zolang er geen opslag is, komen goedkeuring en Blueprint van de client terug; de server
+    controleert schema en structuur, niet de inhoud tegen de analyse.
+  - Claude ontwerpt `BlockPlanDesignSchema` (afgeleid van het domeinschema). `composeBlockPlan` zet server-side: versie,
+    `blueprintVersion`, titel, leerdoel, `skjPoints: null`, `status: concept`, tijdsduur `null` (pas te schatten met Block
+    Content), blok-ids en volgorde.
+  - Invarianten (ook voor de mock): alleen planbare catalogus-ids; bij meerdere routes geen Meerkeuze of formele Toets in
+    Actie of Toets; geen eindcontent in configuratie-intenties (geen vraagteken, geen geciteerde tekst); geen concrete
+    bronnen; geen gepland blok als vertakking of routering. Branching blijft een `capabilityGap`; een workaround is
+    altijd `partial`.
+  - Logging: `certum.block_plan_generation` met alleen provider, model, effort, versies, duur, uitkomst en aantallen.
+- Er is nog geen Block Content, BC Online-adapter, API, database, MCP of export.
 
 ### Privacy in logs (niet onderhandelbaar)
 
@@ -334,8 +353,8 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 8A, Claude-provider voor de Training Blueprint: klaar.
 - Stap 8B, BP-baseline met `training-blueprint/v1`: klaar en beoordeeld (1 PASS, 1 PASS_WITH_NOTES, 1 FAIL).
 - Stap 8C, Blueprint Contract V2 en `training-blueprint/v2`: klaar en beoordeeld (2 PASS, 1 PASS_WITH_NOTES); gesloten.
-- Analysis Direction V2.1 (`routePolicy` op trainingsrichtingen): baseline beoordeeld (CA-001 PASS, CA-006 PASS,
-  CA-009 FAIL op suitability). Promptcorrectie `training-analysis/v2.1.1` gebouwd; bevestigingsruns CA-009/CA-010.
+- Analysis Direction V2.1/V2.1.1 en Blueprint met trusted routebeleid: gesloten als één didactische keten.
+- Stap 9A, Claude-provider voor het BC Online Block Plan: gebouwd en getest met mocks. Nog geen BLP-baseline.
 
 Routes:
 - `/`: dashboard.
@@ -353,10 +372,11 @@ Workspace doet nog niets. Er wordt nergens iets opgeslagen.
 
 ## Evals
 
-Er zijn drie evalsets, elk met een eigen README:
+Er zijn vier evalsets, elk met een eigen README:
 - `evals/training-analysis/` (CA-001 t/m CA-008): de inhoud van de analyse door een AI-provider.
 - `evals/privacy-preflight/` (PP-001 t/m PP-003): de lokale Privacy Preflight, zonder externe AI.
 - `evals/training-blueprint/` (BP-001 t/m BP-003): Blueprint en Block Plan; V1-baseline beoordeeld, V2-verwachtingen vastgelegd.
+- `evals/bc-online-block-plan/` (BLP-001 t/m BLP-003): Block Plan uit een goedgekeurde Blueprint; verwachtingen vastgelegd.
 
 Kwaliteitsbasis voor Certum Analyse staat in `evals/training-analysis/`. Er staat alleen
 synthetische data in en het is geen productiecode. Elke run wordt vastgelegd met promptVersion, model en effort.

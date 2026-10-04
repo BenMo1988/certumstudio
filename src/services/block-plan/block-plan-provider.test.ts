@@ -1,0 +1,370 @@
+import { describe, expect, it, vi } from "vitest";
+import { runBlockPlanFlow, type BlueprintLogEntry } from "@/app/trainings/new/blueprint-flow";
+import {
+  BC_ONLINE_BLOCK_CATALOG,
+  NOT_EVIDENCED_CAPABILITIES,
+  PLANNABLE_BLOCK_IDS,
+  getCatalogBlock,
+} from "@/knowledge/platform/bc-online-block-catalog";
+import {
+  TRAINING_BLOCK_PLAN_PROMPT_VERSION,
+  TRAINING_BLOCK_PLAN_V1_INSTRUCTIONS,
+} from "@/knowledge/prompts/training-block-plan-v1";
+import { composeBlockPlan, type BlockPlanDesign } from "@/modules/block-plan/compose";
+import { BC_ONLINE_BLOCK_PLAN_VERSION, BcOnlineBlockPlanSchema, type BcOnlineBlockPlan } from "@/modules/block-plan/schema";
+import { checkBlockPlanInvariants } from "@/modules/block-plan/validation";
+import type { TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
+import blueprints from "../../../test/fixtures/approved-blueprints.json";
+import v21 from "../../../test/fixtures/v21-ready-analyses.json";
+import type { ClaudeMessagesClient } from "../analysis/claude/claude-training-analysis-service";
+import { AnalysisError } from "../analysis/errors";
+import { MockBlockPlanService } from "../blueprint/mock/mock-block-plan-service";
+import type { BlockPlanService } from "../blueprint/services";
+import { ClaudeBlockPlanService } from "./claude-block-plan-service";
+import { CLAUDE_BLOCK_PLAN_DEFAULTS, readBlockPlanConfig } from "./config";
+import { BlockPlanDesignSchema } from "./design";
+import { createBlockPlanService } from "./factory";
+import { withBlockPlanLogging, type BlockPlanGenerationLogEntry } from "./logging";
+
+type BlpId = "BLP-001" | "BLP-002" | "BLP-003";
+const BLUEPRINT = (id: BlpId) => structuredClone((blueprints.cases as unknown as Record<BlpId, { blueprint: TrainingBlueprintV2 }>)[id].blueprint);
+const mockPlan = (id: BlpId) => new MockBlockPlanService().generate({ blueprint: BLUEPRINT(id) });
+
+/** Wat Claude teruggeeft: het ontwerp zonder de vaste velden. */
+function designOf(plan: BcOnlineBlockPlan): BlockPlanDesign {
+  return BlockPlanDesignSchema.parse({
+    courseShell: { description: plan.courseShell.description },
+    startIntent: { explanationIntent: plan.startIntent.explanationIntent },
+    plannedBlocks: plan.plannedBlocks.map((block) => {
+      const { id, sequence, ...rest } = block;
+      void id;
+      void sequence;
+      return rest;
+    }),
+    endIntent: plan.endIntent,
+    capabilityGaps: plan.capabilityGaps,
+  });
+}
+
+type ParseResult = { stop_reason: string; stop_details?: { category: string | null } | null; parsed_output: unknown };
+function claudeReturning(output: unknown) {
+  const parse = vi.fn<(request: unknown) => Promise<ParseResult>>(async () => ({ stop_reason: "end_turn", parsed_output: output }));
+  const client = { messages: { parse } } as unknown as ClaudeMessagesClient;
+  return { service: new ClaudeBlockPlanService(client, CLAUDE_BLOCK_PLAN_DEFAULTS), parse };
+}
+async function errorKindOf(promise: Promise<unknown>): Promise<string> {
+  try {
+    await promise;
+  } catch (error) {
+    return error instanceof AnalysisError ? error.kind : "geen AnalysisError";
+  }
+  return "geen fout";
+}
+
+describe("configuratie en factory", () => {
+  it("standaard en expliciet mock; los van de analyse- en Blueprint-provider", () => {
+    expect(readBlockPlanConfig({})).toEqual({ provider: "mock" });
+    expect(readBlockPlanConfig({ CERTUM_BLOCK_PLAN_PROVIDER: "mock" })).toEqual({ provider: "mock" });
+    expect(
+      readBlockPlanConfig({ CERTUM_ANALYSIS_PROVIDER: "claude", CERTUM_BLUEPRINT_PROVIDER: "claude", ANTHROPIC_API_KEY: "sk-test" }),
+    ).toEqual({ provider: "mock" });
+  });
+
+  it("claude zonder sleutel faalt veilig, zonder terugval; onbekende provider is een config-fout", () => {
+    expect(() => createBlockPlanService({ CERTUM_BLOCK_PLAN_PROVIDER: "claude" })).toThrow(AnalysisError);
+    expect(() => readBlockPlanConfig({ CERTUM_BLOCK_PLAN_PROVIDER: "openai" })).toThrow(/Onbekende CERTUM_BLOCK_PLAN_PROVIDER/);
+  });
+
+  it("claude met sleutel: eigen defaults (claude-opus-5-5, medium, maxRetries 0)", () => {
+    expect(readBlockPlanConfig({ CERTUM_BLOCK_PLAN_PROVIDER: "claude", ANTHROPIC_API_KEY: "sk-test" })).toEqual({
+      provider: "claude",
+      claude: { apiKey: "sk-test", ...CLAUDE_BLOCK_PLAN_DEFAULTS },
+    });
+    expect(CLAUDE_BLOCK_PLAN_DEFAULTS).toMatchObject({ model: "claude-opus-5-5", effort: "medium", maxRetries: 0 });
+    expect(typeof createBlockPlanService({ CERTUM_BLOCK_PLAN_PROVIDER: "claude", ANTHROPIC_API_KEY: "sk-test" }).generate).toBe("function");
+  });
+
+  it("mock en Claude implementeren hetzelfde contract en leveren bij hetzelfde ontwerp hetzelfde plan", async () => {
+    const expected = await mockPlan("BLP-001");
+    const mock: BlockPlanService = new MockBlockPlanService();
+    const { service } = claudeReturning(designOf(expected));
+    const claude: BlockPlanService = service;
+    await expect(claude.generate({ blueprint: BLUEPRINT("BLP-001") })).resolves.toEqual(await mock.generate({ blueprint: BLUEPRINT("BLP-001") }));
+  });
+});
+
+describe("providerinput: alleen de goedgekeurde Blueprint, catalogus en versies", () => {
+  it("stuurt prompt training-block-plan/v1 met de Blueprint en de catalogus, zonder oorspronkelijke input of analyse", async () => {
+    const { service, parse } = claudeReturning(designOf(await mockPlan("BLP-001")));
+    await service.generate({ blueprint: BLUEPRINT("BLP-001") });
+    const sent = parse.mock.calls[0][0] as { system: string; messages: { content: string }[]; output_config: { effort: string } };
+    const content = sent.messages[0].content;
+    expect(TRAINING_BLOCK_PLAN_PROMPT_VERSION).toBe("training-block-plan/v1");
+    expect(TRAINING_BLOCK_PLAN_PROMPT_VERSION).not.toBe(BC_ONLINE_BLOCK_PLAN_VERSION);
+    expect(sent.system).toBe(TRAINING_BLOCK_PLAN_V1_INSTRUCTIONS);
+    expect(sent.output_config.effort).toBe("medium");
+    expect(content).toContain(BLUEPRINT("BLP-001").learningGoal);
+    expect(content).toContain('<catalogus versie="bc-online-block-catalog/v1">');
+    for (const id of PLANNABLE_BLOCK_IDS) expect(content).toContain(id);
+    // Nooit de oorspronkelijke casus, analyse-uitvoer of bronsegmenten.
+    const analysis = (v21.cases as unknown as Record<string, { input: string; analysis: { rationale: string; sourceCandidates: { term: string }[] } }>)["CA-006"];
+    expect(content).not.toContain(analysis.input);
+    expect(content).not.toContain(analysis.analysis.rationale);
+    for (const c of analysis.analysis.sourceCandidates) expect(content).not.toContain(c.term);
+  });
+
+  it("het outputschema bevat geen vaste velden; catalogBlockId is de enum van planbare ids", async () => {
+    const { service, parse } = claudeReturning(designOf(await mockPlan("BLP-002")));
+    await service.generate({ blueprint: BLUEPRINT("BLP-002") });
+    const schema = (parse.mock.calls[0][0] as { output_config: { format: { schema: Record<string, unknown> } } }).output_config.format.schema;
+    const json = JSON.stringify(schema);
+    const props = (schema as { properties: Record<string, { properties?: Record<string, unknown> }> }).properties;
+    expect(Object.keys(props).sort()).toEqual(["capabilityGaps", "courseShell", "endIntent", "plannedBlocks", "startIntent"]);
+    expect(Object.keys(props.courseShell.properties ?? {})).toEqual(["description"]);
+    expect(Object.keys(props.startIntent.properties ?? {})).toEqual(["explanationIntent"]);
+    for (const forbidden of ["skjPoints", "learningGoals", "blueprintVersion", '"sequence"']) expect(json).not.toContain(forbidden);
+    for (const id of PLANNABLE_BLOCK_IDS) expect(json).toContain(id);
+    expect(json).not.toContain("certum.bco.vaste-start");
+  });
+});
+
+describe("trusted velden server-side", () => {
+  it.each(["BLP-001", "BLP-002", "BLP-003"] as const)("%s: titel, leerdoel, versies, SKJ, status, tijdsduur, ids en volgorde uit de server", async (id) => {
+    const blueprint = BLUEPRINT(id);
+    const { service } = claudeReturning(designOf(await mockPlan(id)));
+    const plan = await service.generate({ blueprint });
+    expect(plan.version).toBe(BC_ONLINE_BLOCK_PLAN_VERSION);
+    expect(plan.blueprintVersion).toBe(blueprint.version);
+    expect(plan.courseShell).toMatchObject({ title: blueprint.title, skjPoints: null, status: "concept", estimatedDurationMinutes: null });
+    expect(plan.startIntent).toMatchObject({ learningGoals: [blueprint.learningGoal], estimatedDurationMinutes: null });
+    expect(plan.plannedBlocks.map((b) => [b.id, b.sequence])).toEqual(plan.plannedBlocks.map((_, i) => [`blok-${i + 1}`, i + 1]));
+  });
+
+  it.each<[string, (d: Record<string, unknown> & { courseShell: Record<string, unknown>; startIntent: Record<string, unknown> }) => void]>([
+    ["titel", (d) => (d.courseShell.title = "Andere titel")],
+    ["SKJ-punten", (d) => (d.courseShell.skjPoints = 4)],
+    ["status", (d) => (d.courseShell.status = "gepubliceerd")],
+    ["leerdoelen", (d) => (d.startIntent.learningGoals = ["Een ander leerdoel."])],
+    ["contractversie", (d) => (d.version = "bc-online-block-plan/v0")],
+    ["blok-id", (d) => ((d.plannedBlocks as Record<string, unknown>[])[0].id = "eigen-id")],
+  ])("Claude kan %s niet meesturen of overschrijven (invalid-output)", async (_, change) => {
+    const design = structuredClone(designOf(await mockPlan("BLP-001"))) as unknown as Record<string, unknown> & {
+      courseShell: Record<string, unknown>;
+      startIntent: Record<string, unknown>;
+    };
+    change(design);
+    const { service, parse } = claudeReturning(design);
+    expect(await errorKindOf(service.generate({ blueprint: BLUEPRINT("BLP-001") }))).toBe("invalid-output");
+    expect(parse).toHaveBeenCalledTimes(1);
+  });
+
+  it("samenstellen overschrijft vaste velden altijd", async () => {
+    const design = designOf(await mockPlan("BLP-002"));
+    const sneaky = { ...design, courseShell: { ...design.courseShell, title: "Anders" } } as BlockPlanDesign;
+    expect(composeBlockPlan(sneaky, BLUEPRINT("BLP-002")).courseShell.title).toBe(BLUEPRINT("BLP-002").title);
+  });
+});
+
+describe("gesloten catalogus", () => {
+  it.each([
+    ["onbekend blok", "certum.bco.branching"],
+    ["vast onderdeel", "certum.bco.vaste-start"],
+  ])("%s → invalid-output", async (_, blockId) => {
+    const design = structuredClone(designOf(await mockPlan("BLP-001"))) as unknown as { plannedBlocks: Record<string, unknown>[] };
+    design.plannedBlocks[0].catalogBlockId = blockId;
+    const { service } = claudeReturning(design);
+    expect(await errorKindOf(service.generate({ blueprint: BLUEPRINT("BLP-001") }))).toBe("invalid-output");
+  });
+
+  it("alle blokken in de mockplannen zijn bestaande, planbare catalogus-ids", async () => {
+    for (const id of ["BLP-001", "BLP-002", "BLP-003"] as const) {
+      const plan = await mockPlan(id);
+      for (const b of plan.plannedBlocks) {
+        expect(PLANNABLE_BLOCK_IDS).toContain(b.catalogBlockId);
+        expect(getCatalogBlock(b.catalogBlockId)?.fixed).toBe(false);
+      }
+    }
+  });
+});
+
+describe("BLP-001: open keuze niet reduceren tot één juist antwoord", () => {
+  it("mockplan: geldig, geen Meerkeuze of formele Toets in Actie of Toets", async () => {
+    const plan = await mockPlan("BLP-001");
+    expect(checkBlockPlanInvariants(plan, BLUEPRINT("BLP-001"))).toEqual([]);
+    const coreBlocks = plan.plannedBlocks.filter((b) => b.certumPhase === "actie" || b.certumPhase === "toets").map((b) => b.catalogBlockId);
+    expect(coreBlocks).not.toContain("certum.bco.meerkeuze");
+    expect(coreBlocks).not.toContain("certum.bco.toets");
+  });
+
+  it.each([
+    ["Meerkeuze in Actie", "actie", "certum.bco.meerkeuze"],
+    ["formele Toets in Toets", "toets", "certum.bco.toets"],
+  ])("%s → invalid-output", async (_, phase, blockId) => {
+    const design = structuredClone(designOf(await mockPlan("BLP-001")));
+    const target = design.plannedBlocks.find((b) => b.certumPhase === phase)!;
+    target.catalogBlockId = blockId as typeof target.catalogBlockId;
+    const { service } = claudeReturning(design);
+    expect(await errorKindOf(service.generate({ blueprint: BLUEPRINT("BLP-001") }))).toBe("invalid-output");
+  });
+});
+
+describe("BLP-002: voorgeschreven handeling blijft uitvoerbaar", () => {
+  it("mockplan: geldig, met een Actie-blok dat het gesprek uitvoerbaar maakt en zonder Poll", async () => {
+    const plan = await mockPlan("BLP-002");
+    expect(checkBlockPlanInvariants(plan, BLUEPRINT("BLP-002"))).toEqual([]);
+    const actie = plan.plannedBlocks.filter((b) => b.certumPhase === "actie").map((b) => b.catalogBlockId);
+    expect(actie.length).toBeGreaterThan(0);
+    expect(actie).not.toContain("certum.bco.poll");
+  });
+
+  it("bij single_best_action is een vorm met één leidende handeling niet structureel uitgesloten", async () => {
+    const design = structuredClone(designOf(await mockPlan("BLP-002")));
+    design.plannedBlocks.find((b) => b.certumPhase === "toets" && b.catalogBlockId !== "certum.bco.tekst")!.catalogBlockId = "certum.bco.meerkeuze";
+    const { service } = claudeReturning(design);
+    await expect(service.generate({ blueprint: BLUEPRINT("BLP-002") })).resolves.toBeTruthy();
+  });
+});
+
+describe("BLP-003: branching blijft een capability gap", () => {
+  it("mockplan: branching als gap met partial workaround; geen gepland blok als vertakking", async () => {
+    const plan = await mockPlan("BLP-003");
+    expect(checkBlockPlanInvariants(plan, BLUEPRINT("BLP-003"))).toEqual([]);
+    const gap = plan.capabilityGaps.find((g) => /branching/.test(g.need))!;
+    expect(gap).toBeTruthy();
+    expect(gap.workaround?.type).toBe("partial");
+    expect(gap.workaround?.limitation).toMatch(/conditionele tekstweergave/);
+    expect(gap.workaround?.limitation).toMatch(/branching blijft niet ondersteund/);
+  });
+
+  it("branching staat niet in de catalogus; Conditionele logica blijft conditionele tekstweergave", () => {
+    expect(NOT_EVIDENCED_CAPABILITIES.map((c) => c.id)).toContain("branching_routing");
+    expect(BC_ONLINE_BLOCK_CATALOG.some((b) => (b.observedCapabilities as readonly string[]).includes("branching_routing"))).toBe(false);
+    expect(getCatalogBlock("certum.bco.conditionele-logica")!.observedCapabilities).toEqual(["conditionele_tekstweergave"]);
+  });
+
+  it("een gepland blok dat zich als vertakking voordoet → invalid-output", async () => {
+    const design = structuredClone(designOf(await mockPlan("BLP-003")));
+    design.plannedBlocks[1].purpose = "Vertakking naar het vervolg dat bij de gekozen route hoort.";
+    const { service } = claudeReturning(design);
+    expect(await errorKindOf(service.generate({ blueprint: BLUEPRINT("BLP-003") }))).toBe("invalid-output");
+  });
+
+  it("een 'volledige' workaround of een workaround zonder beperking bestaat niet (schema)", async () => {
+    const design = structuredClone(designOf(await mockPlan("BLP-003"))) as unknown as { capabilityGaps: { workaround: Record<string, unknown> }[] };
+    design.capabilityGaps[0].workaround.type = "full";
+    expect(BlockPlanDesignSchema.safeParse(design).success).toBe(false);
+    const noLimit = structuredClone(designOf(await mockPlan("BLP-003"))) as unknown as { capabilityGaps: { workaround: Record<string, unknown> }[] };
+    delete noLimit.capabilityGaps[0].workaround.limitation;
+    expect(BlockPlanDesignSchema.safeParse(noLimit).success).toBe(false);
+  });
+});
+
+describe("plan, geen inhoud", () => {
+  it.each<[string, (d: BlockPlanDesign) => void]>([
+    ["letterlijke vraag in een configuratie-intentie", (d) => (d.plannedBlocks[1].configurationIntent[0].intent = "Wat zeg je tegen de medewerker?")],
+    ["geciteerde tekst (dialoog) in een configuratie-intentie", (d) => (d.plannedBlocks[1].configurationIntent[0].intent = 'De collega zegt: "Laat die dozen maar staan."')],
+    ["concrete bron (URL)", (d) => (d.plannedBlocks.find((b) => b.certumPhase === "bron")!.purpose = "Toon https://example.org/richtlijn")],
+    ["concrete bron (artikelnummer)", (d) => (d.endIntent.closingIntent = "Afsluiten met artikel 12 van de regeling.")],
+  ])("%s → invalid-output", async (_, change) => {
+    const design = structuredClone(designOf(await mockPlan("BLP-002")));
+    change(design);
+    const { service } = claudeReturning(design);
+    expect(await errorKindOf(service.generate({ blueprint: BLUEPRINT("BLP-002") }))).toBe("invalid-output");
+  });
+});
+
+describe("human gate en flow", () => {
+  const spy = () => vi.fn((): BlockPlanService => {
+    throw new Error("provider mag hier niet worden aangemaakt");
+  });
+
+  it("zonder goedkeuring wordt geen provider aangemaakt", async () => {
+    const getService = spy();
+    const result = await runBlockPlanFlow(BLUEPRINT("BLP-001"), { status: "concept" }, { getService, log: () => {} });
+    expect(result).toEqual({ status: "rejected", reason: "blueprint_not_approved" });
+    expect(getService).not.toHaveBeenCalled();
+  });
+
+  it("een ongeldige Blueprint (schema) bereikt de provider nooit", async () => {
+    const getService = spy();
+    const broken = { ...BLUEPRINT("BLP-001"), learningGoal: "" };
+    expect((await runBlockPlanFlow(broken, { status: "approved" }, { getService, log: () => {} })).status).toBe("rejected");
+    expect(getService).not.toHaveBeenCalled();
+  });
+
+  it("een Blueprint met inconsistent routebeleid bereikt de provider nooit", async () => {
+    const getService = spy();
+    const tampered = BLUEPRINT("BLP-001");
+    tampered.decisionPoint.routePolicy = "prescribed_action";
+    const result = await runBlockPlanFlow(tampered, { status: "approved" }, { getService, log: () => {} });
+    expect(result).toEqual({ status: "rejected", reason: "invalid_blueprint" });
+    expect(getService).not.toHaveBeenCalled();
+  });
+
+  it("een providerfout wordt provider_error, zonder terugval naar mock", async () => {
+    const logs: BlueprintLogEntry[] = [];
+    const result = await runBlockPlanFlow(BLUEPRINT("BLP-001"), { status: "approved" }, {
+      getService: () => createBlockPlanService({ CERTUM_BLOCK_PLAN_PROVIDER: "claude" }),
+      log: (e) => logs.push(e),
+    });
+    expect(result).toEqual({ status: "rejected", reason: "provider_error" });
+    expect(logs[0]).toMatchObject({ event: "certum.block_plan", reason: "provider_error", errorKind: "config" });
+  });
+
+  it("ongeldige Claude-output wordt invalid_block_plan", async () => {
+    const design = structuredClone(designOf(await mockPlan("BLP-001")));
+    design.plannedBlocks.find((b) => b.certumPhase === "actie")!.catalogBlockId = "certum.bco.meerkeuze";
+    const { service } = claudeReturning(design);
+    const result = await runBlockPlanFlow(BLUEPRINT("BLP-001"), { status: "approved" }, { getService: () => service, log: () => {} });
+    expect(result).toEqual({ status: "rejected", reason: "invalid_block_plan" });
+  });
+
+  it("geldige Claude-output komt door de flow", async () => {
+    const expected = await mockPlan("BLP-002");
+    const { service, parse } = claudeReturning(designOf(expected));
+    const result = await runBlockPlanFlow(BLUEPRINT("BLP-002"), { status: "approved" }, { getService: () => service, log: () => {} });
+    expect(result).toEqual({ status: "block_plan", blockPlan: expected });
+    expect(BcOnlineBlockPlanSchema.safeParse(expected).success).toBe(true);
+    expect(parse).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("logging", () => {
+  it("logt alleen metadata en aantallen", async () => {
+    const plan = await mockPlan("BLP-001");
+    const { service } = claudeReturning(designOf(plan));
+    const logs: BlockPlanGenerationLogEntry[] = [];
+    await withBlockPlanLogging(
+      service,
+      { provider: "claude", model: "claude-opus-5-5", effort: "medium", promptVersion: TRAINING_BLOCK_PLAN_PROMPT_VERSION },
+      (e) => logs.push(e),
+    ).generate({ blueprint: BLUEPRINT("BLP-001") });
+    const { durationMs, ...rest } = logs[0];
+    expect(typeof durationMs).toBe("number");
+    expect(rest).toEqual({
+      event: "certum.block_plan_generation",
+      provider: "claude",
+      model: "claude-opus-5-5",
+      effort: "medium",
+      promptVersion: "training-block-plan/v1",
+      contractVersion: "bc-online-block-plan/v1",
+      catalogVersion: "bc-online-block-catalog/v1",
+      blueprintVersion: "blueprint-contract/v2",
+      outcome: "success",
+      plannedBlocks: plan.plannedBlocks.length,
+      capabilityGaps: plan.capabilityGaps.length,
+    });
+    const line = JSON.stringify(logs);
+    const b = BLUEPRINT("BLP-001");
+    for (const forbidden of [b.title, b.learningGoal, b.professionalDilemma, b.sourceNeeds[0].question, plan.plannedBlocks[0].purpose, plan.plannedBlocks[0].configurationIntent[0].intent]) {
+      expect(line).not.toContain(forbidden);
+    }
+  });
+
+  it("de factory-mock logt provider mock", async () => {
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    await createBlockPlanService({}).generate({ blueprint: BLUEPRINT("BLP-003") });
+    expect(JSON.parse(String(info.mock.calls.at(-1)![0]))).toMatchObject({ event: "certum.block_plan_generation", provider: "mock" });
+    info.mockRestore();
+  });
+});

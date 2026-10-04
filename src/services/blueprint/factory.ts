@@ -6,10 +6,8 @@ import { createClaudeClient } from "../analysis/claude/claude-training-analysis-
 import { ClaudeTrainingBlueprintService } from "./claude/claude-training-blueprint-service";
 import { readBlueprintConfig } from "./config";
 import { withBlueprintLogging } from "./logging";
-import { MockBlockPlanService } from "./mock/mock-block-plan-service";
 import { MockTrainingBlueprintService } from "./mock/mock-blueprint-service";
 import type {
-  BlockPlanService,
   TrainingBlueprintService,
   TrainingBlueprintServiceV2,
   TrainingBlueprintServiceV21,
@@ -94,7 +92,5 @@ export function createTrainingBlueprintServiceV21(env?: Record<string, string | 
   }
 }
 
-/** Block Plan Generation blijft in deze fase uitsluitend mock. */
-export function createBlockPlanService(): BlockPlanService {
-  return new MockBlockPlanService();
-}
+/** Block Plan Generation heeft een eigen factory en configuratie (services/block-plan). */
+export { createBlockPlanService } from "../block-plan/factory";

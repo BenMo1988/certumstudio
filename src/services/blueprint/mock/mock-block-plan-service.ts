@@ -1,6 +1,6 @@
-import { BC_ONLINE_BLOCK_PLAN_VERSION, type BcOnlineBlockPlan, type PlannedBlock } from "@/modules/block-plan/schema";
-import type { BlockPlanBlueprintSource } from "@/modules/block-plan/validation";
-import type { BlockPlanService } from "../services";
+import { composeBlockPlan } from "@/modules/block-plan/compose";
+import type { BcOnlineBlockPlan, PlannedBlock } from "@/modules/block-plan/schema";
+import type { BlockPlanRequest, BlockPlanService } from "../services";
 
 type Draft = Omit<PlannedBlock, "id" | "sequence">;
 
@@ -14,9 +14,10 @@ type Draft = Omit<PlannedBlock, "id" | "sequence">;
  * - Toets: nieuwe situatie (Tekst) + hetzelfde type handelen (Chat simulatie of Open vraag) + AI Feedback.
  *   Geen formeel Toetsblok: de Blueprint vraagt transfer, geen kennistoets.
  * - Route-afhankelijke vervolgstappen bij meerdere routes worden een capabilityGap (geen branching in BC Online).
+ * Ontwerpt alleen het plan; titel, leerdoel, versies, ids en vaste waarden komen uit composeBlockPlan.
  */
 export class MockBlockPlanService implements BlockPlanService {
-  async generate(blueprint: BlockPlanBlueprintSource): Promise<BcOnlineBlockPlan> {
+  async generate({ blueprint }: BlockPlanRequest): Promise<BcOnlineBlockPlan> {
     const conversation = blueprint.learningArc.actie.performanceType === "gesprek_voeren";
     const multiple = blueprint.ambiguity === "multiple_defensible_actions";
     const drafts: Draft[] = [];
@@ -67,7 +68,7 @@ export class MockBlockPlanService implements BlockPlanService {
         catalogBlockId: "certum.bco.open-vraag",
         purpose: "De deelnemer laten beschrijven wat hij of zij in het keuzemoment doet en waarom.",
         whyThisBlock: "Een open antwoord laat handelen en onderbouwing samen zien.",
-        configurationIntent: [{ setting: "vraag", intent: "Wat doe of zeg je op dit moment, en waarom?" }],
+        configurationIntent: [{ setting: "vraag", intent: "Vraag naar wat de deelnemer in het keuzemoment doet of zegt, en waarom." }],
       });
     }
 
@@ -126,22 +127,12 @@ export class MockBlockPlanService implements BlockPlanService {
       configurationIntent: [{ setting: "instructies voor AI", intent: "Beoordeel of de afweging in de nieuwe situatie is toegepast." }],
     });
 
-    return {
-      version: BC_ONLINE_BLOCK_PLAN_VERSION,
-      blueprintVersion: blueprint.version,
-      courseShell: {
-        title: blueprint.title,
-        description: blueprint.learningGoal,
-        estimatedDurationMinutes: null,
-        skjPoints: null,
-        status: "concept",
-      },
+    return composeBlockPlan({
+      courseShell: { description: blueprint.learningGoal },
       startIntent: {
         explanationIntent: "Uitleg over de praktijksimulatie: een situatie, een keuzemoment, reflectie, feedback, bron en toepassing.",
-        estimatedDurationMinutes: null,
-        learningGoals: [blueprint.learningGoal],
       },
-      plannedBlocks: drafts.map((d, i) => ({ id: `blok-${i + 1}`, sequence: i + 1, ...d })),
+      plannedBlocks: drafts,
       endIntent: {
         closingIntent: "Afronden met de kern van de afweging.",
         summaryIntent: "Samenvatting van het keuzemoment en de belangrijkste afwegingen.",
@@ -164,6 +155,6 @@ export class MockBlockPlanService implements BlockPlanService {
               },
             ]
           : [],
-    };
+    }, blueprint);
   }
 }

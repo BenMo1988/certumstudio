@@ -20,7 +20,7 @@ export function getTrainingBlueprintService(): TrainingBlueprintServiceV21 {
   return createTrainingBlueprintServiceV21();
 }
 
-/** Block Plan Generation: alleen mock. Er is nog geen AI-provider of prompt voor het Block Plan. */
+/** Block Plan Generation: mock of Claude volgens CERTUM_BLOCK_PLAN_PROVIDER (services/block-plan); standaard mock. */
 export function getBlockPlanService(): BlockPlanService {
   return createBlockPlanService();
 }

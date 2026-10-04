@@ -31,6 +31,7 @@ import {
   TrainingBlueprintV2Schema,
   ambiguityFor,
   checkBlueprintV2Invariants,
+  routePolicyFor,
   type TrainingBlueprintV2,
 } from "@/modules/training-blueprint/v2";
 import type { ReadyOutcome, SourceSegment } from "@/modules/training-agent/v2";
@@ -82,9 +83,9 @@ export type BlueprintLogEntry =
   | {
       event: "certum.block_plan";
       version: string;
-      generator: "mock";
       outcome: "success" | "rejected";
       reason?: BlueprintFlowRejection;
+      errorKind?: AnalysisErrorKind | "unknown";
       plannedBlocks?: number;
       capabilityGaps?: number;
     };
@@ -244,7 +245,12 @@ async function runGatedBlueprintFlow<
 
 /**
  * Block Plan Generation, alleen uit een geldige én door een mens goedgekeurde Blueprint (V2, of de V1-baseline).
- * Het Block Plan leest alleen titel, leerdoel, ambiguïteit en prestatiesoort; het is onafhankelijk van de versie.
+ * De provider (mock of Claude) wordt pas aangemaakt nadat de goedkeuring, het Blueprint-schema en het routebeleid
+ * (V2: keuzemoment en Actie volgen uit de ambiguïteit) zijn gecontroleerd. De provider krijgt uitsluitend de Blueprint;
+ * nooit de oorspronkelijke input of de analyse.
+ *
+ * Beperking zolang er geen opslag is: de goedkeuring en de Blueprint komen terug van de client. De server controleert
+ * schema en structuur opnieuw, maar kan de inhoud niet tegen de oorspronkelijke analyse controleren.
  */
 export async function runBlockPlanFlow(
   blueprintCandidate: unknown,
@@ -252,8 +258,14 @@ export async function runBlockPlanFlow(
   deps: { getService: () => BlockPlanService; log?: (entry: BlueprintLogEntry) => void },
 ): Promise<BlockPlanFlowResult> {
   const log = deps.log ?? defaultLog;
-  const reject = (reason: BlueprintFlowRejection): BlockPlanFlowResult => {
-    log({ event: "certum.block_plan", version: BC_ONLINE_BLOCK_PLAN_VERSION, generator: "mock", outcome: "rejected", reason });
+  const reject = (reason: BlueprintFlowRejection, errorKind?: AnalysisErrorKind | "unknown"): BlockPlanFlowResult => {
+    log({
+      event: "certum.block_plan",
+      version: BC_ONLINE_BLOCK_PLAN_VERSION,
+      outcome: "rejected",
+      reason,
+      ...(errorKind && { errorKind }),
+    });
     return { status: "rejected", reason };
   };
 
@@ -261,14 +273,27 @@ export async function runBlockPlanFlow(
   const v2 = TrainingBlueprintV2Schema.safeParse(blueprintCandidate);
   const parsed = v2.success ? v2 : TrainingBlueprintSchema.safeParse(blueprintCandidate);
   if (!parsed.success) return reject("invalid_blueprint");
+  // V2: het routebeleid van keuzemoment en Actie moet uit de ambiguïteit volgen (contextvrije structuurcontrole).
+  if (v2.success) {
+    const policy = routePolicyFor(v2.data.ambiguity);
+    if (v2.data.decisionPoint.routePolicy !== policy || v2.data.learningArc.actie.routePolicy !== policy) {
+      return reject("invalid_blueprint");
+    }
+  }
 
-  const blockPlan = await deps.getService().generate(parsed.data);
+  // Pas hier, na alle poorten, wordt de provider aangemaakt. Een providerfout blijft een fout: geen terugval naar mock.
+  let blockPlan: BcOnlineBlockPlan;
+  try {
+    blockPlan = await deps.getService().generate({ blueprint: parsed.data });
+  } catch (error) {
+    if (error instanceof AnalysisError && error.kind === "invalid-output") return reject("invalid_block_plan", error.kind);
+    return reject("provider_error", error instanceof AnalysisError ? error.kind : "unknown");
+  }
   if (checkBlockPlanInvariants(blockPlan, parsed.data).length > 0) return reject("invalid_block_plan");
 
   log({
     event: "certum.block_plan",
     version: BC_ONLINE_BLOCK_PLAN_VERSION,
-    generator: "mock",
     outcome: "success",
     plannedBlocks: blockPlan.plannedBlocks.length,
     capabilityGaps: blockPlan.capabilityGaps.length,

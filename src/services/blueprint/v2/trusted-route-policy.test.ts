@@ -26,6 +26,7 @@ import type { ClaudeMessagesClient } from "../../analysis/claude/claude-training
 import { toV2Outcome } from "@/modules/training-agent/v2-1";
 import { AnalysisError } from "../../analysis/errors";
 import { CLAUDE_BLUEPRINT_DEFAULTS } from "../config";
+import { readBlockPlanConfig } from "../../block-plan/config";
 import { createBlockPlanService, createTrainingBlueprintServiceV21 } from "../factory";
 import { MockBlockPlanService } from "../mock/mock-block-plan-service";
 import type { BlueprintRequestV21, TrainingBlueprintServiceV21 } from "../services";
@@ -255,6 +256,8 @@ describe("factory en Block Plan", () => {
   });
 
   it("Block Plan blijft mock-only", () => {
-    expect(createBlockPlanService()).toBeInstanceOf(MockBlockPlanService);
+    // Sinds stap 9A heeft het Block Plan een eigen provider; standaard blijft het de mock.
+    expect(readBlockPlanConfig({})).toEqual({ provider: "mock" });
+    expect(typeof createBlockPlanService({}).generate).toBe("function");
   });
 });

@@ -20,9 +20,9 @@ import { AnalysisError } from "../analysis/errors";
 import { ClaudeTrainingBlueprintService } from "./claude/claude-training-blueprint-service";
 import { CLAUDE_BLUEPRINT_DEFAULTS, readBlueprintConfig } from "./config";
 import { BlueprintDesignSchema, type BlueprintDesign } from "./design";
+import { readBlockPlanConfig } from "../block-plan/config";
 import { createBlockPlanService, createTrainingBlueprintService } from "./factory";
 import { withBlueprintLogging, type BlueprintGenerationLogEntry } from "./logging";
-import { MockBlockPlanService } from "./mock/mock-block-plan-service";
 import { MockTrainingBlueprintService } from "./mock/mock-blueprint-service";
 import type { BlueprintRequest, TrainingBlueprintService } from "./services";
 
@@ -355,7 +355,9 @@ describe("configuratie en factory", () => {
   });
 
   it("Block Plan blijft mock-only", () => {
-    expect(createBlockPlanService()).toBeInstanceOf(MockBlockPlanService);
+    // Sinds stap 9A heeft het Block Plan een eigen provider; standaard blijft het de mock.
+    expect(readBlockPlanConfig({})).toEqual({ provider: "mock" });
+    expect(typeof createBlockPlanService({}).generate).toBe("function");
   });
 });
 
