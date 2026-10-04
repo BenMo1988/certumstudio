@@ -3,10 +3,8 @@ import {
   BLOCK_CONTENT_VERSION,
   BlockContentResultSchema,
   checkBlockContentInvariants,
-  composeContentPackage,
   getBlockApprovalBlocker,
   type BlockContentResult,
-  type TrainingContentPackage,
 } from "@/modules/block-content";
 import { EndContentSchema, StartContentSchema } from "@/modules/block-content/schema";
 import { BcOnlineBlockPlanSchema, checkBlockPlanInvariants, type BcOnlineBlockPlan } from "@/modules/block-plan";
@@ -24,6 +22,21 @@ import { ANALYSIS_CONTRACT_V21_VERSION, AnalysisOutcomeV21Schema, checkOutcomeIn
 import { TrainingBlueprintV2Schema, routePolicyFor, type TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
 import { canonicalJson, contentHash } from "./canonical-json";
 import type { Db } from "./db";
+import {
+  approvalState,
+  composeContentFromSnapshot,
+  currentRevision,
+  eventsFor,
+  lastRelevantEvent,
+  payloadHashValid,
+  revisionById,
+  selectedDirection,
+  type ApprovalState,
+  type StoredContentPackage,
+  type TrainingRecordSnapshot,
+} from "./snapshot";
+
+export type { ApprovalState, StoredContentPackage, TrainingRecordSnapshot } from "./snapshot";
 
 /*
  * Certum Training Record V1 (docs/persistence/training-record-v1.md). De enige plek met SQL voor trainingen;
@@ -210,13 +223,73 @@ export async function listTrainings(db: Db, options: { limit?: number } = {}): P
   return rows.map(toTraining);
 }
 
-async function lockTraining(tx: Db, trainingId: string): Promise<void> {
+/**
+ * Vergrendelt de trainingsrij voor de rest van de transactie en zet `updated_at`, in één query. Wordt de transactie
+ * teruggedraaid, dan ook deze update.
+ */
+async function lockAndTouchTraining(tx: Db, trainingId: string): Promise<TrainingRecord> {
   if (!UUID.test(trainingId)) throw new StorageError("not_found", "Training bestaat niet.");
-  const [row] = await tx.query("select id from training where id = $1 for update", [trainingId]);
+  const [row] = await tx.query("update training set updated_at = now() where id = $1 returning *", [trainingId]);
   if (!row) throw new StorageError("not_found", "Training bestaat niet.");
+  return toTraining(row);
 }
 
-const touchTraining = (tx: Db, trainingId: string) => tx.query("update training set updated_at = now() where id = $1", [trainingId]);
+// ---------------------------------------------------------------------------------------------------------------
+// Training Record Snapshot (bulk; zie snapshot.ts)
+// ---------------------------------------------------------------------------------------------------------------
+
+const SNAPSHOT_SQL = {
+  trainings: "select * from training where id = any($1::text::uuid[])",
+  inputs:
+    "select distinct on (training_id) * from training_input where training_id = any($1::text::uuid[]) order by training_id, created_at desc, id desc",
+  revisions:
+    "select * from artifact_revision where training_id = any($1::text::uuid[]) order by training_id, artifact_type, artifact_key, revision_no",
+  events: "select * from workflow_event where training_id = any($1::text::uuid[]) order by event_no",
+};
+
+/**
+ * Snapshots voor één of meer trainingen met vier bulkqueries, ongeacht het aantal revisions, blokken of events. De
+ * queries lopen gelijktijdig (postgres.js gebruikt meerdere verbindingen; PGlite zet ze in de rij).
+ */
+export async function loadTrainingRecordSnapshots(db: Db, trainingIds: string[]): Promise<Map<string, TrainingRecordSnapshot>> {
+  const ids = [...new Set(trainingIds.filter((id) => UUID.test(id)))];
+  const result = new Map<string, TrainingRecordSnapshot>();
+  if (ids.length === 0) return result;
+  const param = [uuidArray(ids)];
+  const [trainings, inputs, revisions, events] = await Promise.all([
+    db.query(SNAPSHOT_SQL.trainings, param),
+    db.query(SNAPSHOT_SQL.inputs, param),
+    db.query(SNAPSHOT_SQL.revisions, param),
+    db.query(SNAPSHOT_SQL.events, param),
+  ]);
+  for (const row of trainings) result.set(row.id as string, { training: toTraining(row), input: null, revisions: [], events: [] });
+  for (const row of inputs) {
+    const snap = result.get(row.training_id as string);
+    if (snap) snap.input = toInput(row);
+  }
+  for (const row of revisions) result.get(row.training_id as string)?.revisions.push(toRevision(row));
+  for (const row of events) result.get(row.training_id as string)?.events.push(toEvent(row));
+  return result;
+}
+
+export async function loadTrainingRecordSnapshot(db: Db, trainingId: string): Promise<TrainingRecordSnapshot | null> {
+  return (await loadTrainingRecordSnapshots(db, [trainingId])).get(trainingId) ?? null;
+}
+
+/**
+ * De snapshot voor een write: binnen de transactie, ná het vergrendelen van de training, zodat de controles op exact
+ * de gecommitte stand gebeuren. De invoer alleen als de write hem nodig heeft.
+ */
+async function loadWriteSnapshot(tx: Db, trainingId: string, withInput: boolean): Promise<TrainingRecordSnapshot> {
+  const training = await lockAndTouchTraining(tx, trainingId);
+  const param = [uuidArray([trainingId])];
+  const [revisions, events, inputs] = await Promise.all([
+    tx.query(SNAPSHOT_SQL.revisions, param),
+    tx.query(SNAPSHOT_SQL.events, param),
+    withInput ? tx.query(SNAPSHOT_SQL.inputs, param) : Promise.resolve([]),
+  ]);
+  return { training, input: inputs[0] ? toInput(inputs[0]) : null, revisions: revisions.map(toRevision), events: events.map(toEvent) };
+}
 
 // ---------------------------------------------------------------------------------------------------------------
 // Invoer
@@ -251,7 +324,7 @@ export async function saveTrainingInput(
   const attestation = { syntheticDataAttested: true as const, statement: SYNTHETIC_DATA_ATTESTATION };
 
   return db.transaction(async (tx) => {
-    await lockTraining(tx, input.trainingId);
+    await lockAndTouchTraining(tx, input.trainingId);
     const [row] = await tx.query(
       `insert into training_input
          (training_id, input_type, input_text, text_hash, privacy_preflight, acknowledgements, attestation, data_policy_version)
@@ -268,7 +341,6 @@ export async function saveTrainingInput(
         DATA_POLICY_VERSION,
       ],
     );
-    await touchTraining(tx, input.trainingId);
     return toInput(row);
   });
 }
@@ -332,21 +404,15 @@ export async function createArtifactRevision(db: Db, input: NewArtifactRevision)
 
   try {
     return await db.transaction(async (tx) => {
-      await lockTraining(tx, input.trainingId);
-      const upstream = await loadBasedOn(tx, input.trainingId, input.artifactType, input.basedOnRevisionIds);
-      await validatePayload(tx, input, artifactKey, upstream);
-      if (input.expectedCurrentRevisionId !== undefined) {
-        const current = await getCurrentArtifactRevision(tx, input.trainingId, input.artifactType, artifactKey);
-        if ((current?.id ?? null) !== input.expectedCurrentRevisionId) {
-          throw new StorageError("stale_revision", "De revision is intussen gewijzigd; laad de training opnieuw.");
-        }
+      const snap = await loadWriteSnapshot(tx, input.trainingId, input.artifactType === "analysis");
+      const upstream = resolveBasedOn(snap, input.artifactType, input.basedOnRevisionIds);
+      validatePayload(snap, input, artifactKey, upstream);
+      const current = currentRevision(snap, input.artifactType, artifactKey);
+      if (input.expectedCurrentRevisionId !== undefined && (current?.id ?? null) !== input.expectedCurrentRevisionId) {
+        throw new StorageError("stale_revision", "De revision is intussen gewijzigd; laad de training opnieuw.");
       }
+      const next = (current?.revisionNo ?? 0) + 1;
 
-      const [{ next }] = await tx.query<{ next: number }>(
-        `select coalesce(max(revision_no), 0) + 1 as next from artifact_revision
-         where training_id = $1 and artifact_type = $2 and artifact_key = $3`,
-        [input.trainingId, input.artifactType, artifactKey],
-      );
       const [row] = await tx.query(
         `insert into artifact_revision
            (training_id, artifact_type, artifact_key, revision_no, contract_version, prompt_version, model_version,
@@ -366,7 +432,6 @@ export async function createArtifactRevision(db: Db, input: NewArtifactRevision)
           uuidArray(input.basedOnRevisionIds),
         ],
       );
-      await touchTraining(tx, input.trainingId);
       return toRevision(row);
     });
   } catch (error) {
@@ -377,26 +442,29 @@ export async function createArtifactRevision(db: Db, input: NewArtifactRevision)
 
 type Upstream = Partial<Record<ArtifactType, ArtifactRevision>>;
 
-async function loadBasedOn(tx: Db, trainingId: string, type: ArtifactType, ids: string[]): Promise<Upstream> {
+/** Controleert `based_on` in het geheugen tegen de write-snapshot: exacte types, zelfde training, geaccepteerd. */
+function resolveBasedOn(snap: TrainingRecordSnapshot, type: ArtifactType, ids: string[]): Upstream {
   const required = REQUIRED_BASED_ON[type];
   if (ids.length !== required.length || new Set(ids).size !== ids.length) {
     throw new StorageError("invalid_based_on", "based_on bevat niet precies de vereiste upstream revisions.");
   }
   const upstream: Upstream = {};
   for (const id of ids) {
-    const revision = await getArtifactRevision(tx, id);
-    if (!revision || revision.trainingId !== trainingId) throw new StorageError("invalid_based_on", "Upstream revision hoort niet bij deze training.");
+    // De snapshot bevat alleen revisions van deze training: een onbekende id hoort er niet bij.
+    const revision = revisionById(snap, id);
+    if (!revision) throw new StorageError("invalid_based_on", "Upstream revision hoort niet bij deze training.");
     if (!required.includes(revision.artifactType) || upstream[revision.artifactType]) {
       throw new StorageError("invalid_based_on", "based_on bevat niet precies de vereiste upstream types.");
     }
-    const state = await getApprovalState(tx, revision.id);
-    if (!state.approved) throw new StorageError("stale_based_on", `Upstream ${revision.artifactType} is niet current of niet geaccepteerd.`);
+    if (!approvalState(snap, revision.id).approved) {
+      throw new StorageError("stale_based_on", `Upstream ${revision.artifactType} is niet current of niet geaccepteerd.`);
+    }
     upstream[revision.artifactType] = revision;
   }
   return upstream;
 }
 
-async function validatePayload(tx: Db, input: NewArtifactRevision, artifactKey: string, upstream: Upstream): Promise<void> {
+function validatePayload(snap: TrainingRecordSnapshot, input: NewArtifactRevision, artifactKey: string, upstream: Upstream): void {
   const invalid = (what: string) => new StorageError("invalid_payload", `Payload ongeldig: ${what}.`);
   const blueprint = upstream.blueprint?.payload as TrainingBlueprintV2 | undefined;
   const blockPlan = upstream.block_plan?.payload as BcOnlineBlockPlan | undefined;
@@ -406,7 +474,7 @@ async function validatePayload(tx: Db, input: NewArtifactRevision, artifactKey: 
       if (input.contractVersion !== ANALYSIS_CONTRACT_V21_VERSION) throw invalid("contractversie");
       if (!AnalysisOutcomeV21Schema.safeParse(input.payload).success) throw invalid("schema");
       // Grounding tegen de opgeslagen invoer: de analyse moet bij deze training horen.
-      const stored = await getLatestTrainingInput(tx, input.trainingId);
+      const stored = snap.input;
       if (!stored) throw invalid("geen opgeslagen invoer");
       if (checkOutcomeInvariantsV21(input.payload, segmentInput(stored.inputText)).length > 0) throw invalid("invarianten");
       return;
@@ -416,7 +484,7 @@ async function validatePayload(tx: Db, input: NewArtifactRevision, artifactKey: 
       if (!parsed.success || parsed.data.version !== input.contractVersion) throw invalid("schema of contractversie");
       const policy = routePolicyFor(parsed.data.ambiguity);
       if (parsed.data.decisionPoint.routePolicy !== policy || parsed.data.learningArc.actie.routePolicy !== policy) throw invalid("routebeleid");
-      const selected = await getSelectedDirectionId(tx, upstream.analysis!.id);
+      const selected = selectedDirection(snap, upstream.analysis!.id);
       if (parsed.data.selectedDirectionId !== selected) throw invalid("richting wijkt af van de gekozen richting");
       return;
     }
@@ -504,11 +572,11 @@ export async function appendWorkflowEvent(
 ): Promise<WorkflowEvent> {
   if (!WORKFLOW_EVENT_TYPES.includes(input.eventType)) throw new StorageError("invalid_event", "Onbekend eventtype.");
   return db.transaction(async (tx) => {
-    await lockTraining(tx, input.trainingId);
-    const revision = await getArtifactRevision(tx, input.artifactRevisionId);
-    if (!revision || revision.trainingId !== input.trainingId) throw new StorageError("not_found", "Revision bestaat niet in deze training.");
-    if (contentHash(revision.payload) !== revision.contentHash) throw new StorageError("hash_mismatch", "Opgeslagen inhoud komt niet overeen met de hash.");
-    const current = await getCurrentArtifactRevision(tx, revision.trainingId, revision.artifactType, revision.artifactKey);
+    const snap = await loadWriteSnapshot(tx, input.trainingId, false);
+    const revision = revisionById(snap, input.artifactRevisionId);
+    if (!revision) throw new StorageError("not_found", "Revision bestaat niet in deze training.");
+    if (!payloadHashValid(revision)) throw new StorageError("hash_mismatch", "Opgeslagen inhoud komt niet overeen met de hash.");
+    const current = currentRevision(snap, revision.artifactType, revision.artifactKey);
     if (current?.id !== revision.id) throw new StorageError("not_current", "Alleen de current revision kan een besluit krijgen.");
 
     let eventData: Record<string, unknown> = {};
@@ -524,7 +592,7 @@ export async function appendWorkflowEvent(
       if (revision.artifactType === "analysis") throw new StorageError("invalid_event", "Een analyse wordt niet goedgekeurd; kies een richting.");
       if (input.eventType === "approved") {
         for (const upstreamId of revision.basedOnRevisionIds) {
-          if (!(await getApprovalState(tx, upstreamId)).approved) throw new StorageError("stale_based_on", "Upstream is niet meer current of goedgekeurd.");
+          if (!approvalState(snap, upstreamId).approved) throw new StorageError("stale_based_on", "Upstream is niet meer current of goedgekeurd.");
         }
         if (revision.artifactType === "block_content" && getBlockApprovalBlocker(revision.payload as BlockContentResult) !== null) {
           throw new StorageError("not_generated", "Alleen gegenereerde blokinhoud kan worden goedgekeurd.");
@@ -533,8 +601,9 @@ export async function appendWorkflowEvent(
     }
 
     // Idempotent: hetzelfde besluit nog eens (bijv. een dubbelklik) voegt geen nieuw event toe.
-    const relevant: WorkflowEventType[] = input.eventType === "direction_selected" ? ["direction_selected"] : ["approved", "needs_revision", "revoked"];
-    const last = (await listWorkflowEvents(tx, revision.id)).filter((e) => relevant.includes(e.eventType)).at(-1);
+    const last = input.eventType === "direction_selected"
+      ? (eventsFor(snap, revision.id).filter((e) => e.eventType === "direction_selected").at(-1) ?? null)
+      : revision.artifactType === "analysis" ? null : lastRelevantEvent(snap, revision);
     if (last && last.eventType === input.eventType && canonicalJson(last.eventData) === canonicalJson(eventData)) return last;
 
     const [row] = await tx.query(
@@ -542,7 +611,6 @@ export async function appendWorkflowEvent(
        values ($1, $2, $3, $4::text::jsonb, $5, null) returning *`,
       [input.trainingId, revision.id, input.eventType, JSON.stringify(eventData), revision.contentHash],
     );
-    await touchTraining(tx, input.trainingId);
     return toEvent(row);
   });
 }
@@ -560,35 +628,16 @@ export async function getSelectedDirectionId(db: Db, analysisRevisionId: string)
   return last ? ((last.eventData.trainingDirectionId as string | undefined) ?? null) : null;
 }
 
-export type ApprovalState =
-  | { approved: true }
-  | { approved: false; reason: "not_found" | "not_current" | "hash_mismatch" | "no_decision" | "not_approved" | "upstream_not_approved" };
-
 /**
- * De approvalregel. Een revision is alleen approved als:
- * 1. hij current is voor zijn (training, type, key);
- * 2. het laatste relevante event voor exact die revision `approved` is (voor een analyse: een `direction_selected`);
- * 3. de content_hash van dat event gelijk is aan die van de revision én aan de herberekende payload-hash;
- * 4. alle based_on-revisions nog current en approved zijn (recursief).
- * Een nieuwe revision erft dus geen approval, en een nieuwe upstream revision maakt downstream stale.
+ * De approvalregel (zie `approvalState` in snapshot.ts): current, laatste besluit `approved` op exact deze hash,
+ * herberekende payload-hash gelijk, alle upstream revisions current en geaccepteerd. Eén revision-lookup plus één
+ * snapshot, in plaats van een query per stap.
  */
 export async function getApprovalState(db: Db, revisionId: string): Promise<ApprovalState> {
   const revision = await getArtifactRevision(db, revisionId);
   if (!revision) return { approved: false, reason: "not_found" };
-  const current = await getCurrentArtifactRevision(db, revision.trainingId, revision.artifactType, revision.artifactKey);
-  if (current?.id !== revision.id) return { approved: false, reason: "not_current" };
-  if (contentHash(revision.payload) !== revision.contentHash) return { approved: false, reason: "hash_mismatch" };
-
-  const relevant: WorkflowEventType[] = revision.artifactType === "analysis" ? ["direction_selected"] : ["approved", "needs_revision", "revoked"];
-  const last = (await listWorkflowEvents(db, revision.id)).filter((e) => relevant.includes(e.eventType)).at(-1);
-  if (!last) return { approved: false, reason: "no_decision" };
-  if (last.contentHash !== revision.contentHash) return { approved: false, reason: "hash_mismatch" };
-  if (revision.artifactType !== "analysis" && last.eventType !== "approved") return { approved: false, reason: "not_approved" };
-
-  for (const upstreamId of revision.basedOnRevisionIds) {
-    if (!(await getApprovalState(db, upstreamId)).approved) return { approved: false, reason: "upstream_not_approved" };
-  }
-  return { approved: true };
+  const snap = await loadTrainingRecordSnapshot(db, revision.trainingId);
+  return snap ? approvalState(snap, revisionId) : { approved: false, reason: "not_found" };
 }
 
 export async function isRevisionApproved(db: Db, revisionId: string): Promise<boolean> {
@@ -599,54 +648,13 @@ export async function isRevisionApproved(db: Db, revisionId: string): Promise<bo
 // Training Content Package (samengesteld, niet opgeslagen)
 // ---------------------------------------------------------------------------------------------------------------
 
-export type StoredContentPackage =
-  | { status: "ok"; package: TrainingContentPackage; revisionIds: string[] }
-  | { status: "not_ready"; reason: "blueprint_not_approved" | "block_plan_not_approved" | "frame_missing" };
 
 /**
- * Stelt het Training Content Package server-side samen uit de current revisions, met dezelfde compose-functie als de
- * flow. Er wordt geen kopie van het pakket opgeslagen: één waarheid.
- * - Blueprint en Block Plan moeten current en goedgekeurd zijn;
- * - Start, Einde en blokinhoud tellen alleen als ze gebouwd zijn op deze Blueprint- en Block Plan-revision;
- * - de reviewstatus van een blok komt uit de workflow events: `approved` (geldige approval), `needs_revision` (laatste
- *   besluit) of anders `draft`.
+ * Stelt het Training Content Package server-side samen uit de current revisions (één snapshot; zie
+ * `composeContentFromSnapshot`). Er wordt geen kopie van het pakket opgeslagen: één waarheid.
  */
 export async function composeStoredContentPackage(db: Db, trainingId: string): Promise<StoredContentPackage> {
-  const blueprintRev = await getCurrentArtifactRevision(db, trainingId, "blueprint");
-  if (!blueprintRev || !(await isRevisionApproved(db, blueprintRev.id))) return { status: "not_ready", reason: "blueprint_not_approved" };
-  const planRev = await getCurrentArtifactRevision(db, trainingId, "block_plan");
-  if (!planRev || !(await isRevisionApproved(db, planRev.id))) return { status: "not_ready", reason: "block_plan_not_approved" };
-  const blueprint = blueprintRev.payload as TrainingBlueprintV2;
-  const blockPlan = planRev.payload as BcOnlineBlockPlan;
-  const onCurrentUpstream = (r: ArtifactRevision | null): r is ArtifactRevision =>
-    r !== null && r.basedOnRevisionIds.includes(blueprintRev.id) && r.basedOnRevisionIds.includes(planRev.id);
-
-  const startRev = await getCurrentArtifactRevision(db, trainingId, "start_content");
-  const endRev = await getCurrentArtifactRevision(db, trainingId, "end_content");
-  if (!onCurrentUpstream(startRev) || !onCurrentUpstream(endRev)) return { status: "not_ready", reason: "frame_missing" };
-
-  const blocks: BlockContentResult[] = [];
-  const revisionIds = [blueprintRev.id, planRev.id, startRev.id, endRev.id];
-  for (const planned of blockPlan.plannedBlocks) {
-    const rev = await getCurrentArtifactRevision(db, trainingId, "block_content", planned.id);
-    if (!onCurrentUpstream(rev)) continue;
-    const last = (await listWorkflowEvents(db, rev.id)).filter((e) => e.eventType !== "direction_selected").at(-1);
-    const reviewStatus = (await isRevisionApproved(db, rev.id)) ? "approved" : last?.eventType === "needs_revision" ? "needs_revision" : "draft";
-    blocks.push({ ...(rev.payload as BlockContentResult), reviewStatus });
-    revisionIds.push(rev.id);
-  }
-
-  return {
-    status: "ok",
-    package: composeContentPackage({
-      blueprint,
-      blockPlan,
-      frame: {
-        start: startRev.payload as TrainingContentPackage["start"],
-        end: endRev.payload as TrainingContentPackage["end"],
-      },
-      blocks,
-    }),
-    revisionIds,
-  };
+  const snap = await loadTrainingRecordSnapshot(db, trainingId);
+  if (!snap) return { status: "not_ready", reason: "blueprint_not_approved" };
+  return composeContentFromSnapshot(snap);
 }

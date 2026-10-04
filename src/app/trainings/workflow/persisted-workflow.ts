@@ -16,16 +16,14 @@ import type { BlockContentService } from "@/services/block-content/services";
 import { lazyService } from "@/services/block-content/orchestrator";
 import type { BlockPlanService, TrainingBlueprintServiceV21 } from "@/services/blueprint/services";
 import type { Db } from "@/services/storage/db";
+import { builtOn, currentRevision, isApproved, selectedDirection, withRevision, type TrainingRecordSnapshot } from "@/services/storage/snapshot";
 import {
   DATA_POLICY_VERSION,
   StorageError,
   appendWorkflowEvent,
   createArtifactRevision,
   createTraining,
-  getCurrentArtifactRevision,
-  getLatestTrainingInput,
-  getSelectedDirectionId,
-  isRevisionApproved,
+  loadTrainingRecordSnapshot,
   saveTrainingInput,
   type ArtifactRevision,
   type StoredTrainingInput,
@@ -132,9 +130,8 @@ function storedAcknowledgement(input: StoredTrainingInput): PreflightAcknowledge
 
 const agentInput = (input: StoredTrainingInput): AgentInput => ({ kind: input.inputType, text: input.inputText }) as AgentInput;
 
-/** Een revision telt alleen als current downstream-artifact als hij op de huidige upstream revisions is gebouwd. */
-const builtOn = (rev: ArtifactRevision | null, upstream: string[]): boolean =>
-  rev !== null && upstream.every((id) => rev.basedOnRevisionIds.includes(id));
+/** De snapshot van een training, of `null` als hij niet bestaat. Eén bulkload per actie. */
+const snapshotOf = (deps: WorkflowDeps, trainingId: string) => loadTrainingRecordSnapshot(deps.db, trainingId);
 
 // ---------------------------------------------------------------------------------------------------------------
 // Invoer en analyse
@@ -179,15 +176,14 @@ export async function startTraining(
 /** Analyse op de opgeslagen invoer; slaat de gevalideerde uitkomst op als analysis-revision. Idempotent. */
 export async function runAnalysis(deps: WorkflowDeps, trainingId: string): Promise<WorkflowResult> {
   const action = "run_analysis";
-  const input = await getLatestTrainingInput(deps.db, trainingId);
-  if (!input) return reject(deps, action, "not_found");
-  const existing = await getCurrentArtifactRevision(deps.db, trainingId, "analysis");
-  if (existing) return ok(deps, trainingId, action);
-  const acknowledgement = storedAcknowledgement(input);
+  const snap = await snapshotOf(deps, trainingId);
+  if (!snap?.input) return reject(deps, action, "not_found");
+  if (currentRevision(snap, "analysis")) return ok(deps, trainingId, action);
+  const acknowledgement = storedAcknowledgement(snap.input);
   if (!acknowledgement) return reject(deps, action, "attestation_outdated");
 
   try {
-    const result = await runGatedAnalysis(agentInput(input), acknowledgement, {
+    const result = await runGatedAnalysis(agentInput(snap.input), acknowledgement, {
       getService: deps.getAnalysisService,
       contractVersion: ANALYSIS_CONTRACT_V21_VERSION,
     });
@@ -214,12 +210,12 @@ export async function runAnalysis(deps: WorkflowDeps, trainingId: string): Promi
 /** Legt de gekozen richting vast als workflow event op exact de current analyse. Vast zodra er een Blueprint is. */
 export async function selectDirection(deps: WorkflowDeps, trainingId: string, analysisRevisionId: string, trainingDirectionId: string): Promise<WorkflowResult> {
   const action = "select_direction";
-  const analysis = await getCurrentArtifactRevision(deps.db, trainingId, "analysis");
-  if (!analysis) return reject(deps, action, "not_found");
+  const snap = await snapshotOf(deps, trainingId);
+  const analysis = snap && currentRevision(snap, "analysis");
+  if (!snap || !analysis) return reject(deps, action, "not_found");
   if (analysis.id !== analysisRevisionId) return reject(deps, action, "stale_revision");
-  if (await hasBlueprintFor(deps.db, trainingId, analysis.id)) {
-    const selected = await getSelectedDirectionId(deps.db, analysis.id);
-    return selected === trainingDirectionId ? ok(deps, trainingId, action) : reject(deps, action, "direction_locked");
+  if (hasBlueprintFor(snap, analysis.id)) {
+    return selectedDirection(snap, analysis.id) === trainingDirectionId ? ok(deps, trainingId, action) : reject(deps, action, "direction_locked");
   }
   try {
     await appendWorkflowEvent(deps.db, { trainingId, artifactRevisionId: analysis.id, eventType: "direction_selected", trainingDirectionId });
@@ -232,18 +228,19 @@ export async function selectDirection(deps: WorkflowDeps, trainingId: string, an
 /** Blueprint uit de opgeslagen analyse, de opgeslagen richting en de opgeslagen invoer. Idempotent per analyse. */
 export async function generateBlueprint(deps: WorkflowDeps, trainingId: string): Promise<WorkflowResult> {
   const action = "generate_blueprint";
-  const input = await getLatestTrainingInput(deps.db, trainingId);
-  const analysis = await getCurrentArtifactRevision(deps.db, trainingId, "analysis");
-  if (!input || !analysis) return reject(deps, action, "not_found");
-  const directionId = await getSelectedDirectionId(deps.db, analysis.id);
+  const snap = await snapshotOf(deps, trainingId);
+  const analysis = snap && currentRevision(snap, "analysis");
+  if (!snap?.input || !analysis) return reject(deps, action, "not_found");
+  const directionId = selectedDirection(snap, analysis.id);
   if (!directionId) return reject(deps, action, "invalid_state");
-  const current = await getCurrentArtifactRevision(deps.db, trainingId, "blueprint");
+  const current = currentRevision(snap, "blueprint");
+  const currentId = current?.id ?? null;
   if (builtOn(current, [analysis.id])) return ok(deps, trainingId, action);
-  const acknowledgement = storedAcknowledgement(input);
+  const acknowledgement = storedAcknowledgement(snap.input);
   if (!acknowledgement) return reject(deps, action, "attestation_outdated");
 
   try {
-    const result = await runBlueprintFlowV21(agentInput(input), acknowledgement, analysis.payload, directionId, { getService: deps.getBlueprintService });
+    const result = await runBlueprintFlowV21(agentInput(snap.input), acknowledgement, analysis.payload, directionId, { getService: deps.getBlueprintService });
     if (result.status === "rejected") {
       return reject(deps, action, result.reason === "provider_error" ? "provider_error" : result.reason === "invalid_blueprint" ? "invalid_output" : "invalid_state", result.reason);
     }
@@ -254,7 +251,7 @@ export async function generateBlueprint(deps: WorkflowDeps, trainingId: string):
       ...deps.provenance.blueprint,
       payload: result.blueprint,
       basedOnRevisionIds: [analysis.id],
-      expectedCurrentRevisionId: current?.id ?? null,
+      expectedCurrentRevisionId: currentId,
     });
   } catch (error) {
     return rejectError(deps, action, error);
@@ -268,7 +265,8 @@ export async function generateBlueprint(deps: WorkflowDeps, trainingId: string):
 
 /**
  * Goedkeuren of laten herzien van exact één revision (Blueprint, Block Plan of blokinhoud). Alleen de current
- * revision; de content_hash komt uit de database. Een herhaald besluit voegt niets toe.
+ * revision; de content_hash komt uit de database. Een herhaald besluit voegt niets toe. De write laadt zijn eigen
+ * snapshot binnen de vergrendelde transactie en evalueert de approvalregels in het geheugen.
  */
 export async function decideRevision(deps: WorkflowDeps, trainingId: string, revisionId: string, decision: "approved" | "needs_revision"): Promise<WorkflowResult> {
   const action = `decide_${decision}`;
@@ -284,22 +282,24 @@ export async function decideRevision(deps: WorkflowDeps, trainingId: string, rev
 // Block Plan en inhoud
 // ---------------------------------------------------------------------------------------------------------------
 
-async function approvedUpstream(deps: WorkflowDeps, trainingId: string) {
-  const analysis = await getCurrentArtifactRevision(deps.db, trainingId, "analysis");
-  const blueprint = await getCurrentArtifactRevision(deps.db, trainingId, "blueprint");
-  if (!analysis || !blueprint || !builtOn(blueprint, [analysis.id]) || !(await isRevisionApproved(deps.db, blueprint.id))) return null;
-  const plan = await getCurrentArtifactRevision(deps.db, trainingId, "block_plan");
-  const planApproved = plan !== null && builtOn(plan, [blueprint.id]) && (await isRevisionApproved(deps.db, plan.id));
-  return { blueprint, plan: builtOn(plan, [blueprint.id]) ? plan : null, planApproved };
+/** Goedgekeurde Blueprint op de current analyse, en het Block Plan daarop (indien aanwezig), uit de snapshot. */
+function approvedUpstream(snap: TrainingRecordSnapshot) {
+  const analysis = currentRevision(snap, "analysis");
+  const blueprint = currentRevision(snap, "blueprint");
+  if (!analysis || !builtOn(blueprint, [analysis.id]) || !isApproved(snap, blueprint.id)) return null;
+  const planRev = currentRevision(snap, "block_plan");
+  const plan = builtOn(planRev, [blueprint.id]) ? planRev : null;
+  return { blueprint, plan, planApproved: plan !== null && isApproved(snap, plan.id) };
 }
 
 /** Block Plan uit de opgeslagen, goedgekeurde Blueprint. De browser levert geen Blueprint aan. Idempotent. */
 export async function generateBlockPlan(deps: WorkflowDeps, trainingId: string): Promise<WorkflowResult> {
   const action = "generate_block_plan";
-  const upstream = await approvedUpstream(deps, trainingId);
-  if (!upstream) return reject(deps, action, "invalid_state");
+  const snap = await snapshotOf(deps, trainingId);
+  const upstream = snap && approvedUpstream(snap);
+  if (!snap || !upstream) return reject(deps, action, "invalid_state");
   if (upstream.plan) return ok(deps, trainingId, action);
-  const current = await getCurrentArtifactRevision(deps.db, trainingId, "block_plan");
+  const current = currentRevision(snap, "block_plan");
   try {
     const result = await runBlockPlanFlow(upstream.blueprint.payload, { status: "approved" }, { getService: deps.getBlockPlanService });
     if (result.status === "rejected") {
@@ -320,36 +320,39 @@ export async function generateBlockPlan(deps: WorkflowDeps, trainingId: string):
   return ok(deps, trainingId, action);
 }
 
-/** Eerder goedgekeurde inhoud van blokken vóór dit blok, uit de database (nooit uit de browser). */
-async function approvedEarlierContent(deps: WorkflowDeps, trainingId: string, plan: BcOnlineBlockPlan, plannedBlockId: string, upstream: string[]) {
+/** Eerder goedgekeurde inhoud van blokken vóór dit blok, uit de snapshot (nooit uit de browser). */
+function approvedEarlierContent(snap: TrainingRecordSnapshot, plan: BcOnlineBlockPlan, plannedBlockId: string, upstream: string[]): BlockContentResult[] {
   const target = plan.plannedBlocks.find((b) => b.id === plannedBlockId)!;
-  const earlier: BlockContentResult[] = [];
-  for (const b of plan.plannedBlocks.filter((p) => p.sequence < target.sequence)) {
-    const rev = await getCurrentArtifactRevision(deps.db, trainingId, "block_content", b.id);
-    if (rev && builtOn(rev, upstream) && (await isRevisionApproved(deps.db, rev.id))) earlier.push({ ...(rev.payload as BlockContentResult), reviewStatus: "approved" });
-  }
-  return earlier;
+  return plan.plannedBlocks
+    .filter((p) => p.sequence < target.sequence)
+    .flatMap((b) => {
+      const rev = currentRevision(snap, "block_content", b.id);
+      return builtOn(rev, upstream) && isApproved(snap, rev.id) ? [{ ...(rev.payload as BlockContentResult), reviewStatus: "approved" as const }] : [];
+    });
 }
 
-/** Eén blok genereren en opslaan (deterministisch zonder provider waar mogelijk), met stale-controle. */
+/**
+ * Eén blok genereren (deterministisch zonder provider waar mogelijk) en opslaan met stale-controle. Geeft de opgeslagen
+ * revision terug, of een afwijzing.
+ */
 async function generateAndStoreBlock(
   deps: WorkflowDeps,
-  trainingId: string,
+  snap: TrainingRecordSnapshot,
   up: { blueprint: ArtifactRevision; plan: ArtifactRevision },
   plannedBlockId: string,
   expectedCurrentRevisionId: string | null,
   getService: () => BlockContentService,
-): Promise<"ok" | WorkflowResult> {
+): Promise<ArtifactRevision | (WorkflowResult & { status: "rejected" })> {
   const blueprint = up.blueprint.payload as TrainingBlueprintV2;
   const plan = up.plan.payload as BcOnlineBlockPlan;
   const upstream = [up.blueprint.id, up.plan.id];
-  const earlier = await approvedEarlierContent(deps, trainingId, plan, plannedBlockId, upstream);
+  const earlier = approvedEarlierContent(snap, plan, plannedBlockId, upstream);
   const result = await runBlockRegenerationFlow(blueprint, { status: "approved" }, plan, { status: "approved" }, plannedBlockId, earlier, { getService });
   if (result.status === "rejected") {
     return reject(deps, "generate_block", result.reason === "provider_error" ? "provider_error" : result.reason === "invalid_block_content" ? "invalid_output" : "invalid_state", result.reason);
   }
-  await createArtifactRevision(deps.db, {
-    trainingId,
+  return createArtifactRevision(deps.db, {
+    trainingId: snap.training.id,
     artifactType: "block_content",
     artifactKey: plannedBlockId,
     contractVersion: BLOCK_CONTENT_VERSION,
@@ -358,40 +361,45 @@ async function generateAndStoreBlock(
     basedOnRevisionIds: upstream,
     expectedCurrentRevisionId,
   });
-  return "ok";
 }
 
 /**
  * Training Content: Start en Einde één keer per training, daarna ieder gepland blok dat nog geen inhoud heeft op de
- * huidige Blueprint en het huidige Block Plan. Ieder blok wordt direct opgeslagen, dus een onderbreking verliest
- * niets; opnieuw starten gaat verder waar het stopte. Stopt bij de eerste fout.
+ * huidige Blueprint en het huidige Block Plan. Eén snapshot bij de start; na iedere opgeslagen revision wordt de lokale
+ * snapshot bijgewerkt in plaats van de training opnieuw te laden. Iedere blokinhoud wordt direct opgeslagen (een
+ * onderbreking verliest niets; opnieuw starten gaat verder). Stopt bij de eerste fout.
  */
 export async function generateContent(deps: WorkflowDeps, trainingId: string): Promise<WorkflowResult> {
   const action = "generate_content";
-  const up = await approvedUpstream(deps, trainingId);
-  if (!up || !up.plan || !up.planApproved) return reject(deps, action, "invalid_state");
+  let snap = await snapshotOf(deps, trainingId);
+  const up = snap && approvedUpstream(snap);
+  if (!snap || !up || !up.plan || !up.planApproved) return reject(deps, action, "invalid_state");
   const upstream = [up.blueprint.id, up.plan.id];
   const blueprint = up.blueprint.payload as TrainingBlueprintV2;
   const plan = up.plan.payload as BcOnlineBlockPlan;
   const getService = lazyService(deps.getBlockContentService);
 
   try {
-    const start = await getCurrentArtifactRevision(deps.db, trainingId, "start_content");
-    const end = await getCurrentArtifactRevision(deps.db, trainingId, "end_content");
+    const start = currentRevision(snap, "start_content");
+    const end = currentRevision(snap, "end_content");
+    const startId = start?.id ?? null;
+    const endId = end?.id ?? null;
     if (!builtOn(start, upstream) || !builtOn(end, upstream)) {
       const frame = await getService().generateFrame({ blueprint, blockPlan: plan });
       if (!builtOn(start, upstream)) {
-        await createArtifactRevision(deps.db, { trainingId, artifactType: "start_content", contractVersion: BLOCK_CONTENT_VERSION, ...deps.provenance.blockContent, payload: frame.start, basedOnRevisionIds: upstream, expectedCurrentRevisionId: start?.id ?? null });
+        snap = withRevision(snap, await createArtifactRevision(deps.db, { trainingId, artifactType: "start_content", contractVersion: BLOCK_CONTENT_VERSION, ...deps.provenance.blockContent, payload: frame.start, basedOnRevisionIds: upstream, expectedCurrentRevisionId: startId }));
       }
       if (!builtOn(end, upstream)) {
-        await createArtifactRevision(deps.db, { trainingId, artifactType: "end_content", contractVersion: BLOCK_CONTENT_VERSION, ...deps.provenance.blockContent, payload: frame.end, basedOnRevisionIds: upstream, expectedCurrentRevisionId: end?.id ?? null });
+        snap = withRevision(snap, await createArtifactRevision(deps.db, { trainingId, artifactType: "end_content", contractVersion: BLOCK_CONTENT_VERSION, ...deps.provenance.blockContent, payload: frame.end, basedOnRevisionIds: upstream, expectedCurrentRevisionId: endId }));
       }
     }
     for (const planned of [...plan.plannedBlocks].sort((a, b) => a.sequence - b.sequence)) {
-      const current = await getCurrentArtifactRevision(deps.db, trainingId, "block_content", planned.id);
+      const current = currentRevision(snap, "block_content", planned.id);
+      const currentId = current?.id ?? null;
       if (builtOn(current, upstream)) continue;
-      const outcome = await generateAndStoreBlock(deps, trainingId, { blueprint: up.blueprint, plan: up.plan }, planned.id, current?.id ?? null, getService);
-      if (outcome !== "ok") return { ...(await ok(deps, trainingId, action, { failedBlockId: planned.id })) };
+      const stored = await generateAndStoreBlock(deps, snap, { blueprint: up.blueprint, plan: up.plan }, planned.id, currentId, getService);
+      if ("status" in stored) return ok(deps, trainingId, action, { failedBlockId: planned.id });
+      snap = withRevision(snap, stored);
     }
   } catch (error) {
     return rejectError(deps, action, error);
@@ -405,12 +413,13 @@ export async function generateContent(deps: WorkflowDeps, trainingId: string): P
  */
 export async function regenerateBlock(deps: WorkflowDeps, trainingId: string, plannedBlockId: string, expectedRevisionId: string | null): Promise<WorkflowResult> {
   const action = "regenerate_block";
-  const up = await approvedUpstream(deps, trainingId);
-  if (!up || !up.plan || !up.planApproved) return reject(deps, action, "invalid_state");
+  const snap = await snapshotOf(deps, trainingId);
+  const up = snap && approvedUpstream(snap);
+  if (!snap || !up || !up.plan || !up.planApproved) return reject(deps, action, "invalid_state");
   if (!(up.plan.payload as BcOnlineBlockPlan).plannedBlocks.some((b) => b.id === plannedBlockId)) return reject(deps, action, "not_found");
   try {
-    const outcome = await generateAndStoreBlock(deps, trainingId, { blueprint: up.blueprint, plan: up.plan }, plannedBlockId, expectedRevisionId, lazyService(deps.getBlockContentService));
-    if (outcome !== "ok") return outcome;
+    const stored = await generateAndStoreBlock(deps, snap, { blueprint: up.blueprint, plan: up.plan }, plannedBlockId, expectedRevisionId, lazyService(deps.getBlockContentService));
+    if ("status" in stored) return stored;
   } catch (error) {
     return rejectError(deps, action, error);
   }

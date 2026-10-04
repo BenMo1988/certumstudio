@@ -5,14 +5,17 @@ import { findEpistemicFlags, segmentInput, type AnalysisOutcome, type EpistemicF
 import type { TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
 import type { Db } from "./db";
 import {
-  composeStoredContentPackage,
-  getCurrentArtifactRevision,
-  getLatestTrainingInput,
-  getSelectedDirectionId,
-  getTraining,
-  isRevisionApproved,
-  listArtifactRevisions,
+  builtOn,
+  composeContentFromSnapshot,
+  currentRevision,
+  isApproved,
+  selectedDirection,
+  type TrainingRecordSnapshot,
+} from "./snapshot";
+import {
   listTrainings,
+  loadTrainingRecordSnapshot,
+  loadTrainingRecordSnapshots,
   type ArtifactRevision,
   type TrainingRecord,
 } from "./training-record";
@@ -21,6 +24,9 @@ import {
  * Het hervatbare beeld van één training, volledig uit Postgres: wat de UI toont en waar de gebruiker verdergaat. De
  * voortgang (`stage`) wordt afgeleid uit de opgeslagen revisions en events en nergens apart opgeslagen.
  * Serialiseerbaar (geen Dates of klassen), zodat een server component het aan de client kan geven.
+ *
+ * Eén Training Record Snapshot (vier bulkqueries) en daarna alles in het geheugen (`deriveWorkspace`): gekozen
+ * richting, approvals, staleness, Content Package, reviewstatus en resume-stage. Geen query per revision of blok.
  */
 
 export const WORKFLOW_STAGES = [
@@ -92,40 +98,43 @@ export interface TrainingWorkspaceView {
 
 const iso = (d: Date) => d.toISOString();
 
-async function storedView<T>(db: Db, revision: ArtifactRevision | null): Promise<StoredArtifactView<T> | null> {
+function storedView<T>(snap: TrainingRecordSnapshot, revision: ArtifactRevision | null): StoredArtifactView<T> | null {
   if (!revision) return null;
-  return { revisionId: revision.id, revisionNo: revision.revisionNo, payload: revision.payload as T, approved: await isRevisionApproved(db, revision.id) };
+  return { revisionId: revision.id, revisionNo: revision.revisionNo, payload: revision.payload as T, approved: isApproved(snap, revision.id) };
 }
 
 export async function loadTrainingWorkspace(db: Db, trainingId: string): Promise<TrainingWorkspaceView | null> {
-  const training = await getTraining(db, trainingId);
-  if (!training) return null;
-  const input = await getLatestTrainingInput(db, training.id);
+  const snap = await loadTrainingRecordSnapshot(db, trainingId);
+  return snap ? deriveWorkspace(snap) : null;
+}
 
-  const analysisRev = await getCurrentArtifactRevision(db, training.id, "analysis");
+/** De hele workspace uit één snapshot; puur, zonder database. */
+export function deriveWorkspace(snap: TrainingRecordSnapshot): TrainingWorkspaceView {
+  const { training, input } = snap;
+  const analysisRev = currentRevision(snap, "analysis");
   const analysis = analysisRev && input
     ? {
         revisionId: analysisRev.id,
         outcome: analysisRev.payload as AnalysisOutcome,
         segments: segmentInput(input.inputText),
         epistemicFlags: findEpistemicFlags(analysisRev.payload as AnalysisOutcome, input.inputText),
-        selectedDirectionId: await getSelectedDirectionId(db, analysisRev.id),
+        selectedDirectionId: selectedDirection(snap, analysisRev.id),
       }
     : null;
 
   // Alleen artifacts op de huidige upstream tellen; een verouderd downstream-artifact wordt niet getoond als current.
-  const blueprintRev = await getCurrentArtifactRevision(db, training.id, "blueprint");
-  const blueprint = analysisRev && blueprintRev?.basedOnRevisionIds.includes(analysisRev.id) ? await storedView<TrainingBlueprintV2>(db, blueprintRev) : null;
-  const planRev = await getCurrentArtifactRevision(db, training.id, "block_plan");
-  const blockPlan = blueprint && planRev?.basedOnRevisionIds.includes(blueprint.revisionId) ? await storedView<BcOnlineBlockPlan>(db, planRev) : null;
+  const blueprintRev = currentRevision(snap, "blueprint");
+  const blueprint = analysisRev && builtOn(blueprintRev, [analysisRev.id]) ? storedView<TrainingBlueprintV2>(snap, blueprintRev) : null;
+  const planRev = currentRevision(snap, "block_plan");
+  const blockPlan = blueprint && builtOn(planRev, [blueprint.revisionId]) ? storedView<BcOnlineBlockPlan>(snap, planRev) : null;
 
   let content: TrainingWorkspaceView["content"] = null;
   if (blueprint?.approved && blockPlan?.approved) {
-    const stored = await composeStoredContentPackage(db, training.id);
+    const stored = composeContentFromSnapshot(snap);
     if (stored.status === "ok") {
       const blockRevisions: Record<string, { revisionId: string; revisionNo: number }> = {};
       for (const block of stored.package.blocks) {
-        const rev = await getCurrentArtifactRevision(db, training.id, "block_content", block.plannedBlockId);
+        const rev = currentRevision(snap, "block_content", block.plannedBlockId);
         if (rev) blockRevisions[block.plannedBlockId] = { revisionId: rev.id, revisionNo: rev.revisionNo };
       }
       content = { package: stored.package, blockRevisions };
@@ -188,20 +197,19 @@ export interface TrainingSummary {
   progress: WorkflowProgress;
 }
 
-/** De trainingenlijst: echte records, met de afgeleide voortgang. */
+/** De trainingenlijst: echte records met afgeleide voortgang. Vijf queries in totaal, ongeacht het aantal trainingen. */
 export async function listTrainingSummaries(db: Db, options: { limit?: number } = {}): Promise<TrainingSummary[]> {
   const trainings = await listTrainings(db, options);
-  const summaries: TrainingSummary[] = [];
-  for (const t of trainings) {
-    const view = await loadTrainingWorkspace(db, t.id);
-    if (view) summaries.push({ id: t.id, code: view.training.code, title: view.training.title, updatedAt: view.training.updatedAt, progress: view.progress });
-  }
-  return summaries;
+  const snapshots = await loadTrainingRecordSnapshots(db, trainings.map((t) => t.id));
+  return trainings.flatMap((t) => {
+    const snap = snapshots.get(t.id);
+    if (!snap) return [];
+    const view = deriveWorkspace(snap);
+    return [{ id: t.id, code: view.training.code, title: view.training.title, updatedAt: view.training.updatedAt, progress: view.progress }];
+  });
 }
 
-/** Of er voor deze analyse al een Blueprint bestaat; dan ligt de richting vast. */
-export async function hasBlueprintFor(db: Db, trainingId: string, analysisRevisionId: string): Promise<boolean> {
-  const blueprints = await listArtifactRevisions(db, trainingId, { artifactType: "blueprint" });
-  return blueprints.some((b) => b.basedOnRevisionIds.includes(analysisRevisionId));
+/** Of er in deze snapshot al een Blueprint op de analyse is gebaseerd; dan ligt de richting vast. */
+export function hasBlueprintFor(snap: TrainingRecordSnapshot, analysisRevisionId: string): boolean {
+  return snap.revisions.some((r) => r.artifactType === "blueprint" && r.basedOnRevisionIds.includes(analysisRevisionId));
 }
-
