@@ -38,7 +38,7 @@ it("export training record", async () => {
       payload: r.payload,
     }));
     const events = snap.events.map((e) => ({ eventNo: e.eventNo, type: e.eventType, revisionId: e.artifactRevisionId, data: e.eventData, at: e.createdAt.toISOString() }));
-    const dir = join(process.cwd(), "evals/full-training-pilot/record");
+    const dir = join(process.cwd(), process.env.PILOT_EXPORT_DIR ?? "evals/full-training-pilot/record");
     mkdirSync(dir, { recursive: true });
     writeFileSync(
       join(dir, `${name}.json`),

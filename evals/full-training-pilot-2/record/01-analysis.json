@@ -1,0 +1,281 @@
+{
+  "exportedAt": "2026-10-05T09:34:52.891Z",
+  "training": {
+    "code": "TR-0018",
+    "title": "Nieuwe training · Casus",
+    "status": "concept"
+  },
+  "revisions": [
+    {
+      "id": "5ef76d79-645a-4015-b73f-b5a2df2c320b",
+      "type": "analysis",
+      "key": "main",
+      "revisionNo": 1,
+      "current": true,
+      "approved": false,
+      "lastDecision": null,
+      "promptVersion": "training-analysis/v2.1.1",
+      "modelVersion": "claude-opus-5-5 · medium",
+      "createdAt": "2026-10-05T09:34:33.163Z",
+      "basedOn": [],
+      "payload": {
+        "outcome": "ready",
+        "summary": "Een jeugdprofessional begeleidt een 15-jarige jongere. De jongere heeft ingestemd met afstemming met school over schoolverzuim, belastbaarheid en benodigde ondersteuning. Daarnaast heeft de jongere individueel verteld over financiële problemen thuis en psychische klachten bij een ouder, en nadrukkelijk gezegd dat deze informatie niet met school gedeeld mag worden. Tijdens een MDO vraagt de zorgcoördinator wat er thuis precies speelt. Volgens de zorgcoördinator is het volledige plaatje nodig om te beoordelen wat school moet doen. Op terughoudendheid van de jeugdprofessional reageert de zorgcoördinator dat samenwerken weinig zin heeft als professionals informatie achterhouden. Er zijn geen aanwijzingen voor acuut gevaar. Het organisatieprotocol over informatie delen en privacy is tijdens het MDO niet beschikbaar.",
+        "rationale": "De casus bevat een concreet keuzemoment waarin de jeugdprofessional tijdens een MDO moet bepalen wat hij deelt, hoe hij dat uitlegt en hoe hij de samenwerking werkbaar houdt. De spanning tussen de uitdrukkelijke wens van de jongere en de vraag van school is duidelijk beschreven, net als de beperkte instemming en het ontbreken van acuut gevaar. Omdat de input geen leidende handelingslijn aanreikt en het protocol niet beschikbaar is, zijn de richtingen als open keuzemomenten opgezet.",
+        "targetAudience": "Jeugdprofessionals die jongeren begeleiden en in multidisciplinair overleg met school samenwerken.",
+        "abstractionNotes": [
+          {
+            "advice": "Bij trainingsontwikkeling kan dit algemener worden beschreven als gevoelige informatie over de thuissituatie, of worden gevarieerd per scenario.",
+            "feature": "De specifieke combinatie van financiële problemen en psychische klachten bij een ouder als vertrouwelijke thuisinformatie."
+          },
+          {
+            "advice": "Deze kunnen worden geparafraseerd of in varianten worden uitgewerkt, zodat de druk vanuit school herkenbaar blijft zonder vaste bewoording.",
+            "feature": "De letterlijk geciteerde uitspraken van de zorgcoördinator."
+          },
+          {
+            "advice": "Overweeg een leeftijdsrange te gebruiken, tenzij de leeftijd in de Bron-fase inhoudelijk bepalend blijkt voor wie over het delen van informatie beslist.",
+            "feature": "De exacte leeftijd van de jongere."
+          }
+        ],
+        "sourceCandidates": [
+          {
+            "term": "Privacywetgeving en regels over het delen van persoonsgegevens in de jeugdhulp, waaronder toestemming van minderjarigen",
+            "whyPossiblyRelevant": "De casus draait om het delen van gevoelige informatie over een minderjarige en diens gezin met school, waarbij de jongere alleen voor een deel instemming heeft gegeven."
+          },
+          {
+            "term": "Het organisatieprotocol voor informatie delen en privacy",
+            "whyPossiblyRelevant": "De input noemt dit protocol expliciet; de inhoud ervan kan bepalen welke handelingslijn in deze situatie leidend is."
+          },
+          {
+            "term": "Beroepsgeheim en professionele standaarden voor jeugdprofessionals",
+            "whyPossiblyRelevant": "De jeugdprofessional ontvangt vertrouwelijke informatie in een individueel gesprek en wordt in een samenwerkingsoverleg onder druk gezet om die te delen."
+          }
+        ],
+        "trainingDirections": [
+          {
+            "id": "grens-informatie-delen",
+            "focus": "De jeugdprofessional krijgt tijdens het MDO de vraag wat er thuis speelt, terwijl de jongere alleen instemming heeft gegeven voor afstemming over schoolverzuim, belastbaarheid en ondersteuning en nadrukkelijk niet wil dat de thuisinformatie met school wordt gedeeld. Er zijn geen aanwijzingen voor acuut gevaar. Hij moet ter plekke bepalen welke informatie binnen de gegeven instemming valt en wat hij met de vraag naar de thuissituatie doet.",
+            "title": "Bepalen wat wel en niet wordt gedeeld",
+            "sourceRefs": [
+              "S2",
+              "S3",
+              "S4",
+              "S5",
+              "S8",
+              "S9"
+            ],
+            "routePolicy": "open_choice",
+            "proposedLearningGoal": "De deelnemer kan bepalen welke informatie hij in het overleg deelt, waarbij hij de reikwijdte van de instemming en de uitdrukkelijke wens van de jongere afweegt tegen wat school nodig heeft om passende ondersteuning te bieden, en deze keuze professioneel onderbouwen."
+          },
+          {
+            "id": "uitleg-en-samenwerking",
+            "focus": "De zorgcoördinator stelt dat het volledige plaatje nodig is en dat samenwerken weinig zin heeft als professionals informatie achterhouden. De jeugdprofessional moet bepalen hoe hij zijn terughoudendheid uitlegt en hoe hij de samenwerking met school werkbaar houdt, zonder dat vastligt welke formulering of aanpak daarbij de juiste is.",
+            "title": "Terughoudendheid uitleggen en samenwerking werkbaar houden",
+            "sourceRefs": [
+              "S6",
+              "S7",
+              "S9"
+            ],
+            "routePolicy": "open_choice",
+            "proposedLearningGoal": "De deelnemer kan in reactie op druk van een samenwerkingspartner zijn positie over het delen van informatie helder en respectvol toelichten, daarbij het belang van de samenwerking en de vraag van school serieus nemen, en verantwoorden hoe zijn reactie bijdraagt aan een werkbare samenwerking."
+          },
+          {
+            "id": "handelen-zonder-protocol",
+            "focus": "De organisatie heeft een eigen protocol voor informatie delen en privacy, maar dat is tijdens het MDO niet beschikbaar. De jeugdprofessional moet in het moment beslissen hoe hij met de informatievraag omgaat, terwijl hij de geldende afspraken niet kan raadplegen.",
+            "title": "Handelen zonder beschikbaar protocol",
+            "sourceRefs": [
+              "S9",
+              "S10"
+            ],
+            "routePolicy": "open_choice",
+            "proposedLearningGoal": "De deelnemer kan in een overleg zonder toegang tot het organisatieprotocol een verantwoorde keuze maken over het delen van informatie, inschatten wat hij op dat moment wel en niet kan toezeggen, en die keuze achteraf kunnen verantwoorden."
+          }
+        ],
+        "professionalDilemma": "De jeugdprofessional moet tijdens het MDO, zonder het eigen protocol bij de hand, bepalen hoe hij omgaat met de vraag van de zorgcoördinator naar de thuissituatie. Hij weegt daarbij de expliciete wens van de jongere om de thuisinformatie niet met school te delen en de beperkte reikwijdte van de gegeven instemming af tegen de wens van school om een volledig beeld te hebben en het belang van een werkbare samenwerking, terwijl de zorgcoördinator terughoudendheid uitlegt als het achterhouden van informatie.",
+        "decisionRelevantGaps": [
+          {
+            "affects": "richtingkeuze",
+            "question": "Wat schrijft het organisatieprotocol voor over het delen van informatie die een jongere uitdrukkelijk niet gedeeld wil hebben, wanneer er geen acuut gevaar is?",
+            "howItChangesTheDecision": "Als het protocol hiervoor één duidelijke handelingslijn voorschrijft, kan de richting over wat wel en niet wordt gedeeld van open_choice naar prescribed_action verschuiven en wordt het leerdoel concreter op die handelingslijn gericht."
+          },
+          {
+            "affects": "dilemma",
+            "question": "Is de jongere aanwezig bij het MDO of op de hoogte van wat daar besproken wordt?",
+            "howItChangesTheDecision": "Bij aanwezigheid van de jongere verschuift het dilemma naar het samen met de jongere ter plekke bepalen wat gedeeld wordt; bij afwezigheid ligt de afweging volledig bij de professional en wordt de optie om eerst met de jongere te overleggen relevanter."
+          }
+        ],
+        "proposedLearningGoal": "De deelnemer kan in een overleg onder druk bepalen welke informatie hij wel en niet deelt, deze keuze afstemmen op de afspraken met en de wensen van de jongere en op wat school nodig heeft om ondersteuning te bieden, en zijn keuze zo uitleggen dat de samenwerking werkbaar blijft."
+      }
+    }
+  ],
+  "events": [],
+  "workspace": {
+    "training": {
+      "id": "e4726c9f-03b1-4bf3-8350-d57efb3cd625",
+      "code": "TR-0018",
+      "title": "Nieuwe training · Casus",
+      "createdAt": "2026-10-05T09:33:55.960Z",
+      "updatedAt": "2026-10-05T09:34:33.163Z"
+    },
+    "input": {
+      "kind": "casus",
+      "text": "Een jeugdprofessional begeleidt een 15-jarige jongere. De jongere heeft ermee ingestemd dat de professional met school afstemt over schoolverzuim, belastbaarheid en welke ondersteuning op school nodig is.\n\nIn een individueel gesprek heeft de jongere daarnaast verteld dat er thuis financiële problemen zijn en dat een ouder psychische klachten heeft. De jongere heeft daarbij nadrukkelijk gezegd niet te willen dat deze informatie met school wordt gedeeld.\n\nTijdens een MDO vraagt de zorgcoördinator van school wat er thuis precies speelt. Volgens de zorgcoördinator is “het volledige plaatje” nodig om te kunnen beoordelen wat school moet doen. Wanneer de jeugdprofessional terughoudend reageert, zegt de zorgcoördinator dat samenwerken weinig zin heeft als professionals informatie voor elkaar achterhouden.\n\nEr zijn op dat moment geen aanwijzingen voor acuut gevaar. De jeugdprofessional moet tijdens het gesprek bepalen wat wel en niet wordt gedeeld, hoe dit wordt uitgelegd en hoe de samenwerking met school werkbaar blijft.\n\nDe organisatie van de jeugdprofessional heeft een eigen protocol voor informatie delen en privacy, maar dat protocol is tijdens het MDO niet beschikbaar.\n\nDeze casus is volledig synthetisch en uitsluitend gemaakt voor producttesting van Bureau Certum."
+    },
+    "analysis": {
+      "revisionId": "5ef76d79-645a-4015-b73f-b5a2df2c320b",
+      "outcome": {
+        "outcome": "ready",
+        "summary": "Een jeugdprofessional begeleidt een 15-jarige jongere. De jongere heeft ingestemd met afstemming met school over schoolverzuim, belastbaarheid en benodigde ondersteuning. Daarnaast heeft de jongere individueel verteld over financiële problemen thuis en psychische klachten bij een ouder, en nadrukkelijk gezegd dat deze informatie niet met school gedeeld mag worden. Tijdens een MDO vraagt de zorgcoördinator wat er thuis precies speelt. Volgens de zorgcoördinator is het volledige plaatje nodig om te beoordelen wat school moet doen. Op terughoudendheid van de jeugdprofessional reageert de zorgcoördinator dat samenwerken weinig zin heeft als professionals informatie achterhouden. Er zijn geen aanwijzingen voor acuut gevaar. Het organisatieprotocol over informatie delen en privacy is tijdens het MDO niet beschikbaar.",
+        "rationale": "De casus bevat een concreet keuzemoment waarin de jeugdprofessional tijdens een MDO moet bepalen wat hij deelt, hoe hij dat uitlegt en hoe hij de samenwerking werkbaar houdt. De spanning tussen de uitdrukkelijke wens van de jongere en de vraag van school is duidelijk beschreven, net als de beperkte instemming en het ontbreken van acuut gevaar. Omdat de input geen leidende handelingslijn aanreikt en het protocol niet beschikbaar is, zijn de richtingen als open keuzemomenten opgezet.",
+        "targetAudience": "Jeugdprofessionals die jongeren begeleiden en in multidisciplinair overleg met school samenwerken.",
+        "abstractionNotes": [
+          {
+            "advice": "Bij trainingsontwikkeling kan dit algemener worden beschreven als gevoelige informatie over de thuissituatie, of worden gevarieerd per scenario.",
+            "feature": "De specifieke combinatie van financiële problemen en psychische klachten bij een ouder als vertrouwelijke thuisinformatie."
+          },
+          {
+            "advice": "Deze kunnen worden geparafraseerd of in varianten worden uitgewerkt, zodat de druk vanuit school herkenbaar blijft zonder vaste bewoording.",
+            "feature": "De letterlijk geciteerde uitspraken van de zorgcoördinator."
+          },
+          {
+            "advice": "Overweeg een leeftijdsrange te gebruiken, tenzij de leeftijd in de Bron-fase inhoudelijk bepalend blijkt voor wie over het delen van informatie beslist.",
+            "feature": "De exacte leeftijd van de jongere."
+          }
+        ],
+        "sourceCandidates": [
+          {
+            "term": "Privacywetgeving en regels over het delen van persoonsgegevens in de jeugdhulp, waaronder toestemming van minderjarigen",
+            "whyPossiblyRelevant": "De casus draait om het delen van gevoelige informatie over een minderjarige en diens gezin met school, waarbij de jongere alleen voor een deel instemming heeft gegeven."
+          },
+          {
+            "term": "Het organisatieprotocol voor informatie delen en privacy",
+            "whyPossiblyRelevant": "De input noemt dit protocol expliciet; de inhoud ervan kan bepalen welke handelingslijn in deze situatie leidend is."
+          },
+          {
+            "term": "Beroepsgeheim en professionele standaarden voor jeugdprofessionals",
+            "whyPossiblyRelevant": "De jeugdprofessional ontvangt vertrouwelijke informatie in een individueel gesprek en wordt in een samenwerkingsoverleg onder druk gezet om die te delen."
+          }
+        ],
+        "trainingDirections": [
+          {
+            "id": "grens-informatie-delen",
+            "focus": "De jeugdprofessional krijgt tijdens het MDO de vraag wat er thuis speelt, terwijl de jongere alleen instemming heeft gegeven voor afstemming over schoolverzuim, belastbaarheid en ondersteuning en nadrukkelijk niet wil dat de thuisinformatie met school wordt gedeeld. Er zijn geen aanwijzingen voor acuut gevaar. Hij moet ter plekke bepalen welke informatie binnen de gegeven instemming valt en wat hij met de vraag naar de thuissituatie doet.",
+            "title": "Bepalen wat wel en niet wordt gedeeld",
+            "sourceRefs": [
+              "S2",
+              "S3",
+              "S4",
+              "S5",
+              "S8",
+              "S9"
+            ],
+            "routePolicy": "open_choice",
+            "proposedLearningGoal": "De deelnemer kan bepalen welke informatie hij in het overleg deelt, waarbij hij de reikwijdte van de instemming en de uitdrukkelijke wens van de jongere afweegt tegen wat school nodig heeft om passende ondersteuning te bieden, en deze keuze professioneel onderbouwen."
+          },
+          {
+            "id": "uitleg-en-samenwerking",
+            "focus": "De zorgcoördinator stelt dat het volledige plaatje nodig is en dat samenwerken weinig zin heeft als professionals informatie achterhouden. De jeugdprofessional moet bepalen hoe hij zijn terughoudendheid uitlegt en hoe hij de samenwerking met school werkbaar houdt, zonder dat vastligt welke formulering of aanpak daarbij de juiste is.",
+            "title": "Terughoudendheid uitleggen en samenwerking werkbaar houden",
+            "sourceRefs": [
+              "S6",
+              "S7",
+              "S9"
+            ],
+            "routePolicy": "open_choice",
+            "proposedLearningGoal": "De deelnemer kan in reactie op druk van een samenwerkingspartner zijn positie over het delen van informatie helder en respectvol toelichten, daarbij het belang van de samenwerking en de vraag van school serieus nemen, en verantwoorden hoe zijn reactie bijdraagt aan een werkbare samenwerking."
+          },
+          {
+            "id": "handelen-zonder-protocol",
+            "focus": "De organisatie heeft een eigen protocol voor informatie delen en privacy, maar dat is tijdens het MDO niet beschikbaar. De jeugdprofessional moet in het moment beslissen hoe hij met de informatievraag omgaat, terwijl hij de geldende afspraken niet kan raadplegen.",
+            "title": "Handelen zonder beschikbaar protocol",
+            "sourceRefs": [
+              "S9",
+              "S10"
+            ],
+            "routePolicy": "open_choice",
+            "proposedLearningGoal": "De deelnemer kan in een overleg zonder toegang tot het organisatieprotocol een verantwoorde keuze maken over het delen van informatie, inschatten wat hij op dat moment wel en niet kan toezeggen, en die keuze achteraf kunnen verantwoorden."
+          }
+        ],
+        "professionalDilemma": "De jeugdprofessional moet tijdens het MDO, zonder het eigen protocol bij de hand, bepalen hoe hij omgaat met de vraag van de zorgcoördinator naar de thuissituatie. Hij weegt daarbij de expliciete wens van de jongere om de thuisinformatie niet met school te delen en de beperkte reikwijdte van de gegeven instemming af tegen de wens van school om een volledig beeld te hebben en het belang van een werkbare samenwerking, terwijl de zorgcoördinator terughoudendheid uitlegt als het achterhouden van informatie.",
+        "decisionRelevantGaps": [
+          {
+            "affects": "richtingkeuze",
+            "question": "Wat schrijft het organisatieprotocol voor over het delen van informatie die een jongere uitdrukkelijk niet gedeeld wil hebben, wanneer er geen acuut gevaar is?",
+            "howItChangesTheDecision": "Als het protocol hiervoor één duidelijke handelingslijn voorschrijft, kan de richting over wat wel en niet wordt gedeeld van open_choice naar prescribed_action verschuiven en wordt het leerdoel concreter op die handelingslijn gericht."
+          },
+          {
+            "affects": "dilemma",
+            "question": "Is de jongere aanwezig bij het MDO of op de hoogte van wat daar besproken wordt?",
+            "howItChangesTheDecision": "Bij aanwezigheid van de jongere verschuift het dilemma naar het samen met de jongere ter plekke bepalen wat gedeeld wordt; bij afwezigheid ligt de afweging volledig bij de professional en wordt de optie om eerst met de jongere te overleggen relevanter."
+          }
+        ],
+        "proposedLearningGoal": "De deelnemer kan in een overleg onder druk bepalen welke informatie hij wel en niet deelt, deze keuze afstemmen op de afspraken met en de wensen van de jongere en op wat school nodig heeft om ondersteuning te bieden, en zijn keuze zo uitleggen dat de samenwerking werkbaar blijft."
+      },
+      "segments": [
+        {
+          "id": "S1",
+          "text": "Een jeugdprofessional begeleidt een 15-jarige jongere."
+        },
+        {
+          "id": "S2",
+          "text": "De jongere heeft ermee ingestemd dat de professional met school afstemt over schoolverzuim, belastbaarheid en welke ondersteuning op school nodig is."
+        },
+        {
+          "id": "S3",
+          "text": "In een individueel gesprek heeft de jongere daarnaast verteld dat er thuis financiële problemen zijn en dat een ouder psychische klachten heeft."
+        },
+        {
+          "id": "S4",
+          "text": "De jongere heeft daarbij nadrukkelijk gezegd niet te willen dat deze informatie met school wordt gedeeld."
+        },
+        {
+          "id": "S5",
+          "text": "Tijdens een MDO vraagt de zorgcoördinator van school wat er thuis precies speelt."
+        },
+        {
+          "id": "S6",
+          "text": "Volgens de zorgcoördinator is “het volledige plaatje” nodig om te kunnen beoordelen wat school moet doen."
+        },
+        {
+          "id": "S7",
+          "text": "Wanneer de jeugdprofessional terughoudend reageert, zegt de zorgcoördinator dat samenwerken weinig zin heeft als professionals informatie voor elkaar achterhouden."
+        },
+        {
+          "id": "S8",
+          "text": "Er zijn op dat moment geen aanwijzingen voor acuut gevaar."
+        },
+        {
+          "id": "S9",
+          "text": "De jeugdprofessional moet tijdens het gesprek bepalen wat wel en niet wordt gedeeld, hoe dit wordt uitgelegd en hoe de samenwerking met school werkbaar blijft."
+        },
+        {
+          "id": "S10",
+          "text": "De organisatie van de jeugdprofessional heeft een eigen protocol voor informatie delen en privacy, maar dat protocol is tijdens het MDO niet beschikbaar."
+        },
+        {
+          "id": "S11",
+          "text": "Deze casus is volledig synthetisch en uitsluitend gemaakt voor producttesting van Bureau Certum."
+        }
+      ],
+      "epistemicFlags": [],
+      "selectedDirectionId": null
+    },
+    "blueprint": null,
+    "blockPlan": null,
+    "sources": null,
+    "content": null,
+    "progress": {
+      "stage": "analysis_ready",
+      "label": "Analyse gereed",
+      "totalBlocks": 0,
+      "storedBlocks": 0,
+      "generatedBlocks": 0,
+      "approvedBlocks": 0,
+      "unresolved": {
+        "source": 0,
+        "asset": 0,
+        "capability": 0
+      }
+    }
+  }
+}

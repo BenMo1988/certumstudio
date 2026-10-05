@@ -625,6 +625,8 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 11C, persistence cut-over V1: de Studio onthoudt en hervat trainingen (bewezen tegen Supabase).
 - Stap 11D, persistence performance V1: Training Record Snapshot; alle V1-doelen gehaald.
 - Stap 12A, Training Review & Editor V1: handmatig bewerken als nieuwe revision, review per blok, Start/Einde, readiness.
+- Stap 16, Full Training Pilot 2 (TR-0018): interactieve praktijksimulatie geproduceerd en Training gereed;
+  runtime nog niet bewezen (volgende stap: Participant Preview).
 - Stap 15B, SourceNeed Scope Review: de opleider classificeert iedere kennisbehoefte vóór goedkeuring (mock bewezen).
 - Stap 15A, Pilot-driven Product Corrections V1: Block Plan Override, organisatiegebonden sourceNeeds, zichtbare
   bronvalidatie, titelsynchronisatie en actuele unresolved refs (mock bewezen).
@@ -647,7 +649,7 @@ Gebruik voor trainingen altijd `/trainings/...` (meervoud). Goedkeuren maakt nog
 
 ## Evals
 
-Er zijn zeven evalsets, elk met een eigen README:
+Er zijn acht evalsets, elk met een eigen README:
 - `evals/training-analysis/` (CA-001 t/m CA-008): de inhoud van de analyse door een AI-provider.
 - `evals/privacy-preflight/` (PP-001 t/m PP-003): de lokale Privacy Preflight, zonder externe AI.
 - `evals/training-blueprint/` (BP-001 t/m BP-003): Blueprint en Block Plan; V1-baseline beoordeeld, V2-verwachtingen vastgelegd.
@@ -657,6 +659,8 @@ Er zijn zeven evalsets, elk met een eigen README:
   (WATCH: `bron_content_didactic_density`, `assessment_role_consistency`).
 - `evals/full-training-pilot/` (TR-0014): eerste volledige training met echte Claude-output, als product beoordeeld
   (YES_AFTER_EDIT; PRODUCT_BLOCKER `organisation_specific_source_need`; zie `report.md`).
+- `evals/full-training-pilot-2/` (TR-0018): Simulation Production Proof; trainingkwaliteit YES_AFTER_EDIT,
+  simulatieproductie YES, runtime NOT_YET_PROVEN; Training gereed (zie `report.md`).
 
 Kwaliteitsbasis voor Certum Analyse staat in `evals/training-analysis/`. Er staat alleen
 synthetische data in en het is geen productiecode. Elke run wordt vastgelegd met promptVersion, model en effort.
