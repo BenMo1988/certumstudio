@@ -1,0 +1,15 @@
+{
+  "_note": "Volledig synthetische bron. Formeel gekoppeld aan SN1 en SN2 en gevalideerd, maar inhoudelijk bewust te mager.",
+  "sources": [
+    {
+      "title": "Interne mededeling privéomstandigheden (synthetisch)",
+      "sourceType": "other",
+      "author": null,
+      "publisher": "Stichting Voorbeeld (fictief)",
+      "publicationDate": "2026",
+      "url": null,
+      "sourceNeedRefs": ["SN1", "SN2"],
+      "relevantContent": "Leidinggevenden gaan zorgvuldig om met privéomstandigheden van medewerkers."
+    }
+  ]
+}

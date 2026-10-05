@@ -1,0 +1,25 @@
+{
+  "_note": "Volledig synthetische bronnen. Fictieve organisatie, fictieve leidraad. Geen echte richtlijn of wet.",
+  "sources": [
+    {
+      "title": "Leidraad Privé en Werk (synthetisch)",
+      "sourceType": "guideline",
+      "author": null,
+      "publisher": "Stichting Voorbeeld (fictief)",
+      "publicationDate": "2026",
+      "url": null,
+      "sourceNeedRefs": ["SN1"],
+      "relevantContent": "1. Een medewerker bepaalt zelf hoeveel hij over privéomstandigheden vertelt. De leidinggevende vraagt niet door naar de inhoud van die omstandigheden.\n2. De leidinggevende blijft verantwoordelijk voor het werk en het team. Hij mag het functioneren, de werkafspraken en de gevolgen voor collega's bespreken.\n3. De leidinggevende mag vragen wat de medewerker nodig heeft om de afspraken na te komen, zonder te vragen waarom.\n4. Afspraken over tijdelijke aanpassingen worden schriftelijk vastgelegd en na uiterlijk vier weken samen geëvalueerd.\n5. Bij twijfel over gezondheid verwijst de leidinggevende naar de bedrijfsarts; hij stelt zelf geen vragen over de aard van klachten."
+    },
+    {
+      "title": "Werknotitie Gesprekken over werkafspraken (synthetisch)",
+      "sourceType": "document",
+      "author": null,
+      "publisher": "Stichting Voorbeeld (fictief)",
+      "publicationDate": "2026-02",
+      "url": null,
+      "sourceNeedRefs": ["SN2"],
+      "relevantContent": "Drie principes voor een gesprek over werkafspraken:\na. Scheid de persoon en het werk. Benoem eerst dat de grens van de medewerker wordt gerespecteerd, en daarna concreet welk werk blijft liggen.\nb. Beschrijf feiten, geen interpretaties. Noem waarneembare gevolgen, zoals gemiste overdrachten, en geen vermoedens over oorzaken.\nc. Vraag naar oplossingen voor het werk: 'Wat heb je nodig om deze afspraak na te komen?' in plaats van 'Wat is er aan de hand?'.\nSluit het gesprek af met een concrete afspraak en een moment om samen terug te kijken."
+    }
+  ]
+}

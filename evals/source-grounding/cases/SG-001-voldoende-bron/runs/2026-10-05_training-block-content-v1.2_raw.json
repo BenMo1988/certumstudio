@@ -1,0 +1,30 @@
+{
+  "case": "SG-001",
+  "result": {
+    "version": "block-content/v1",
+    "plannedBlockId": "blok-5",
+    "sequence": 5,
+    "certumPhase": "bron",
+    "catalogBlockId": "certum.bco.tekst",
+    "routePolicy": "open_choice",
+    "reviewStatus": "draft",
+    "accreditation": {
+      "workform": "Tekst",
+      "learningGoalContribution": "De deelnemer legt de eigen afweging tussen de privégrens van de medewerker en de verantwoordelijkheid voor werk en team naast gevalideerde kaders en gespreksprincipes, en ziet zo welke delen van zijn aanpak worden versterkt of herzien.",
+      "assessmentRole": "none",
+      "estimatedMinutes": 8,
+      "sourceNeedRefs": [
+        "SN1",
+        "SN2"
+      ]
+    },
+    "body": {
+      "status": "generated",
+      "content": {
+        "catalogBlockId": "certum.bco.tekst",
+        "title": "Je aanpak naast de bron",
+        "text": "Je hebt het gesprek gevoerd, teruggekeken op je afweging en feedback ontvangen. Leg je eigen aanpak nu naast twee gevalideerde bronnen. Ze beschrijven geen vast script. Ze laten zien binnen welke ruimte je als leidinggevende handelt en welke principes kunnen helpen.\n\nWat je mag en wat niet: handelingsruimte rond privéomstandigheden\nUit de Leidraad Privé en Werk (synthetisch):\nEen medewerker bepaalt zelf hoeveel hij over privéomstandigheden vertelt. Als leidinggevende vraag je niet door naar de inhoud van die omstandigheden.\nTegelijk blijf je verantwoordelijk voor het werk en het team. Je mag het functioneren, de werkafspraken en de gevolgen voor collega's bespreken.\nJe mag vragen wat de medewerker nodig heeft om de afspraken na te komen, zonder te vragen waarom.\nAfspraken over tijdelijke aanpassingen worden schriftelijk vastgelegd en na uiterlijk vier weken samen geëvalueerd.\nBij twijfel over gezondheid verwijs je naar de bedrijfsarts. Je stelt zelf geen vragen over de aard van klachten.\n\nHoe je werkafspraken bespreekbaar maakt: drie principes\nUit de Werknotitie Gesprekken over werkafspraken (synthetisch):\nScheid de persoon en het werk. Benoem eerst dat je de grens van de medewerker respecteert, en daarna concreet welk werk blijft liggen.\nBeschrijf feiten, geen interpretaties. Noem waarneembare gevolgen, zoals gemiste overdrachten, en geen vermoedens over oorzaken.\nVraag naar oplossingen voor het werk: 'Wat heb je nodig om deze afspraak na te komen?' in plaats van 'Wat is er aan de hand?'.\nSluit het gesprek af met een concrete afspraak en een moment om samen terug te kijken.\n\nLeg je eigen aanpak ernaast\nGa terug naar je gesprek en je reflectie en sta stil bij de volgende vragen.\nHoe ging je om met de grens van de medewerker? Heb je die zichtbaar gerespecteerd, of vroeg je, misschien onbedoeld, toch door naar wat er privé speelt?\nHoe heb je de gevolgen voor het werk en het team benoemd? Waren dat waarneembare feiten, of zaten er vermoedens over oorzaken in?\nHeb je gevraagd wat de medewerker nodig heeft om de afspraken na te komen? Hoe verhield die vraag zich tot de vraag waarom het misging?\nWaarmee sloot je het gesprek af? Was er een concrete afspraak en een moment om samen terug te kijken? Hoe zou je eventuele tijdelijke aanpassingen vastleggen en evalueren?\nWelke consequenties voor de medewerker, de werkrelatie en het team zag je in je afweging, en kijk je daar na het lezen van deze bronnen anders of juist hetzelfde naar?\n\nBenoem voor jezelf wat in je aanpak door de bronnen wordt versterkt en wat je zou herzien. Verschillende aanpakken kunnen binnen deze ruimte passen. Het gaat erom dat je je keuze kunt verantwoorden binnen deze kaders."
+      }
+    }
+  }
+}

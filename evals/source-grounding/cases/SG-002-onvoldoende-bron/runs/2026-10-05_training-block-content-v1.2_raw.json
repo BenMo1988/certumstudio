@@ -1,0 +1,27 @@
+{
+  "case": "SG-002",
+  "result": {
+    "version": "block-content/v1",
+    "plannedBlockId": "blok-5",
+    "sequence": 5,
+    "certumPhase": "bron",
+    "catalogBlockId": "certum.bco.tekst",
+    "routePolicy": "open_choice",
+    "reviewStatus": "draft",
+    "accreditation": {
+      "workform": "Tekst",
+      "learningGoalContribution": "Dit blok laat de deelnemer zijn eigen afweging en uitvoering toetsen aan gevalideerde kennis over de handelingsruimte van een leidinggevende rond privéomstandigheden en over het bespreken van werkafspraken, zodat hij ziet wat hij versterkt of herziet.",
+      "assessmentRole": "formative",
+      "estimatedMinutes": null,
+      "sourceNeedRefs": [
+        "SN1",
+        "SN2"
+      ]
+    },
+    "body": {
+      "status": "needs_source",
+      "whatToValidate": "De aangeleverde bron 'Interne mededeling privéomstandigheden (synthetisch)' bevat alleen de algemene uitspraak dat leidinggevenden zorgvuldig omgaan met privéomstandigheden van medewerkers. Dat beantwoordt geen van beide kennisvragen. Voor SN1 ontbreekt gevalideerde inhoud over de handelingsruimte en verantwoordelijkheden van een leidinggevende als een medewerker privéomstandigheden noemt maar daar niet over wil praten terwijl het functioneren onder druk staat. Ook ontbreekt wat een leidinggevende wel en niet mag vragen of bespreken. Voor SN2 ontbreken gesprekstechnieken of methodische principes waarmee een leidinggevende werkafspraken en gevolgen voor het team bespreekbaar maakt zonder een aangegeven persoonlijke grens te overschrijden. De bron moet worden aangevuld, of er moeten aanvullende bronnen worden gevalideerd die deze punten concreet behandelen.",
+      "generatableAfterValidation": "Na validatie kan dit Tekst-blok een bloktitel en tekst krijgen die de gevalideerde kaders bij SN1 en de methodische principes bij SN2 weergeven, uitsluitend op basis van de broninhoud en met vermelding van de bron zoals die is aangeleverd. Het blok sluit af met een vergelijkingsopdracht. Daarin legt de deelnemer zijn eigen afweging en zijn uitvoering in het gesprek naast de bron. Hij gaat na welke onderdelen worden versterkt of herzien, zonder dat één route als de enige juiste wordt neergezet."
+    }
+  }
+}
