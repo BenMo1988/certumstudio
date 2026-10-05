@@ -536,8 +536,18 @@ als een professioneel gesprek onder druk. Het is geen LMS en geen deelnemersomge
 - **Trainer preview:** een permanente banner "Trainer preview — niet voor deelnemers". De trainer bevestigt één keer
   per previewsessie dat er uitsluitend synthetische testantwoorden worden gebruikt.
   - De server eist die bevestiging bij iedere call (`attestation_required`).
-  - Iedere nieuwe deelnemerstekst moet door de lokale Privacy Preflight (`safe`); anders volgt geen call en komen
-    alleen de categorieën terug.
+  - Iedere nieuwe deelnemerstekst gaat door de bestaande, ongewijzigde lokale Privacy Preflight; bij een blokkade volgt
+    geen call en komen alleen de categorieën terug.
+  - **Eén smalle vrijstelling (Step 17B-fix, `modules/preview/privacy.ts`):** een `possible_person_name`-bevinding telt
+    niet als blokkade als exact die span ook `possible_person_name` is in de inhoud die de deelnemer tot en met de
+    huidige stap van de current goedgekeurde training kon zien (`approvedVisibleEntities` over `buildPreview`).
+    - De set komt alleen server-side uit de goedgekeurde snapshot: nooit uit de client, nooit uit de chatgeschiedenis
+      en nooit uit verborgen velden. Een naam uit een latere stap telt nog niet.
+    - Exacte span-match zonder fuzzy matching ("Noor Bakker" ≠ "Noor"). `blocked`-categorieën en andere
+      `review_required`-categorieën worden nooit vrijgesteld. Eén andere bevinding blokkeert het hele bericht.
+    - Restrisico, bewust geaccepteerd voor Trainer Preview met synthetic-only-attestatie: een echte persoon met exact
+      dezelfde naam als een scenariopersoon is niet te onderscheiden. Voor een publiek deelnemersproduct opnieuw
+      beoordelen.
 - **Weergave:** `buildPreview` (`modules/preview/`) toont Vaste Start, dan de blokken op `sequence`, dan Vast Einde.
   - V1 ondersteunt Tekst, Chat simulatie, Open vraag en AI Feedback. Elk ander bloktype, en elk blok zonder
     gegenereerde inhoud, wordt een expliciete capability blocker. Er wordt niets nagebootst.
@@ -563,12 +573,16 @@ als een professioneel gesprek onder druk. Het is geen LMS en geen deelnemersomge
   - De context bestaat uitsluitend uit de `availableContext` van het goedgekeurde blok. Alleen gegenereerde Open
     vraag-blokken met een ingevuld antwoord tellen mee.
   - Door de client verzonnen ids en chattranscripten worden genegeerd.
-  - Prompt `participant-feedback/v1`, platte tekst.
+  - Prompt `participant-feedback/v1.1` (`participant-feedback-v1-1.ts`): de v1-tekst plus een compact didactisch
+    budget van ongeveer 350–500 woorden. De technische limiet van 1500 tokens blijft als headroom. v1 blijft ongewijzigd.
+- **Afgekapte output:** `stop_reason: max_tokens` is nooit een geldig, compleet antwoord, in chat noch feedback. De
+  provider geeft dan `incomplete`, de runtime `incomplete_output`, en er wordt geen gedeeltelijke tekst getoond.
 - **Provider:** `CERTUM_PREVIEW_PROVIDER` (standaard `mock`, los van de andere providers, geen terugval).
   - `CLAUDE_PREVIEW_DEFAULTS`: `claude-opus-5-5`, chat `low`, feedback `medium`, `maxRetries: 0`.
   - Bij `claude` is iedere chatbeurt en iedere feedback een betaalde call.
   - De mock reageert op de deelnemer en stelt een vervolgvraag; mockfeedback noemt alleen de gebruikte context.
-- **Logging:** `certum.preview_runtime` bevat alleen training, blok, bloktype, promptversie, provider/model/effort,
+- **Logging:** `certum.preview_privacy` bevat per call de preflightversie en -status, aantallen per categorie,
+  `approvedEntityMatches` en de beslissing. `certum.preview_runtime` bevat alleen training, blok, bloktype, promptversie, provider/model/effort,
   duur, tokens, uitkomst/fouttype en aantallen (beurten, contextitems). Nooit berichten, antwoorden, replies, feedback,
   broninhoud of prompts (tests).
 
@@ -714,7 +728,8 @@ Er zijn negen evalsets, elk met een eigen README:
 - `evals/full-training-pilot-2/` (TR-0018): Simulation Production Proof; trainingkwaliteit YES_AFTER_EDIT,
   simulatieproductie YES, runtime NOT_YET_PROVEN; Training gereed (zie `report.md`).
 - `evals/participant-preview-pilot/` (TR-0018, Step 17B): eerste live Participant Preview; gestopt op RUNTIME_BLOCKER
-  `preview_privacy_context_false_positive` (diagnose en ontwerpopties in `report.md`; nog niet opgelost).
+  `preview_privacy_context_false_positive` (diagnose en ontwerpopties in `report.md`). Opgelost met A+C en
+  `participant-feedback/v1.1` plus de afhandeling van `max_tokens`; live hervatting volgt.
 
 Kwaliteitsbasis voor Certum Analyse staat in `evals/training-analysis/`. Er staat alleen
 synthetische data in en het is geen productiecode. Elke run wordt vastgelegd met promptVersion, model en effort.

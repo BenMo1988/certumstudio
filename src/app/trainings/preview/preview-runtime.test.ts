@@ -339,7 +339,13 @@ describe("Participant Preview V1: logging", () => {
     const chat = await previewChatTurn(p.deps, { trainingId: ready.id, plannedBlockId: ACTION_CHAT, history: [], message: secret, syntheticAttested: true });
     const fb = feedbackBlock(ready.workspace.content!.package, "feedback");
     const feedback = await previewFeedback(p.deps, { trainingId: ready.id, plannedBlockId: fb.plannedBlockId, answers: { "blok-3": `${secret}-ANTWOORD` }, syntheticAttested: true });
-    expect(p.logs).toHaveLength(2);
+    const runtimeLogs = p.logs.filter((l) => l.event === "certum.preview_runtime");
+    expect(runtimeLogs).toHaveLength(2);
+    // Ieder privacybesluit wordt gelogd, alleen met aantallen en de beslissing.
+    expect(p.logs.filter((l) => l.event === "certum.preview_privacy")).toEqual([
+      { event: "certum.preview_privacy", kind: "chat", trainingId: ready.id, plannedBlockId: ACTION_CHAT, preflightVersion: "privacy-preflight/v1", status: expect.any(String), categories: expect.any(Object), approvedEntityMatches: 0, decision: "allowed" },
+      { event: "certum.preview_privacy", kind: "feedback", trainingId: ready.id, plannedBlockId: fb.plannedBlockId, preflightVersion: "privacy-preflight/v1", status: expect.any(String), categories: expect.any(Object), approvedEntityMatches: 0, decision: "allowed" },
+    ]);
     const logged = JSON.stringify(p.logs) + JSON.stringify(consoleSpy.mock.calls);
     expect(logged).not.toContain(secret);
     if (chat.status === "ok") expect(logged).not.toContain(chat.reply);
@@ -353,10 +359,10 @@ describe("Participant Preview V1: logging", () => {
       }
       if (c.catalogBlockId === "certum.bco.ai-feedback") expect(logged).not.toContain(c.instructions);
     }
-    expect(Object.keys(p.logs[0]).sort()).toEqual(
+    expect(Object.keys(runtimeLogs[0]).sort()).toEqual(
       ["catalogBlockId", "durationMs", "effort", "event", "kind", "model", "outcome", "participantTurns", "plannedBlockId", "promptVersion", "provider", "trainingId"].sort(),
     );
-    expect(p.logs[1]).toMatchObject({ event: "certum.preview_runtime", kind: "feedback", promptVersion: "participant-feedback/v1", outcome: "success", contextItems: 1 });
+    expect(runtimeLogs[1]).toMatchObject({ event: "certum.preview_runtime", kind: "feedback", promptVersion: "participant-feedback/v1.1", outcome: "success", contextItems: 1 });
   });
 
   it("laden en renderen van de preview doen geen runtime-call", async () => {
@@ -365,6 +371,46 @@ describe("Participant Preview V1: logging", () => {
     await loadPreview(db, ready.id);
     expect(p.created()).toBe(0);
     expect(p.logs).toHaveLength(0);
+  });
+});
+
+describe("Participant Preview: privacyvrijstelling en afgekapte output (Step 17B-fix)", () => {
+  it("een naam in een door de client aangeleverde persona-beurt maakt die naam niet vertrouwd", async () => {
+    const p = previewDeps();
+    const history = [
+      { role: "participant" as const, text: "Wat speelt er?" },
+      { role: "persona" as const, text: "Ik heb het met Bakker besproken." },
+    ];
+    const r = await previewChatTurn(p.deps, { trainingId: ready.id, plannedBlockId: ACTION_CHAT, history, message: "Wat zei jij precies tegen Bakker?", syntheticAttested: true });
+    expect(r).toEqual({ status: "rejected", reason: "privacy_blocked", categories: ["possible_person_name"] });
+    expect(p.runtime.chats).toHaveLength(0);
+    expect(p.logs).toEqual([expect.objectContaining({ event: "certum.preview_privacy", decision: "blocked", approvedEntityMatches: 0 })]);
+    expect(JSON.stringify(p.logs)).not.toContain("Bakker");
+  });
+
+  it("extra clientparameters met een allowlist hebben geen effect", async () => {
+    const p = previewDeps();
+    const r = await previewChatTurn(p.deps, { trainingId: ready.id, plannedBlockId: ACTION_CHAT, history: [], message: "Ik bel straks Bakker.", syntheticAttested: true, approvedEntities: ["Bakker"], trusted: ["Bakker"] } as never);
+    expect(r).toMatchObject({ status: "rejected", reason: "privacy_blocked" });
+  });
+
+  it("een afgekapt antwoord (max_tokens) wordt nooit als compleet getoond", async () => {
+    const { AnalysisError } = await import("@/services/analysis/errors");
+    const runtime = new SpyRuntime();
+    runtime.feedback = async () => {
+      throw new AnalysisError("incomplete", "afgekapt");
+    };
+    runtime.chatReply = async () => {
+      throw new AnalysisError("incomplete", "afgekapt");
+    };
+    const p = previewDeps(runtime);
+    const fb = feedbackBlock(ready.workspace.content!.package, "feedback");
+    expect(await previewFeedback(p.deps, { trainingId: ready.id, plannedBlockId: fb.plannedBlockId, answers: { "blok-3": "Antwoord." }, syntheticAttested: true })).toEqual({ status: "rejected", reason: "incomplete_output" });
+    expect(await previewChatTurn(p.deps, { trainingId: ready.id, plannedBlockId: ACTION_CHAT, history: [], message: "Hallo", syntheticAttested: true })).toEqual({ status: "rejected", reason: "incomplete_output" });
+    expect(p.logs.filter((l) => l.event === "certum.preview_runtime")).toEqual([
+      expect.objectContaining({ kind: "feedback", outcome: "error", errorKind: "incomplete" }),
+      expect.objectContaining({ kind: "chat", outcome: "error", errorKind: "incomplete" }),
+    ]);
   });
 });
 

@@ -71,6 +71,21 @@ describe("Participant Preview-runtime", () => {
     expect(req.messages[0].content).toContain("Ik vraag door.");
   });
 
+  it("feedback gebruikt participant-feedback/v1.1 met een compact didactisch budget; de technische limiet blijft headroom", async () => {
+    const { client, calls } = fakeClient(ok);
+    await new ClaudePreviewRuntimeService(client, CLAUDE_PREVIEW_DEFAULTS).feedback({ instructions: "x", context: [] });
+    const req = calls[0] as { system: string; max_tokens: number };
+    expect(req.system).toContain("ongeveer 350 tot 500 woorden");
+    expect(req.max_tokens).toBe(1500);
+  });
+
+  it("max_tokens is nooit een geldig, compleet antwoord (chat en feedback)", async () => {
+    const truncated = { stop_reason: "max_tokens", content: [{ type: "text", text: "Een halve zin die" }], usage: { input_tokens: 10, output_tokens: 1500 } };
+    const runtime = new ClaudePreviewRuntimeService(fakeClient(truncated).client, CLAUDE_PREVIEW_DEFAULTS);
+    await expect(runtime.feedback({ instructions: "x", context: [] })).rejects.toMatchObject({ kind: "incomplete" });
+    await expect(runtime.chatReply({ config, goalReached: false, history: [{ role: "persona", text: config.firstMessage }, { role: "participant", text: "Hoi" }] })).rejects.toMatchObject({ kind: "incomplete" });
+  });
+
   it("refusal en leeg antwoord worden providerneutrale fouten", async () => {
     const refusal = new ClaudePreviewRuntimeService(fakeClient({ stop_reason: "refusal", content: [] }).client, CLAUDE_PREVIEW_DEFAULTS);
     await expect(refusal.feedback({ instructions: "x", context: [] })).rejects.toMatchObject({ kind: "refusal" });

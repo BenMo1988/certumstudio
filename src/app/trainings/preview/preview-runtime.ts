@@ -1,8 +1,8 @@
 import { PARTICIPANT_CHAT_V1_PROMPT_VERSION } from "@/knowledge/prompts/participant-chat-v1";
-import { PARTICIPANT_FEEDBACK_V1_PROMPT_VERSION } from "@/knowledge/prompts/participant-feedback-v1";
+import { PARTICIPANT_FEEDBACK_V1_1_PROMPT_VERSION } from "@/knowledge/prompts/participant-feedback-v1-1";
 import type { BlockContentResult, TrainingContentPackage } from "@/modules/block-content";
-import { buildPreview, type PreviewModel } from "@/modules/preview";
-import { runPrivacyPreflight } from "@/modules/privacy/preflight";
+import { approvedVisibleEntities, buildPreview, evaluatePreviewPrivacy, type PreviewModel } from "@/modules/preview";
+import { PRIVACY_PREFLIGHT_VERSION, type PreflightCategory, type PreflightStatus } from "@/modules/privacy/types";
 import { AnalysisError } from "@/services/analysis/errors";
 import type { Db } from "@/services/storage/db";
 import { loadTrainingWorkspace, type WorkflowStage } from "@/services/storage/workspace";
@@ -17,7 +17,8 @@ import type { PreviewChatConfig, PreviewChatTurn, PreviewFeedbackContextItem, Pr
  * - Ephemeral: antwoorden en gesprekken bestaan alleen in de previewsessie van de browser; niets wordt opgeslagen en
  *   een deelnemersantwoord is nooit een trainingswijziging. Attempt-persistence wordt later een aparte productlaag.
  * - Iedere runtime-call vereist de synthetic-only-bevestiging van de trainer en een geslaagde lokale Privacy Preflight
- *   op de nieuwe deelnemerstekst (`safe`); anders geen call.
+ *   op de nieuwe deelnemerstekst; anders geen call. Enige vrijstelling: een `possible_person_name` die exact een naam is
+ *   die de deelnemer tot en met deze stap in de goedgekeurde training heeft kunnen zien (`modules/preview/privacy.ts`).
  * - Logging: alleen metadata (training, blok, bloktype, promptversie, provider/model, duur, tokens, uitkomst). Nooit
  *   deelnemerstekst, chatberichten, AI-antwoorden, feedbacktekst, broninhoud of prompts.
  */
@@ -27,7 +28,22 @@ export const MAX_PARTICIPANT_TURNS = 12;
 export const MAX_MESSAGE_CHARS = 2_000;
 const MAX_PERSONA_CHARS = 4_000;
 
-export interface PreviewLogEntry {
+export type PreviewLogEntry = PreviewRuntimeLogEntry | PreviewPrivacyLogEntry;
+
+/** Privacybesluit vóór een runtime-call. Alleen aantallen en de beslissing; nooit waarden, posities of tekst. */
+export interface PreviewPrivacyLogEntry {
+  event: "certum.preview_privacy";
+  kind: "chat" | "feedback";
+  trainingId: string;
+  plannedBlockId: string;
+  preflightVersion: string;
+  status: PreflightStatus;
+  categories: Partial<Record<PreflightCategory, number>>;
+  approvedEntityMatches: number;
+  decision: "allowed" | "blocked";
+}
+
+export interface PreviewRuntimeLogEntry {
   event: "certum.preview_runtime";
   kind: "chat" | "feedback";
   trainingId: string;
@@ -60,6 +76,8 @@ export type PreviewRejection =
   | "attestation_required"
   | "privacy_blocked"
   | "turn_limit"
+  /** De provider leverde een afgekapt antwoord (tokenlimiet); dat wordt nooit als compleet getoond. */
+  | "incomplete_output"
   | "provider_error";
 
 export type PreviewLoadResult =
@@ -98,15 +116,27 @@ export async function loadPreview(db: Db, trainingId: string): Promise<PreviewLo
 const generatedBlock = (pkg: TrainingContentPackage, plannedBlockId: string): BlockContentResult | null =>
   pkg.blocks.find((b) => b.plannedBlockId === plannedBlockId && b.body.status === "generated") ?? null;
 
-/** Alleen `safe` mag naar een externe provider; bevindingen alleen als categorieën (nooit waarden of posities). */
-function preflightCategories(texts: string[]): string[] | null {
-  const categories = new Set<string>();
-  for (const text of texts) {
-    const result = runPrivacyPreflight(text);
-    if (result.status !== "safe") result.findings.forEach((f) => categories.add(f.category));
-  }
-  return categories.size > 0 ? [...categories] : null;
+/**
+ * Het privacybesluit over de deelnemersteksten, met de vertrouwde set uit wat de deelnemer tot en met dit blok van de
+ * goedgekeurde training kon zien. Altijd gelogd (alleen metadata). `null` = toegestaan.
+ */
+function privacyGate(deps: PreviewDeps, pkg: TrainingContentPackage, kind: "chat" | "feedback", trainingId: string, plannedBlockId: string, texts: string[]) {
+  const result = evaluatePreviewPrivacy(texts, approvedVisibleEntities(buildPreview(pkg), plannedBlockId));
+  (deps.log ?? defaultLog)({
+    event: "certum.preview_privacy",
+    kind,
+    trainingId,
+    plannedBlockId,
+    preflightVersion: PRIVACY_PREFLIGHT_VERSION,
+    status: result.preflightStatus,
+    categories: result.categories,
+    approvedEntityMatches: result.approvedEntityMatches,
+    decision: result.decision,
+  });
+  return result.decision === "allowed" ? null : { status: "rejected" as const, reason: "privacy_blocked" as const, categories: result.blockingCategories };
 }
+
+const failureReason = (error: unknown): PreviewRejection => (error instanceof AnalysisError && error.kind === "incomplete" ? "incomplete_output" : "provider_error");
 
 const isTurns = (value: unknown): value is PreviewChatTurn[] =>
   Array.isArray(value) &&
@@ -118,7 +148,7 @@ const isTurns = (value: unknown): value is PreviewChatTurn[] =>
       typeof (t as PreviewChatTurn).text === "string",
   );
 
-function logRuntime(deps: PreviewDeps, entry: PreviewLogEntry) {
+function logRuntime(deps: PreviewDeps, entry: PreviewRuntimeLogEntry) {
   (deps.log ?? defaultLog)(entry);
 }
 
@@ -147,14 +177,13 @@ export async function previewChatTurn(
   const participantTurns = history.length / 2 + 1;
   if (participantTurns > MAX_PARTICIPANT_TURNS) return { status: "rejected", reason: "turn_limit" };
 
-  const blocked = preflightCategories([message]);
-  if (blocked) return { status: "rejected", reason: "privacy_blocked", categories: blocked };
-
   const approved = await approvedPackage(deps.db, input.trainingId);
   if (approved.status === "not_found") return { status: "rejected", reason: "not_found" };
   if (approved.status === "not_ready") return { status: "rejected", reason: "not_ready" };
   const block = generatedBlock(approved.pkg, input.plannedBlockId);
   if (!block || block.body.status !== "generated" || block.body.content.catalogBlockId !== "certum.bco.chat-simulatie") return { status: "rejected", reason: "not_found" };
+  const blocked = privacyGate(deps, approved.pkg, "chat", input.trainingId, input.plannedBlockId, [message]);
+  if (blocked) return blocked;
   const c = block.body.content;
   const config: PreviewChatConfig = {
     personaName: c.personaName,
@@ -190,7 +219,7 @@ export async function previewChatTurn(
     result = await runtime.chatReply({ config, history: fullHistory, goalReached });
   } catch (error) {
     logRuntime(deps, { ...meta, durationMs: (deps.now ?? Date.now)() - started, outcome: "error", errorKind: error instanceof AnalysisError ? error.kind : "unknown" });
-    return { status: "rejected", reason: "provider_error" };
+    return { status: "rejected", reason: failureReason(error) };
   }
   logRuntime(deps, { ...meta, durationMs: (deps.now ?? Date.now)() - started, outcome: "success", ...usageOf(result) });
   return { status: "ok", reply: result.text, goalReached, goalMessage: newlyReached ? config.goal!.messageOnGoal : null };
@@ -225,8 +254,8 @@ export async function previewFeedback(
     if (answer.length > MAX_MESSAGE_CHARS * 2) return { status: "rejected", reason: "invalid_input" };
     context.push({ plannedBlockId: id, blockTitle: source.body.content.title, question: source.body.content.question, answer: answer.trim() });
   }
-  const blocked = preflightCategories(context.map((x) => x.answer));
-  if (blocked) return { status: "rejected", reason: "privacy_blocked", categories: blocked };
+  const blocked = privacyGate(deps, approved.pkg, "feedback", input.trainingId, input.plannedBlockId, context.map((x) => x.answer));
+  if (blocked) return blocked;
 
   const runtime = deps.getRuntime();
   const started = (deps.now ?? Date.now)();
@@ -236,7 +265,7 @@ export async function previewFeedback(
     trainingId: input.trainingId,
     plannedBlockId: input.plannedBlockId,
     catalogBlockId: c.catalogBlockId,
-    promptVersion: PARTICIPANT_FEEDBACK_V1_PROMPT_VERSION,
+    promptVersion: PARTICIPANT_FEEDBACK_V1_1_PROMPT_VERSION,
     provider: runtime.info.provider,
     model: runtime.info.model,
     effort: runtime.info.feedbackEffort,
@@ -247,7 +276,7 @@ export async function previewFeedback(
     result = await runtime.feedback({ instructions: c.instructions, context });
   } catch (error) {
     logRuntime(deps, { ...meta, durationMs: (deps.now ?? Date.now)() - started, outcome: "error", errorKind: error instanceof AnalysisError ? error.kind : "unknown" });
-    return { status: "rejected", reason: "provider_error" };
+    return { status: "rejected", reason: failureReason(error) };
   }
   logRuntime(deps, { ...meta, durationMs: (deps.now ?? Date.now)() - started, outcome: "success", ...usageOf(result) });
   return { status: "ok", feedback: result.text, usedContext: context.map((x) => x.plannedBlockId) };

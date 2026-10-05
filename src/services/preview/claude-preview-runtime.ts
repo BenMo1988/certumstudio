@@ -1,5 +1,5 @@
 import { buildParticipantChatSystem } from "@/knowledge/prompts/participant-chat-v1";
-import { PARTICIPANT_FEEDBACK_SYSTEM, buildParticipantFeedbackRequest } from "@/knowledge/prompts/participant-feedback-v1";
+import { PARTICIPANT_FEEDBACK_V1_1_SYSTEM, buildParticipantFeedbackRequest } from "@/knowledge/prompts/participant-feedback-v1-1";
 import { toAnalysisError, type ClaudeMessagesClient } from "../analysis/claude/claude-training-analysis-service";
 import { AnalysisError } from "../analysis/errors";
 import type { ClaudePreviewSettings } from "./config";
@@ -29,7 +29,7 @@ export class ClaudePreviewRuntimeService implements PreviewRuntimeService {
   }
 
   async feedback(request: PreviewFeedbackRequest): Promise<PreviewRuntimeResult> {
-    return this.call(PARTICIPANT_FEEDBACK_SYSTEM, [{ role: "user", content: buildParticipantFeedbackRequest(request) }], this.settings.feedbackMaxTokens, this.settings.effort);
+    return this.call(PARTICIPANT_FEEDBACK_V1_1_SYSTEM, [{ role: "user", content: buildParticipantFeedbackRequest(request) }], this.settings.feedbackMaxTokens, this.settings.effort);
   }
 
   private async call(system: string, messages: Message[], maxTokens: number, effort: string): Promise<PreviewRuntimeResult> {
@@ -51,6 +51,8 @@ export class ClaudePreviewRuntimeService implements PreviewRuntimeService {
       usage?: { input_tokens?: number; output_tokens?: number };
     };
     if (message.stop_reason === "refusal") throw new AnalysisError("refusal", "Claude weigerde dit antwoord.");
+    // Afgekapt is nooit een geldig, compleet antwoord (Step 17B): geen gedeeltelijke tekst doorgeven.
+    if (message.stop_reason === "max_tokens") throw new AnalysisError("incomplete", "Antwoord afgekapt op de tokenlimiet.");
     const text = message.content.filter((b) => b.type === "text").map((b) => b.text ?? "").join("").trim();
     if (!text) throw new AnalysisError("empty", "Geen antwoord ontvangen.");
     const usage = message.usage ? { inputTokens: message.usage.input_tokens ?? 0, outputTokens: message.usage.output_tokens ?? 0 } : null;

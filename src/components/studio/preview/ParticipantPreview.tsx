@@ -24,6 +24,7 @@ const MESSAGES: Record<PreviewRejection, string> = {
   attestation_required: "Bevestig eerst dat je uitsluitend synthetische testantwoorden gebruikt.",
   privacy_blocked: "Je tekst bevat mogelijk persoonsgegevens. Er is niets verstuurd; pas je tekst aan.",
   turn_limit: "Het maximale aantal beurten voor deze preview is bereikt. Rond het gesprek af.",
+  incomplete_output: "Het antwoord was niet volledig en wordt daarom niet getoond. Je kunt het opnieuw proberen.",
   provider_error: "Er kwam nu geen antwoord. Probeer het opnieuw.",
 };
 

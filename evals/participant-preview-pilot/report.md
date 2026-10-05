@@ -244,3 +244,27 @@ Voor de vervolgstap (alleen na akkoord):
 - Hervat daarna de live pilot vanaf het begin, één volledige sessie.
 - Neem `preview_feedback_max_tokens` daarbij mee als aparte, bewuste beslissing (limiet of `stop_reason`-afhandeling).
   Die hoort niet bij deze fix.
+
+## Besluit en fix (na de diagnose)
+
+Mohamed koos A+C, strakker dan voorgesteld, en liet `preview_feedback_max_tokens` vóór de hervatting meteen meenemen.
+
+- **Privacy:**
+  - De bestaande preflight blijft leidend en ongewijzigd.
+  - Alleen `review_required`/`possible_person_name` kan worden vrijgesteld, en alleen als exact die span voorkomt in
+    de inhoud die de deelnemer tot en met de huidige stap van de current goedgekeurde training kon zien.
+  - `blocked` blijft altijd geblokkeerd. Er is geen fuzzy matching en geen allowlist van de client. "Noor Bakker"
+    matcht niet met "Noor", en één andere bevinding blokkeert het hele bericht.
+  - Restrisico, geaccepteerd voor Trainer Preview V1: een echte "Noor" is niet te onderscheiden van de synthetische
+    "Noor". Voor een publiek deelnemersproduct opnieuw beoordelen.
+  - Code: `modules/preview/privacy.ts`. Logging: `certum.preview_privacy`, alleen aantallen.
+- **Feedback:**
+  - De limiet is niet verhoogd. `participant-feedback/v1.1` vraagt om compacte feedback van ongeveer 350–500 woorden.
+  - De technische limiet van 1500 tokens blijft als headroom.
+  - `max_tokens` wordt nooit meer als compleet antwoord behandeld, in chat noch feedback (`incomplete_output`).
+- **Tests:**
+  - TR-0018-fixture (`test/fixtures/tr-0018-package.json`): "Noor" is vertrouwd in blok-6, maar nog niet in blok-2.
+  - Exactheid en blokkades: "Noor Bakker", "Noor + Sanne", e-mail en datum blijven geblokkeerd. Verborgen
+    persona-instructies leveren geen vertrouwde namen.
+  - Vervalsing: een vervalste persona-beurt of een allowlist-parameter van de client heeft geen effect.
+  - Afgekapte output: `max_tokens` wordt `incomplete_output`.

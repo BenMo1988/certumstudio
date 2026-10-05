@@ -1,0 +1,267 @@
+{
+  "_note": "Synthetisch. Het goedgekeurde Training Content Package van TR-0018 (Full Training Pilot 2, evals/full-training-pilot-2/record/12-final.json). Fixture voor Participant Preview.",
+  "package": {
+    "version": "training-content-package/v1",
+    "contentContractVersion": "block-content/v1",
+    "blueprintVersion": "blueprint-contract/v2",
+    "blockPlanVersion": "bc-online-block-plan/v1",
+    "title": "Terughoudendheid uitleggen onder druk in het MDO",
+    "learningGoal": "De deelnemer kan in reactie op druk van een samenwerkingspartner zijn positie over het delen van informatie helder en respectvol toelichten, daarbij het belang van de samenwerking en de vraag van school serieus nemen, en verantwoorden hoe zijn reactie bijdraagt aan een werkbare samenwerking.",
+    "start": {
+      "title": "Terughoudendheid uitleggen onder druk in het MDO",
+      "introduction": "In deze praktijksimulatie neem je als jeugdprofessional deel aan een multidisciplinair overleg (MDO) met school over een 15-jarige jongere die je begeleidt. Je oefent een moment dat in de praktijk vaak lastig is: een samenwerkingspartner vraagt om informatie die je niet zomaar kunt delen en legt je terughoudendheid uit als het achterhouden van informatie. Je leest eerst een korte schets van de situatie. Daarin staat wat je weet en wat bewust onbekend blijft. Daarna voer je een gesprek met de zorgcoördinator, gespeeld door AI. Zij reageert op wat je zegt en hoe je het zegt; het verloop ligt niet vast. In deze situatie zijn meerdere reacties professioneel verdedigbaar. Er wordt geen goed of fout antwoord van je verwacht. Het gaat erom dat je een reactie kiest die jij verdedigbaar vindt, die je helder en respectvol uitvoert en die je achteraf kunt onderbouwen. Na het gesprek kijk je terug op je reactie: je beschrijft wat je in de kern zei, hoe de zorgcoördinator reageerde en welke belangen je hebt afgewogen. Op die terugblik krijg je feedback. Vervolgens leg je je aanpak naast inhoudelijke kaders en inzichten over het uitleggen van grenzen aan informatiedeling. Tot slot pas je je aanpak toe in een vergelijkbaar overleg met een gewijzigde situatie en verantwoord je wat je anders of hetzelfde deed en waarom. Neem de tijd voor elke stap en reageer zoals je dat in je eigen praktijk zou doen.",
+      "learningGoals": [
+        "De deelnemer kan in reactie op druk van een samenwerkingspartner zijn positie over het delen van informatie helder en respectvol toelichten, daarbij het belang van de samenwerking en de vraag van school serieus nemen, en verantwoorden hoe zijn reactie bijdraagt aan een werkbare samenwerking."
+      ],
+      "estimatedDurationMinutes": 66
+    },
+    "blocks": [
+      {
+        "body": {
+          "status": "generated",
+          "content": {
+            "text": "Je bent jeugdprofessional en begeleidt een jongere van 15 jaar. Namens de begeleiding neem je deel aan een multidisciplinair overleg (MDO) met school. Aan tafel zit onder anderen de zorgcoördinator van de school van de jongere.\n\nWat de jongere heeft afgesproken\nDe jongere heeft ermee ingestemd dat je met school afstemt over drie onderwerpen: het schoolverzuim, de belastbaarheid en de ondersteuning die de jongere op school nodig heeft. Over deze onderwerpen kun je met school in gesprek.\n\nJe weet ook meer over de thuissituatie. Er zijn financiële problemen in het gezin en een van de ouders heeft psychische klachten. De jongere heeft je uitdrukkelijk gezegd deze informatie niet met school gedeeld te willen hebben. De instemming dekt dus de afstemming over verzuim, belastbaarheid en ondersteuning, maar niet de informatie over de thuissituatie.\n\nWat je verder weet\nEr zijn geen aanwijzingen voor acuut gevaar voor de jongere of anderen. Het protocol van je organisatie heb je tijdens dit overleg niet bij de hand; je kunt het nu niet raadplegen.\n\nDe vraag van school\nDe zorgcoördinator vraagt in het overleg wat er thuis bij de jongere precies speelt. Volgens de zorgcoördinator heeft school het volledige plaatje nodig om te kunnen beoordelen wat school moet doen. Je hebt aangegeven dat je terughoudend bent met wat je over de thuissituatie vertelt.\n\nHet moment waarop het gesprek start\nDe zorgcoördinator reageert op je terughoudendheid en zegt dat samenwerken weinig zin heeft als professionals informatie achterhouden.\n\nOp dit moment begint het gesprek. Jij bepaalt hoe je reageert. Er zijn meerdere manieren om hierop te reageren die professioneel verdedigbaar zijn. Kies de reactie die jij verdedigbaar vindt, zowel voor je positie over wat je wel en niet deelt als voor de samenwerking met school.",
+            "title": "De situatie: het MDO met school",
+            "catalogBlockId": "certum.bco.tekst"
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 1,
+        "certumPhase": "context",
+        "routePolicy": "open_choice",
+        "reviewStatus": "approved",
+        "accreditation": {
+          "workform": "Tekst",
+          "assessmentRole": "none",
+          "sourceNeedRefs": [],
+          "estimatedMinutes": 3,
+          "learningGoalContribution": "Het blok schetst de uitgangssituatie en de spanning tussen de wens van de jongere, de reikwijdte van de instemming en de vraag van school. Zo kan de deelnemer in het gesprek zijn positie bewust toelichten en de samenwerking serieus nemen."
+        },
+        "catalogBlockId": "certum.bco.tekst",
+        "plannedBlockId": "blok-1"
+      },
+      {
+        "body": {
+          "status": "generated",
+          "content": {
+            "goal": null,
+            "title": "Het MDO: reageren op de zorgcoördinator",
+            "personaName": "Zorgcoördinator",
+            "firstMessage": "Eerlijk gezegd vind ik dit lastig. Wij zien deze leerling elke dag, of juist niet, en ik moet als school bepalen wat we gaan doen. Als jij niet wilt vertellen wat er thuis speelt, hoe moet ik dan inschatten wat nodig is? Ik vraag me echt af wat samenwerken voor zin heeft als professionals informatie voor elkaar achterhouden.",
+            "catalogBlockId": "certum.bco.chat-simulatie",
+            "scenarioContext": "De deelnemer is jeugdprofessional en begeleidt een 15-jarige leerling. Namens de begeleiding neemt de deelnemer deel aan een multidisciplinair overleg (MDO) met school. De leerling heeft ingestemd met afstemming met school over schoolverzuim, belastbaarheid en benodigde ondersteuning. Over financiële problemen thuis en psychische klachten bij een ouder heeft de leerling uitdrukkelijk gezegd dat dit niet met school gedeeld mag worden. Er zijn geen aanwijzingen voor acuut gevaar. Het organisatieprotocol is tijdens het overleg niet bij de hand. Of de leerling aanwezig of op de hoogte is van het overleg, is niet bekend.\n\nDe zorgcoördinator vroeg wat er thuis precies speelt, omdat volgens de zorgcoördinator het volledige plaatje nodig is om te beoordelen wat school moet doen. De deelnemer reageerde terughoudend. Het gesprek start op het moment dat de zorgcoördinator die terughoudendheid uitlegt als het achterhouden van informatie. De deelnemer bepaalt zelf hoe te reageren en gaat in op wat de zorgcoördinator daarna inbrengt.",
+            "timeLimitMinutes": 15,
+            "personaInstructions": "Je speelt de zorgcoördinator van een middelbare school. Je zit in een multidisciplinair overleg (MDO) met de jeugdprofessional die een 15-jarige leerling van jouw school begeleidt. Je maakt je zorgen over het schoolverzuim en het functioneren van deze leerling en je wilt weten wat school moet doen. Volgens jou heb je daarvoor het volledige plaatje nodig, ook wat er thuis speelt.\n\nWat je weet: de leerling verzuimt, de belastbaarheid is wisselend en er is mogelijk extra ondersteuning op school nodig. Je vermoedt dat er thuis iets speelt, maar je weet niet wat. De jeugdprofessional was zojuist terughoudend toen je vroeg wat er thuis precies speelt. Jij duidt die terughoudendheid als het achterhouden van informatie.\n\nHouding: je bent betrokken, direct en een beetje gefrustreerd. Je voelt je verantwoordelijk voor de leerling en hebt het gevoel dat school met lege handen staat. Houd realistische druk: vraag door, benoem je verantwoordelijkheid als school en laat merken dat je de terughoudendheid lastig vindt. Reageer steeds op de inhoud en de toon van wat de jeugdprofessional zegt. Er ligt geen vast verloop vast.\n\nSta open voor een heldere en respectvolle uitleg. Laat je niet na één antwoord overtuigen: ook na een heldere en respectvolle eerste uitleg stel je normaal gesproken nog minstens één geloofwaardige vervolgvraag of breng je een tegenpositie in, bijvoorbeeld wat school dan concreet wel mag weten om goed te kunnen ondersteunen, of waarom de begeleiding niet meer kan vertellen. Blijf daarbij redelijk en niet vijandig, eis geen vaste formulering of oplossing en reageer op wat er werkelijk gezegd wordt. Als de jeugdprofessional daarna jouw zorg en de vraag van school serieus blijft nemen, uitlegt wat wel en niet gedeeld kan worden en laat zien wat binnen de samenwerking wel mogelijk is, word je geleidelijk meer bereid mee te denken, ook als je het niet volledig eens bent. Als de jeugdprofessional afwijzend, vaag of verwijtend reageert, voel je je niet serieus genomen en blijf of word je kritischer. Als de jeugdprofessional toch informatie deelt, reageer je daar realistisch op als zorgcoördinator.\n\nGrenzen: voeg geen informatie toe over wat het organisatieprotocol van de jeugdprofessional voorschrijft, over wet- of regelgeving of over de vraag of de leerling aanwezig is of op de hoogte is van dit overleg. Verzin geen details over de thuissituatie. Er is geen sprake van acuut gevaar en jij brengt dat ook niet in. Stuur niet aan op één bepaalde oplossing en geef geen oordeel of feedback over hoe de jeugdprofessional het doet. Blijf in je rol als zorgcoördinator, spreek in korte, natuurlijke gespreksbeurten en gebruik helder Nederlands zonder opmaak."
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 2,
+        "certumPhase": "actie",
+        "routePolicy": "open_choice",
+        "reviewStatus": "approved",
+        "accreditation": {
+          "workform": "Chat simulatie",
+          "assessmentRole": "formative",
+          "sourceNeedRefs": [],
+          "estimatedMinutes": 15,
+          "learningGoalContribution": "In dit blok oefent de deelnemer onder realistische druk van de zorgcoördinator om zijn positie over informatiedeling helder en respectvol toe te lichten en tegelijk de vraag van school serieus te nemen. Het gesprek vormt de basis voor de reflectie en de feedback die volgen."
+        },
+        "catalogBlockId": "certum.bco.chat-simulatie",
+        "plannedBlockId": "blok-2"
+      },
+      {
+        "body": {
+          "status": "generated",
+          "content": {
+            "title": "Terugkijken op je reactie in het MDO",
+            "feedback": "Er zijn meerdere professioneel verdedigbare manieren om op deze druk te reageren. Kijk bij het teruglezen van je antwoord vooral of je positie helder en respectvol verwoord is, of je de vraag en het belang van school zichtbaar serieus hebt genomen, en of iemand anders je afweging tussen de betrokken belangen kan volgen.",
+            "question": "Kijk terug op het gesprek. Wat heb je wel en niet gedeeld, en hoe reageerde de zorgcoördinator daarop? Welke belangen wogen voor jou het zwaarst? Wat zou je in een volgend gesprek hetzelfde of anders doen om zowel je professionele grens als de samenwerking werkbaar te houden?",
+            "exampleAnswer": null,
+            "catalogBlockId": "certum.bco.open-vraag"
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 3,
+        "certumPhase": "reflectie",
+        "routePolicy": "open_choice",
+        "reviewStatus": "approved",
+        "accreditation": {
+          "workform": "Open vraag",
+          "assessmentRole": "formative",
+          "sourceNeedRefs": [],
+          "estimatedMinutes": 10,
+          "learningGoalContribution": "De deelnemer maakt zijn gesprekshandelen en zijn afweging tussen de wens van de jongere, de reikwijdte van de instemming, de vraag van school en werkbare samenwerking expliciet. Zo kan hij verantwoorden hoe zijn reactie bijdraagt aan de samenwerking."
+        },
+        "catalogBlockId": "certum.bco.open-vraag",
+        "plannedBlockId": "blok-3"
+      },
+      {
+        "body": {
+          "status": "generated",
+          "content": {
+            "title": "Feedback op je reactie en je afweging",
+            "instructions": "Je geeft feedback aan een jeugdprofessional die in een gesprekssimulatie in een MDO reageerde op een zorgcoördinator. De zorgcoördinator wilde het volledige plaatje van de thuissituatie van een 15-jarige jongere en zei dat samenwerken weinig zin heeft als professionals informatie achterhouden. De jongere had ingestemd met afstemming over schoolverzuim, belastbaarheid en benodigde ondersteuning, maar had gezegd dat financiële problemen thuis en psychische klachten bij een ouder niet met school gedeeld mogen worden. Er waren geen aanwijzingen voor acuut gevaar en het organisatieprotocol was niet bij de hand. Of de jongere aanwezig of op de hoogte was, is bewust niet ingevuld; vul dat niet zelf in. Baseer je feedback uitsluitend op het antwoord van de deelnemer op de voorgaande reflectievraag. Daarin beschrijft hij wat hij in de kern zei, hoe de zorgcoördinator reageerde en welke afweging hij maakte. Je hebt het gespreksverloop zelf niet; doe niet alsof je weet wat er letterlijk gezegd is. Benoem waar nodig dat je feedback op de uitvoering berust op zijn eigen weergave. Geef feedback op drie dimensies. Ten eerste helderheid en respect: licht hij zijn positie over wat hij wel en niet deelt duidelijk toe, zonder de zorgcoördinator af te wijzen? Ten tweede het serieus nemen van school: benoemt hij de vraag en het belang van school zichtbaar en verbindt hij die aan wat binnen de samenwerking wel mogelijk is? Ten derde de bijdrage aan werkbare samenwerking: maakt hij duidelijk hoe zijn reactie de samenwerking werkbaar houdt? Betrek daarbij de kwaliteit van zijn afweging tussen de wens van de jongere, de beperkte reikwijdte van de instemming, de behoefte van school aan een volledig beeld en het belang van samenwerking; de aansluiting van zijn reactie op deze situatie; de navolgbaarheid van zijn onderbouwing; en de uitvoering zoals hij die beschrijft. Meerdere reacties zijn professioneel verdedigbaar. Beoordeel daarom nooit welke route hij koos en suggereer niet dat een andere route de juiste was. Beoordeel alleen of zijn positie helder en respectvol is toegelicht, of hij de vraag van school serieus neemt, of zijn reactie aansluit bij de situatie en of zijn afweging navolgbaar is. Noem geen wetten, richtlijnen, protocollen, methodieken of onderzoek en doe geen uitspraken over wat normatief verplicht of toegestaan is; die toetsing volgt later in de training. Benoem concreet wat sterk is in zijn antwoord en wat hij kan aanscherpen, met verwijzing naar zijn eigen formuleringen. Ontbreekt in zijn antwoord een dimensie of blijft de afweging impliciet, benoem dat dan en stel een verdiepende vraag die hem helpt die te expliciteren. Schrijf in helder, zakelijk en respectvol Nederlands, direct gericht aan de deelnemer.",
+            "catalogBlockId": "certum.bco.ai-feedback",
+            "availableContext": [
+              "blok-3"
+            ],
+            "unavailableContext": [
+              "blok-2"
+            ]
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 4,
+        "certumPhase": "feedback",
+        "routePolicy": "open_choice",
+        "reviewStatus": "approved",
+        "accreditation": {
+          "workform": "AI Feedback",
+          "assessmentRole": "formative",
+          "sourceNeedRefs": [],
+          "estimatedMinutes": 5,
+          "learningGoalContribution": "Dit blok geeft de deelnemer formatieve feedback op zijn eigen weergave van zijn reactie en op zijn onderbouwing, langs helderheid en respect, het serieus nemen van school en de bijdrage aan werkbare samenwerking. Zo kan hij zijn uitleg en afweging aanscherpen voordat hij bronnen raadpleegt en de transferopdracht uitvoert."
+        },
+        "catalogBlockId": "certum.bco.ai-feedback",
+        "plannedBlockId": "blok-4"
+      },
+      {
+        "body": {
+          "status": "generated",
+          "content": {
+            "text": "Je hebt gereageerd op de zorgcoördinator, teruggekeken op je afweging en feedback gekregen. Leg je reactie nu naast wat gevalideerde bronnen zeggen.\n\nDeel 1: Wat deel je wel en niet?\nVolgens de Beroepscode voor professionals in sociaal werk behandel je informatie over mensen en hun omstandigheden vertrouwelijk en vraag je toestemming voordat je aan derden informatie over cliënten verstrekt. In samenwerkings- en overlegsituaties deel je informatie op basis van toestemming, en alleen voor zover het doel en de noodzaak duidelijk zijn, alleen de noodzakelijke informatie wordt gedeeld en er geen alternatief is. Geen toestemming is vereist wanneer gevaar dreigt of wettelijke verplichtingen anders bepalen; ook dan streeft de professional naar toestemming. Wettelijke leeftijdsgrenzen bepalen aan wie je toestemming vraagt. De bron Met wie mag het wijkteam informatie delen? beschrijft voor wijkteams hetzelfde uitgangspunt: bijna altijd toestemming vragen, informatie alleen delen met wie nodig is voor de hulp, en bij voorkeur samen met de betrokkene afspreken aan wie welke informatie wordt gegeven.\nSpiegelvraag: Maakte je duidelijk wat binnen de instemming valt, en waarom de thuisinformatie daarbuiten blijft?\n\nDeel 2: Wat betekent het als toestemming ontbreekt?\nVolgens de beroepscode betekent het niet verkrijgen van toestemming niet automatisch dat de professionele relatie moet worden beëindigd. Het is wel aanleiding om met de betrokkene te bespreken hoe dat de hulpverlening of ondersteuning kan belemmeren.\nSpiegelvraag: Welke plek kreeg het gesprek met de jongere zelf in je reactie?\n\nDeel 3: Hoe houd je de samenwerking werkbaar?\nDe beroepscode vraagt respect voor de bijdrage van samenwerkingspartners, het constructief oplossen van verschillen van mening, en duidelijke afspraken in overleggen over privacy en over regie, coördinatie en afstemming. In de geselecteerde passages uit Samenwerken in het jeugdveld: hoe? komen onder meer deze aandachtspunten terug: vraag door als iets onduidelijk is, bijvoorbeeld naar verwachtingen (Wat verwacht je van mij? Waar willen jullie samen op uitkomen?); ga uit van positieve intenties; en bespreek verschillende belangen open, want problemen ontstaan pas als belangen niet besproken worden (Wat denken jullie dat het beste is in deze situatie?).\nSpiegelvraag: Vroeg je door naar wat school nodig heeft, en stelde je voor welke afspraken binnen de samenwerking wel mogelijk zijn?\n\nTot slot: de bronnen schrijven geen vaste formulering of één juiste reactie voor. Bepaal voor jezelf wat ze in je reactie versterken en wat je in een volgend gesprek anders wilt doen.",
+            "title": "Je reactie naast de bronnen",
+            "catalogBlockId": "certum.bco.tekst"
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 5,
+        "certumPhase": "bron",
+        "routePolicy": "open_choice",
+        "reviewStatus": "approved",
+        "accreditation": {
+          "workform": "Tekst",
+          "assessmentRole": "none",
+          "sourceNeedRefs": [
+            "SN1",
+            "SN2"
+          ],
+          "estimatedMinutes": 6,
+          "learningGoalContribution": "Dit blok laat de deelnemer zijn uitleg in het MDO naast gevalideerde kaders over toestemming en vertrouwelijkheid en naast inzichten over samenwerken met verschillende belangen leggen. Zo ziet hij wat in zijn reactie wordt versterkt en waar hij die kan aanscherpen."
+        },
+        "catalogBlockId": "certum.bco.tekst",
+        "plannedBlockId": "blok-5"
+      },
+      {
+        "body": {
+          "status": "generated",
+          "content": {
+            "goal": null,
+            "title": "Toets: een informeel verzoek van de mentor",
+            "personaName": "Marieke de Wit",
+            "firstMessage": "Hé, heb je heel even? Ik wil het even over Noor hebben, los van dat overleg net. Ik maak me echt zorgen. Ze is zo moe de laatste tijd, komt steeds te laat en gisteren zat ze te huilen in mijn les. Ik hoorde van een collega dat er thuis iets speelt. Vertel het me gewoon even, dit blijft echt tussen ons. Ik ben haar mentor, ik wil haar alleen maar helpen.",
+            "catalogBlockId": "certum.bco.chat-simulatie",
+            "scenarioContext": "De deelnemer is jeugdprofessional en begeleidt Noor, een 15-jarige scholier. Noor heeft ingestemd met afstemming met school over haar aanwezigheid, haar belastbaarheid en mogelijke aanpassingen in haar lesprogramma. Over wat er thuis speelt, heeft Noor uitdrukkelijk gezegd dat dit niet met school gedeeld mag worden. Er zijn geen aanwijzingen voor acuut gevaar. Na afloop van een overleg op school spreekt Marieke de Wit, de mentor van Noor, de deelnemer informeel aan op de gang. Zij maakt zich zorgen omdat Noor vaak moe is, steeds vaker te laat komt en gisteren in de les huilde. Zij heeft gehoord dat er thuis iets speelt en vraagt de deelnemer persoonlijk en in vertrouwen wat er aan de hand is. Wat het protocol van de organisatie hierover voorschrijft en of Noor op de hoogte is van dit gesprek, is niet bekend. Hoe de deelnemer reageert, bepaalt hij zelf.",
+            "timeLimitMinutes": null,
+            "personaInstructions": "Je speelt Marieke de Wit, mentor van de 15-jarige Noor op een middelbare school. Je bent betrokken, warm en oprecht bezorgd om Noor. Je spreekt de jeugdprofessional informeel aan, na afloop van een overleg op school. Je weet dat Noor de laatste weken vaak moe is, steeds vaker te laat komt en gisteren in de les in tranen was. Je hebt van een collega opgevangen dat er thuis iets speelt, maar je weet niet wat. Je weet dat de jeugdprofessional met school mag afstemmen over aanwezigheid, belastbaarheid en aanpassingen in het lesprogramma. Je weet niet wat Noor wel of niet gedeeld wil hebben over haar thuissituatie. Jouw vorm van druk is persoonlijk en informeel: je doet een beroep op de onderlinge relatie en op vertrouwelijkheid. Je zegt dingen als dat het tussen jullie blijft, dat je het niet verder vertelt, dat je haar mentor bent en haar alleen wilt helpen, en dat je je machteloos voelt als je niet weet wat er speelt. Als de jeugdprofessional terughoudend is, laat je teleurstelling merken en vraag je door, bijvoorbeeld of je dan op zijn minst een hint krijgt of dat je het misschien aan Noor zelf moet vragen. Reageer steeds op de inhoud en toon van wat de jeugdprofessional zegt. Houd realistische druk vast, maar sta open voor een heldere en respectvolle uitleg: als de jeugdprofessional jouw zorg en jouw rol serieus neemt en laat zien wat binnen de samenwerking wel mogelijk is, word je geleidelijk meer bereid om mee te denken over wat jij als mentor concreet kunt doen. Als de jeugdprofessional je afwijst of vaag blijft, word je stugger of meer persoonlijk geraakt. Grenzen: bedenk zelf geen details over de thuissituatie van Noor. Voeg geen informatie toe over een protocol van de organisatie of van school, over wet- of regelgeving, of over de vraag of Noor weet dat dit gesprek plaatsvindt. Er zijn geen aanwijzingen voor acuut gevaar; breng die ook niet in. Beoordeel de jeugdprofessional niet, geef geen feedback of tips en stuur niet aan op één bepaalde reactie; meerdere reacties kunnen professioneel verdedigbaar zijn. Blijf in je rol als mentor en houd je berichten kort en natuurlijk, zoals in een gesprek op de gang."
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 6,
+        "certumPhase": "toets",
+        "routePolicy": "open_choice",
+        "reviewStatus": "approved",
+        "accreditation": {
+          "workform": "Chat simulatie",
+          "assessmentRole": "transfer",
+          "sourceNeedRefs": [],
+          "estimatedMinutes": 12,
+          "learningGoalContribution": "De deelnemer laat in een gewijzigde situatie, met een andere samenwerkingspartner en een informelere vorm van druk, opnieuw zien dat hij zijn positie over informatie buiten de instemming helder en respectvol toelicht en het belang van de partner serieus neemt."
+        },
+        "catalogBlockId": "certum.bco.chat-simulatie",
+        "plannedBlockId": "blok-6"
+      },
+      {
+        "body": {
+          "status": "generated",
+          "content": {
+            "title": "Verantwoording van je reactie in het tweede overleg",
+            "feedback": "Verschillende reacties kunnen in deze situatie professioneel verdedigbaar zijn. Lees je antwoord nog eens na. Is voor een buitenstaander duidelijk wat je wel en niet deelde en waarom? Wordt zichtbaar hoe je de vraag van de partner hebt meegewogen? En is navolgbaar waarom je iets anders of hetzelfde deed dan in het eerste gesprek?",
+            "question": "Wat deed je in dit tweede gesprek hetzelfde of anders dan in het eerste, hoe reageerde de mentor daarop en waarom koos je daarvoor? Welke afweging uit het eerste gesprek kon je opnieuw gebruiken, en wat vroeg deze situatie juist anders?",
+            "exampleAnswer": null,
+            "catalogBlockId": "certum.bco.open-vraag"
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 7,
+        "certumPhase": "toets",
+        "routePolicy": "open_choice",
+        "reviewStatus": "approved",
+        "accreditation": {
+          "workform": "Open vraag",
+          "assessmentRole": "transfer",
+          "sourceNeedRefs": [],
+          "estimatedMinutes": 10,
+          "learningGoalContribution": "De deelnemer verantwoordt zijn reactie in een gewijzigde overlegsituatie in termen van werkbare samenwerking en maakt expliciet wat hij ten opzichte van het eerste gesprek anders of hetzelfde deed en waarom. Zo levert dit blok transferbewijs voor het leerdoel."
+        },
+        "catalogBlockId": "certum.bco.open-vraag",
+        "plannedBlockId": "blok-7"
+      },
+      {
+        "body": {
+          "status": "generated",
+          "content": {
+            "title": "Terugkoppeling op je transferopdracht",
+            "instructions": "Je geeft terugkoppeling aan een jeugdprofessional op zijn transferopdracht in een praktijksimulatie over het toelichten van grenzen aan informatiedeling onder druk van een samenwerkingspartner. Je ontvangt als context zijn antwoord op de eerste reflectievraag (over het gesprek met de zorgcoördinator in het MDO) en zijn antwoord op de transfervraag (over een tweede, vergelijkbaar overleg met een andere samenwerkingspartner of een andere vorm van druk). Je hebt geen toegang tot de gesprekken zelf; baseer je uitsluitend op wat de deelnemer in deze twee antwoorden beschrijft en doe niet alsof je het gespreksverloop kent. Benoem bij uitvoering daarom expliciet dat je terugkoppeling berust op zijn eigen weergave.\n\nAchtergrond: in de eerste situatie had de jongere ingestemd met afstemming over schoolverzuim, belastbaarheid en benodigde ondersteuning, maar uitdrukkelijk gezegd dat informatie over financiële problemen thuis en psychische klachten bij een ouder niet met school gedeeld mocht worden. Er waren geen aanwijzingen voor acuut gevaar en het organisatieprotocol was niet bij de hand. Vul niet in wat een protocol, wet of richtlijn voorschrijft en voeg geen informatie toe over de aanwezigheid van de jongere.\n\nMeerdere reacties zijn professioneel verdedigbaar. Beoordeel nooit welke route de deelnemer koos en presenteer geen route als de enige juiste. Beoordeel de kwaliteit van zijn afweging en handelen langs deze basis:\nAfweging: maakt hij navolgbaar hoe hij de wens van de jongere en de beperkte reikwijdte van de instemming afweegt tegen de vraag van de samenwerkingspartner en het belang van een werkbare samenwerking?\nAansluiting op de situatie: past zijn reactie bij de gewijzigde situatie en de specifieke druk van de nieuwe partner, of past hij de eerdere aanpak onveranderd toe zonder dat te verantwoorden?\nOnderbouwing: legt hij uit wat hij bewust anders of hetzelfde deed dan in het eerste gesprek en waarom?\nUitvoering: blijkt uit zijn weergave dat hij zijn positie helder en respectvol toelichtte zonder de partner af te wijzen, en dat hij de vraag en het belang van de partner zichtbaar benoemde en verbond aan wat binnen de samenwerking wel mogelijk is?\n\nVergelijk de twee antwoorden en benoem concreet de ontwikkeling: wat is sterker geworden, wat is gelijk gebleven en waar ligt nog ruimte voor aanscherping. Verwijs daarbij naar wat de deelnemer zelf schreef. Is een antwoord summier of ontbreekt een onderdeel, benoem dat dan feitelijk en geef aan welke toelichting de afweging navolgbaarder zou maken, zonder een inhoudelijk antwoord voor te schrijven.\n\nSchrijf in helder, zakelijk en respectvol Nederlands, gericht aan de deelnemer met je en jij. Sluit af met een concreet aandachtspunt dat hij kan meenemen naar zijn eigen samenwerkingspraktijk. Gebruik geen opmaak, noem geen bronnen en geef geen cijfer of oordeel in termen van goed of fout.",
+            "catalogBlockId": "certum.bco.ai-feedback",
+            "availableContext": [
+              "blok-3",
+              "blok-7"
+            ],
+            "unavailableContext": [
+              "blok-2",
+              "blok-6"
+            ]
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 8,
+        "certumPhase": "toets",
+        "routePolicy": "open_choice",
+        "reviewStatus": "approved",
+        "accreditation": {
+          "workform": "AI Feedback",
+          "assessmentRole": "transfer",
+          "sourceNeedRefs": [],
+          "estimatedMinutes": 5,
+          "learningGoalContribution": "Dit blok geeft terugkoppeling op hoe de deelnemer zijn afweging en gespreksaanpak toepast in een gewijzigde situatie. Het maakt zijn ontwikkeling ten opzichte van de eerste reflectie zichtbaar, zodat hij ziet of hij zijn positie helder en respectvol toelicht, het belang van de partner serieus neemt en zijn bijdrage aan werkbare samenwerking verantwoordt."
+        },
+        "catalogBlockId": "certum.bco.ai-feedback",
+        "plannedBlockId": "blok-8"
+      }
+    ],
+    "end": {
+      "summary": "In deze simulatie stonden drie aandachtspunten centraal. Ten eerste het helder en respectvol toelichten van je positie over wat je wel en niet deelt, zonder de samenwerkingspartner af te wijzen. Ten tweede het serieus nemen van de vraag en het belang van school, en die verbinden aan wat binnen de samenwerking wel mogelijk is. Ten derde het verantwoorden hoe je reactie bijdraagt aan een werkbare samenwerking en welke belangen je daarbij hebt afgewogen, zoals de wens van de jongere, de reikwijdte van de gegeven instemming en de behoefte van school aan een volledig beeld.",
+      "closingText": "Je hebt deze praktijksimulatie afgerond. Je hebt ervaren hoe het is om onder druk van een samenwerkingspartner uit te leggen waar je grenzen liggen bij het delen van informatie, en hoe je daarbij de vraag van die partner serieus kunt nemen. Er is niet één juiste manier om zo'n gesprek te voeren. Verschillende reacties kunnen professioneel verdedigbaar zijn, zolang je je positie helder en respectvol toelicht, aansluit bij de situatie en je afweging navolgbaar kunt maken. Neem mee wat je in de gesprekken, de feedback en de kaders hebt gezien. Let in je eigen samenwerkingspraktijk bewust op hoe je je positie verwoordt wanneer iemand meer informatie vraagt dan je kunt geven, en op wat jouw reactie doet met de samenwerking. Dank je wel voor je inzet.",
+      "followUpRecommendation": null
+    },
+    "unresolvedRequirements": [
+      {
+        "plannedBlockId": "blok-4",
+        "kind": "ai_context",
+        "refs": [
+          "blok-2"
+        ]
+      },
+      {
+        "plannedBlockId": "blok-8",
+        "kind": "ai_context",
+        "refs": [
+          "blok-2",
+          "blok-6"
+        ]
+      }
+    ],
+    "readiness": "approved"
+  }
+}
