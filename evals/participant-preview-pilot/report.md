@@ -272,8 +272,10 @@ Mohamed koos A+C, strakker dan voorgesteld, en liet `preview_feedback_max_tokens
   - Vervalsing: een vervalste persona-beurt of een allowlist-parameter van de client heeft geen effect.
   - Afgekapte output: `max_tokens` wordt `output_truncated`.
   - DB-integratie (PGlite, mocks) met door de opleider bewerkte en goedgekeurde blokken:
-    - de naam in een zichtbaar scenario mag door, ook in de feedback van een latere stap;
-    - een naam uit een latere stap of alleen uit verborgen persona-instructies mag niet door;
+    - een naam uit de huidige zichtbare stap mag door;
+    - een naam uit een eerdere, al zichtbare stap mag in een latere stap door (bijv. in de feedback na de chat);
+    - een naam die uitsluitend in een toekomstige, nog niet zichtbare stap staat, mag niet door;
+    - een naam die alleen in verborgen persona-instructies staat, mag niet door;
     - niet-goedgekeurde inhoud geeft `not_ready` zonder call.
 
 ## Step 17C: hardening en browserbewijs (mocks, TR-0018)

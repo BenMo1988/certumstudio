@@ -16,11 +16,19 @@ const TRANSFER_CHAT = "blok-6";
 const transferSet = approvedVisibleEntities(preview, TRANSFER_CHAT);
 
 describe("vertrouwde set: alleen wat de deelnemer tot en met deze stap kon zien", () => {
-  it("de scenarionaam uit de Transfer-chat is vertrouwd in die stap", () => {
+  it("naam uit de huidige zichtbare stap: vertrouwd", () => {
     expect(transferSet.has("Noor")).toBe(true);
   });
 
-  it("een naam uit een latere stap is in een eerdere stap nog niet vertrouwd", () => {
+  it("naam uit een eerdere, al zichtbare stap: vertrouwd in alle latere stappen", () => {
+    // "Noor" wordt in blok-6 (Transfer-chat) geïntroduceerd; de reflectie (blok-7) en de feedback (blok-8) komen daarna.
+    for (const later of ["blok-7", "blok-8"]) {
+      expect(approvedVisibleEntities(preview, later).has("Noor")).toBe(true);
+      expect(evaluatePreviewPrivacy(["Ik zou eerst met Noor zelf overleggen."], approvedVisibleEntities(preview, later))).toMatchObject({ decision: "allowed", approvedEntityMatches: 1 });
+    }
+  });
+
+  it("naam uitsluitend uit een toekomstige, nog niet zichtbare stap: niet vertrouwd", () => {
     expect(approvedVisibleEntities(preview, ACTION_CHAT).has("Noor")).toBe(false);
     expect(evaluatePreviewPrivacy(["Ik begrijp dat Noor dit lastig vindt."], approvedVisibleEntities(preview, ACTION_CHAT)).decision).toBe("blocked");
   });

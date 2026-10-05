@@ -12,7 +12,8 @@ import type { PreviewModel } from "./view";
  *
  * - De vertrouwde set komt uitsluitend server-side uit de deelnemersweergave (`buildPreview`) van het goedgekeurde
  *   pakket: nooit uit de client, nooit uit de chatgeschiedenis (die levert de client aan) en nooit uit verborgen velden
- *   (persona-instructies, feedbackinstructies). Een naam uit een latere stap telt nog niet.
+ *   (persona-instructies, feedbackinstructies). Scope: Vaste Start, alle eerdere stappen en de huidige stap; een naam
+ *   die uitsluitend in een toekomstige, nog niet zichtbare stap staat, telt niet.
  * - Exacte span-match, hoofdlettergevoelig, geen fuzzy matching: "Noor Bakker" matcht niet met "Noor".
  * - `blocked`-categorieën en alle andere `review_required`-categorieën worden nooit vrijgesteld. Staat er naast een
  *   vrijgestelde naam nog één andere bevinding, dan blijft de tekst geblokkeerd.

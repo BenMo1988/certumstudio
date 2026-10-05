@@ -416,7 +416,7 @@ describe("Participant Preview: trusted synthetic context (Step 17C)", () => {
   const chat = (p: ReturnType<typeof previewDeps>, plannedBlockId: string, message: string) =>
     previewChatTurn(p.deps, { trainingId: named.id, plannedBlockId, history: [], message, syntheticAttested: true });
 
-  it("de naam uit de goedgekeurde, zichtbare stap mag door; de vrijstelling wordt alleen als aantal gelogd", async () => {
+  it("naam uit de huidige zichtbare, goedgekeurde stap mag door; de vrijstelling wordt alleen als aantal gelogd", async () => {
     const p = previewDeps();
     expect(await chat(p, TOETS_CHAT, "Ik begrijp dat Noor dit lastig vindt.")).toMatchObject({ status: "ok" });
     expect(p.runtime.chats).toHaveLength(1);
@@ -435,7 +435,7 @@ describe("Participant Preview: trusted synthetic context (Step 17C)", () => {
     expect(JSON.stringify(p.logs)).not.toContain("Noor");
   });
 
-  it("een naam uit een latere stap is nog niet vertrouwd", async () => {
+  it("naam uitsluitend uit een toekomstige, nog niet zichtbare stap is niet vertrouwd", async () => {
     const p = previewDeps();
     expect(await chat(p, ACTION_CHAT, "Ik begrijp dat Noor dit lastig vindt.")).toEqual({ status: "rejected", reason: "privacy_blocked", categories: ["possible_person_name"] });
     expect(p.runtime.chats).toHaveLength(0);
@@ -477,7 +477,7 @@ describe("Participant Preview: trusted synthetic context (Step 17C)", () => {
     expect(p.runtime.chats).toHaveLength(0);
   });
 
-  it("feedback: dezelfde regel per stap; de availableContext-filter blijft gelijk", async () => {
+  it("naam uit een eerdere, al zichtbare stap blijft vertrouwd in een latere stap (feedback na de chat); de availableContext-filter blijft gelijk", async () => {
     const pkg = named.workspace.content!.package;
     const toets = feedbackBlock(pkg, "toets");
     const early = feedbackBlock(pkg, "feedback");

@@ -542,7 +542,9 @@ als een professioneel gesprek onder druk. Het is geen LMS en geen deelnemersomge
     niet als blokkade als exact die span ook `possible_person_name` is in de inhoud die de deelnemer tot en met de
     huidige stap van de current goedgekeurde training kon zien (`approvedVisibleEntities` over `buildPreview`).
     - De set komt alleen server-side uit de goedgekeurde snapshot: nooit uit de client, nooit uit de chatgeschiedenis
-      en nooit uit verborgen velden. Een naam uit een latere stap telt nog niet.
+      en nooit uit verborgen velden. Scope: Vaste Start, alle eerdere stappen en de huidige stap. Een naam uit een
+      eerdere, al zichtbare stap of uit de huidige stap kan worden vrijgesteld; een naam die uitsluitend in een
+      toekomstige stap staat, niet.
     - Exacte span-match zonder fuzzy matching ("Noor Bakker" ≠ "Noor"). `blocked`-categorieën en andere
       `review_required`-categorieën worden nooit vrijgesteld. Eén andere bevinding blokkeert het hele bericht.
     - Restrisico, bewust geaccepteerd voor Trainer Preview met synthetic-only-attestatie: een echte persoon met exact
