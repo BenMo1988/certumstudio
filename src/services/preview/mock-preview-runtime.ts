@@ -18,6 +18,13 @@ const result = (text: string, stopReason: string): PreviewRuntimeResult => ({
 
 export const MOCK_TRUNCATE_MARKER = "#afkappen";
 
+/**
+ * Mock-marker `#afkappen-eenmaal` (chat): de eerste poging voor exact deze beurt wordt afgekapt, een nieuwe poging voor
+ * dezelfde beurt slaagt. Bewijst "Antwoord opnieuw genereren" (Step 17E). Alleen mock; de staat leeft in dit proces.
+ */
+export const MOCK_TRUNCATE_ONCE_MARKER = "#afkappen-eenmaal";
+const truncatedOnce = new Set<string>();
+
 const excerpt = (text: string) => {
   const clean = text.replace(/\s+/g, " ").trim();
   return clean.length > 80 ? `${clean.slice(0, 77)}…` : clean;
@@ -40,7 +47,15 @@ export class MockPreviewRuntimeService implements PreviewRuntimeService {
     } else {
       text = `Goed. Laten we dan afspreken hoe we verder gaan. (mock-beurt ${participantTurns.length})`;
     }
-    if (last.includes(MOCK_TRUNCATE_MARKER)) return result("Ik vind het lastig, want", "max_tokens");
+    if (last.includes(MOCK_TRUNCATE_ONCE_MARKER)) {
+      const key = `${request.history.length}:${last}`;
+      if (!truncatedOnce.has(key)) {
+        truncatedOnce.add(key);
+        return result("Ik vind het lastig, want", "max_tokens");
+      }
+    } else if (last.includes(MOCK_TRUNCATE_MARKER)) {
+      return result("Ik vind het lastig, want", "max_tokens");
+    }
     return result(text, "end_turn");
   }
 

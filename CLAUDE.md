@@ -583,6 +583,9 @@ als een professioneel gesprek onder druk. Het is geen LMS en geen deelnemersomge
   `stop_reason: max_tokens` is nooit een compleet antwoord, in chat noch feedback. De runtime geeft dan
   `output_truncated`, toont geen gedeeltelijke tekst en doet geen automatische retry. De mock-marker `#afkappen`
   simuleert dit. Opnieuw genereren is in de UI een aparte, expliciete actie ("Dit start een nieuwe AI-aanroep.").
+  - Bij de chat blijft het verstuurde bericht als openstaande beurt staan. "Antwoord opnieuw genereren" stuurt exact
+    dezelfde geschiedenis en hetzelfde bericht opnieuw, zonder nieuwe of dubbele deelnemersbeurt; zolang de beurt
+    openstaat, is er geen invoer (`chatRequestFor` / `applyChatResult`). Mock-marker: `#afkappen-eenmaal`.
   Eén UI-actie start hooguit één call tegelijk (`components/studio/preview/preview-state.ts`).
 - **Provider:** `CERTUM_PREVIEW_PROVIDER` (standaard `mock`, los van de andere providers, geen terugval).
   - `CLAUDE_PREVIEW_DEFAULTS`: `claude-opus-5-5`, chat `low` (`max_tokens` 1200), feedback `medium` (`max_tokens`

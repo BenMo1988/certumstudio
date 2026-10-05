@@ -420,11 +420,44 @@ Besluit van Mohamed: optie B, plus twee kleine hardeningpunten. Didactiek, promp
     actie "Feedback opnieuw genereren" en de tekst "Dit start een nieuwe AI-aanroep."
   - Er is geen automatische retry en "Verder" blijft dicht tot er complete feedback is.
   - Eén UI-actie start hooguit één call tegelijk (single flight; ook een dubbele klik binnen één render).
-  - **Chat:** voor de chat was dit niet nodig. Na een verzonden bericht is het invoerveld leeg, dus opnieuw versturen
-    vraagt een nieuw, bewust bericht. De single flight geldt ook daar.
+  - **Chat:** de eerste versie van 17E vereiste na een afgekapt chatantwoord een nieuw bericht. Dat veranderde het
+    gesprek inhoudelijk en is in de slotcorrectie hieronder hersteld.
 - **Browserbewijs (mocks, TR-0018, 0 Claude-calls):** `hardening-proof-17e.json`.
   - De gewone chat en de gewone feedback werken.
   - Afgekapte feedback toont de expliciete stand, zonder "Feedback ophalen".
   - Na 3 s volgt geen automatische call.
   - Een dubbele klik op "Feedback opnieuw genereren" start precies 1 nieuwe call.
   - De logs bevatten alleen aantallen en bloktypes, geen inhoud.
+
+### Step 17E: slotcorrectie voor afgekapte chatantwoorden
+
+Na een afgekapt chatantwoord moest de deelnemer een nieuw bericht schrijven. Dat veranderde het gesprek. Een technische
+mislukking mag de deelnemer nooit dwingen tot een andere beurt.
+
+- **Gedrag:**
+  - Na `output_truncated` blijft het verstuurde bericht A één keer zichtbaar als openstaande beurt. Er wordt geen
+    gedeeltelijk antwoord getoond.
+  - De chat toont "Het antwoord kon niet volledig worden gegenereerd.", met de actie "Antwoord opnieuw genereren" en de
+    tekst "Dit start een nieuwe AI-aanroep voor dezelfde gespreksbeurt."
+  - Zolang de beurt openstaat, is er geen invoerveld; een nieuw bericht B kan dus niet per ongeluk meegaan.
+  - Er is geen automatische retry. Een dubbele klik start hooguit één call.
+- **Semantiek** (`chatRequestFor` / `applyChatResult` in `components/studio/preview/preview-state.ts`):
+  - de retry stuurt exact dezelfde geschiedenis van vóór de call plus hetzelfde bericht A;
+  - het resultaat is nooit "geschiedenis + A + A" en nooit "geschiedenis + A + B";
+  - pas bij succes wordt het paar A → antwoord vastgelegd;
+  - andere weigeringen, zoals privacy, laten het gesprek ongewijzigd en maken geen retry-stand;
+  - de server is ongewijzigd: elke poging gaat opnieuw door attestatie, privacycheck en de goedgekeurde stand.
+- **Mock:** de marker `#afkappen-eenmaal` kapt de eerste poging voor exact die beurt af; een nieuwe poging slaagt.
+- **Tests:** pure tests voor de chatstand, plus DB-tests:
+  - een identieke retry-aanvraag bevat A één keer in de providergeschiedenis;
+  - de retry wordt gelogd als `error`/`max_tokens` gevolgd door `success`/`end_turn`;
+  - een retry omzeilt de privacycheck niet;
+  - de logs blijven contentvrij.
+- **Browserbewijs (mocks, TR-0018, 0 Claude-calls):** `hardening-proof-17e-chat.json`.
+  1. De deelnemer verstuurt één bericht.
+  2. De mock geeft `max_tokens`.
+  3. Het bericht staat één keer in beeld.
+  4. De expliciete retry-actie verschijnt.
+  5. De retry slaagt; een dubbele klik gaf precies 1 nieuwe call.
+  6. Het gesprek bevat één deelnemersbeurt en één AI-antwoord.
+  7. Er volgde geen automatische tweede call.

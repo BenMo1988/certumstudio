@@ -9,7 +9,7 @@ import { createBlockContentService } from "@/services/block-content/factory";
 import { createBlockPlanService } from "@/services/block-plan/factory";
 import { createTrainingBlueprintServiceV21 } from "@/services/blueprint/factory";
 import { MOCK_ORGANISATION_SPECIFIC } from "@/services/blueprint/v2/mock-blueprint-service-v2";
-import { MOCK_TRUNCATE_MARKER, MockPreviewRuntimeService } from "@/services/preview/mock-preview-runtime";
+import { MOCK_TRUNCATE_MARKER, MOCK_TRUNCATE_ONCE_MARKER, MockPreviewRuntimeService } from "@/services/preview/mock-preview-runtime";
 import type { PreviewChatRequest, PreviewFeedbackRequest, PreviewRuntimeService } from "@/services/preview/services";
 import { instrumentDb } from "@/services/storage/instrumented-db";
 import { createArtifactRevision } from "@/services/storage/training-record";
@@ -566,6 +566,42 @@ describe("Participant Preview: runtimemetadata (Step 17E)", () => {
     expect(result).toEqual({ status: "rejected", reason: "output_truncated" });
     expect(p.logs.find((l) => l.event === "certum.preview_runtime")).toMatchObject({ outcome: "error", errorKind: "output_truncated", stopReason: "max_tokens", outputTokens: 4000, maxTokens: 4000 });
     expect(JSON.stringify(p.logs) + JSON.stringify(result)).not.toContain("AFGEKAPTE");
+  });
+});
+
+describe("Participant Preview: chat-retry van dezelfde beurt (Step 17E)", () => {
+  it("dezelfde beurt opnieuw: identieke aanvraag, A één keer in de providergeschiedenis, geen automatische tweede call", async () => {
+    const p = previewDeps();
+    const history = [
+      { role: "participant" as const, text: "Eerste beurt." },
+      { role: "persona" as const, text: "Eerste antwoord." },
+    ];
+    const A = `Ik wil eerst begrijpen wat er speelt. ${MOCK_TRUNCATE_ONCE_MARKER}`;
+    const input = { trainingId: ready.id, plannedBlockId: ACTION_CHAT, history, message: A, syntheticAttested: true };
+    expect(await previewChatTurn(p.deps, input)).toEqual({ status: "rejected", reason: "output_truncated" });
+    expect(p.runtime.chats).toHaveLength(1);
+    const retry = await previewChatTurn(p.deps, input);
+    expect(retry).toMatchObject({ status: "ok" });
+    expect(p.runtime.chats).toHaveLength(2);
+    for (const request of p.runtime.chats) {
+      expect(request.history).toHaveLength(4);
+      expect(request.history.filter((t) => t.text === A)).toHaveLength(1);
+      expect(request.history.at(-1)).toEqual({ role: "participant", text: A });
+    }
+    expect(p.runtime.chats[0]).toEqual(p.runtime.chats[1]);
+    expect(p.logs.filter((l) => l.event === "certum.preview_runtime").map((l) => (l.event === "certum.preview_runtime" ? [l.outcome, l.stopReason, l.participantTurns] : []))).toEqual([
+      ["error", "max_tokens", 2],
+      ["success", "end_turn", 2],
+    ]);
+    expect(JSON.stringify(p.logs)).not.toContain("begrijpen");
+  });
+
+  it("een retry omzeilt de privacycheck niet", async () => {
+    const p = previewDeps();
+    const input = { trainingId: ready.id, plannedBlockId: ACTION_CHAT, history: [], message: `Mail me via test@example.nl ${MOCK_TRUNCATE_ONCE_MARKER}`, syntheticAttested: true };
+    expect(await previewChatTurn(p.deps, input)).toMatchObject({ reason: "privacy_blocked" });
+    expect(await previewChatTurn(p.deps, input)).toMatchObject({ reason: "privacy_blocked" });
+    expect(p.runtime.chats).toHaveLength(0);
   });
 });
 

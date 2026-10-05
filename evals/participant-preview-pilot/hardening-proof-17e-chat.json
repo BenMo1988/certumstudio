@@ -1,0 +1,48 @@
+{
+  "afterTruncation": {
+    "roles": [
+      "persona",
+      "participant"
+    ],
+    "participantBubblesWithA": 1,
+    "pendingRetry": "true",
+    "completedTurns": 0,
+    "truncatedBox": "Het antwoord kon niet volledig worden gegenereerd.\n\nAntwoord opnieuw genereren\nDit start een nieuwe AI-aanroep voor dezelfde gespreksbeurt.",
+    "inputPresent": false,
+    "verderEnabled": false
+  },
+  "noAutoRetry": true,
+  "retryCalls": 1,
+  "afterRetry": {
+    "roles": [
+      "persona",
+      "participant",
+      "persona"
+    ],
+    "participantBubblesWithA": 1,
+    "pendingRetry": "false",
+    "completedTurns": 1,
+    "truncatedBox": null,
+    "inputPresent": true,
+    "verderEnabled": false
+  },
+  "runtimeLogs": [
+    {
+      "kind": "chat",
+      "outcome": "error",
+      "errorKind": "output_truncated",
+      "stopReason": "max_tokens",
+      "participantTurns": 1,
+      "visibleChars": 24
+    },
+    {
+      "kind": "chat",
+      "outcome": "success",
+      "errorKind": null,
+      "stopReason": "end_turn",
+      "participantTurns": 1,
+      "visibleChars": 162
+    }
+  ],
+  "logContentFree": true
+}

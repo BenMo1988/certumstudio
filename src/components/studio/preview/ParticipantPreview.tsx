@@ -4,10 +4,9 @@ import { useRef, useState, useTransition, type ReactNode } from "react";
 import { previewChatTurnAction, previewFeedbackAction } from "@/app/trainings/preview/actions";
 import type { PreviewRejection } from "@/app/trainings/preview/preview-runtime";
 import type { PreviewModel, PreviewStep } from "@/modules/preview";
-import type { PreviewChatTurn } from "@/services/preview/services";
 import { Button } from "../Button";
 import { Icon } from "../Icon";
-import { createSingleFlight, feedbackView, isFeedbackComplete, type FeedbackEntry } from "./preview-state";
+import { applyChatResult, chatRequestFor, createSingleFlight, emptyChat, feedbackView, isFeedbackComplete, type ChatState, type FeedbackEntry } from "./preview-state";
 
 /*
  * Participant Preview V1: de trainer doorloopt een goedgekeurde training als deelnemer. Eén rustige kolom, in de echte
@@ -28,13 +27,6 @@ const MESSAGES: Record<PreviewRejection, string> = {
   output_truncated: "Het antwoord kon niet volledig worden gegenereerd en wordt daarom niet getoond. Je kunt het opnieuw proberen.",
   provider_error: "Er kwam nu geen antwoord. Probeer het opnieuw.",
 };
-
-interface ChatState {
-  /** Beurten ná het eerste bericht van de persona. */
-  turns: PreviewChatTurn[];
-  closed: boolean;
-  goalMessage: string | null;
-}
 
 interface State {
   confirmed: boolean;
@@ -130,32 +122,20 @@ export function ParticipantPreview({ trainingId, code, preview }: { trainingId: 
             pending={pending}
             setAnswer={(id, v) => setState((s) => ({ ...s, answers: { ...s.answers, [id]: v } }))}
             submitAnswer={(id) => setState((s) => ({ ...s, submitted: { ...s.submitted, [id]: true } }))}
-            sendChat={(id, message) =>
+            chatAction={(id, action) =>
               runAction(async () => {
+                const request = chatRequestFor(state.chats[id] ?? emptyChat(), action);
+                if (!request) return;
                 setError(null);
-                const chat = state.chats[id] ?? { turns: [], closed: false, goalMessage: null };
-                const result = await previewChatTurnAction(trainingId, id, chat.turns, message, state.confirmed);
-                if (result.status !== "ok") {
+                const result = await previewChatTurnAction(trainingId, id, request.history, request.message, state.confirmed);
+                if (result.status !== "ok" && result.reason !== "output_truncated") {
                   setError(MESSAGES[result.reason] + (result.categories?.length ? ` (${result.categories.join(", ")})` : ""));
-                  return;
                 }
-                setState((s) => {
-                  const current = s.chats[id] ?? { turns: [], closed: false, goalMessage: null };
-                  return {
-                    ...s,
-                    chats: {
-                      ...s.chats,
-                      [id]: {
-                        ...current,
-                        turns: [...current.turns, { role: "participant", text: message.trim() }, { role: "persona", text: result.reply }],
-                        goalMessage: result.goalMessage ?? current.goalMessage,
-                      },
-                    },
-                  };
-                });
+                // Afgekapt: de beurt blijft openstaan voor "Antwoord opnieuw genereren" (zelfde bericht, zelfde geschiedenis).
+                setState((s) => ({ ...s, chats: { ...s.chats, [id]: applyChatResult(s.chats[id] ?? emptyChat(), request.message, result) } }));
               })
             }
-            closeChat={(id) => setState((s) => ({ ...s, chats: { ...s.chats, [id]: { ...(s.chats[id] ?? { turns: [], goalMessage: null }), closed: true } } }))}
+            closeChat={(id) => setState((s) => ({ ...s, chats: { ...s.chats, [id]: { ...(s.chats[id] ?? emptyChat()), closed: true } } }))}
             requestFeedback={(id) =>
               runAction(async () => {
                 setError(null);
@@ -263,7 +243,7 @@ function StepView({
   pending,
   setAnswer,
   submitAnswer,
-  sendChat,
+  chatAction,
   closeChat,
   requestFeedback,
 }: {
@@ -273,7 +253,7 @@ function StepView({
   pending: boolean;
   setAnswer: (id: string, value: string) => void;
   submitAnswer: (id: string) => void;
-  sendChat: (id: string, message: string) => void;
+  chatAction: (id: string, action: { kind: "send"; message: string } | { kind: "retry" }) => void;
   closeChat: (id: string) => void;
   requestFeedback: (id: string) => void;
 }): ReactNode {
@@ -352,7 +332,7 @@ function StepView({
       );
     }
     case "chat":
-      return <ChatStep step={step} chat={state.chats[step.plannedBlockId]} readOnly={readOnly} pending={pending} send={sendChat} close={closeChat} />;
+      return <ChatStep step={step} chat={state.chats[step.plannedBlockId]} readOnly={readOnly} pending={pending} act={chatAction} close={closeChat} />;
     case "ai-feedback": {
       const entry = state.feedback[step.plannedBlockId];
       const view = feedbackView(entry);
@@ -403,23 +383,24 @@ function ChatStep({
   chat,
   readOnly,
   pending,
-  send,
+  act,
   close,
 }: {
   step: Extract<PreviewStep, { kind: "chat" }>;
   chat: ChatState | undefined;
   readOnly: boolean;
   pending: boolean;
-  send: (id: string, message: string) => void;
+  act: (id: string, action: { kind: "send"; message: string } | { kind: "retry" }) => void;
   close: (id: string) => void;
 }) {
   const [draft, setDraft] = useState("");
   const turns = chat?.turns ?? [];
   const closed = !!chat?.closed || readOnly;
   const participantTurns = turns.filter((t) => t.role === "participant").length;
+  const pendingRetry = chat?.pendingRetry ?? null;
 
   return (
-    <article data-testid="step-chat" data-block={step.plannedBlockId} data-turns={participantTurns} data-closed={!!chat?.closed}>
+    <article data-testid="step-chat" data-block={step.plannedBlockId} data-turns={participantTurns} data-closed={!!chat?.closed} data-pending-retry={!!pendingRetry}>
       <Header eyebrow={step.phase} title={step.title} minutes={step.estimatedMinutes} />
       {step.scenarioContext && <Paragraphs text={step.scenarioContext} />}
       {step.timeLimitMinutes ? <p className="mt-3 text-xs text-muted">Indicatie: ongeveer {step.timeLimitMinutes} minuten (geen timer).</p> : null}
@@ -429,6 +410,7 @@ function ChatStep({
         {turns.map((t, i) => (
           <Bubble key={i} who={t.role === "persona" ? step.personaName : "Jij"} text={t.text} side={t.role} />
         ))}
+        {pendingRetry && <Bubble who="Jij" text={pendingRetry} side="participant" />}
         {pending && !closed && <p className="text-xs text-muted">{step.personaName} typt…</p>}
       </section>
       {chat?.goalMessage && (
@@ -441,13 +423,24 @@ function ChatStep({
         <p className="mt-4 text-sm text-muted" data-testid="chat-closed">
           Het gesprek is afgerond.
         </p>
+      ) : pendingRetry ? (
+        // Afgekapt antwoord: geen nieuwe deelnemersbeurt, alleen exact deze beurt opnieuw laten beantwoorden.
+        <section className="mt-4 rounded-md border border-attention/30 bg-attention-50 px-4 py-4" data-testid="chat-truncated">
+          <p className="text-[15px] font-medium text-attention-700">Het antwoord kon niet volledig worden gegenereerd.</p>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <Button variant="secondary" disabled={pending} onClick={() => act(step.plannedBlockId, { kind: "retry" })}>
+              {pending ? "Antwoord wordt gemaakt…" : "Antwoord opnieuw genereren"}
+            </Button>
+            <span className="text-sm text-attention-700">Dit start een nieuwe AI-aanroep voor dezelfde gespreksbeurt.</span>
+          </div>
+        </section>
       ) : (
         <form
           className="mt-4"
           onSubmit={(e) => {
             e.preventDefault();
             if (!draft.trim()) return;
-            send(step.plannedBlockId, draft);
+            act(step.plannedBlockId, { kind: "send", message: draft });
             setDraft("");
           }}
         >
