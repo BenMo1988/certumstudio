@@ -404,6 +404,40 @@ uit gevalideerde bronnen.
 - **Privacy:** broninhoud, titels en URL's komen nooit in logs (test). Heropenen blijft 4 queries.
 - **Buiten scope:** zoeken op internet, scraping, uploads (PDF/Word), centrale bronbibliotheek, media, APA, SKJ.
 
+### Pilot-driven Product Corrections V1 (stap 15A)
+
+Correcties uit de Full Training Pilot TR-0014 (`evals/full-training-pilot/`). 0 AI-aanroepen.
+
+- **Human Block Plan Override.** De opleider corrigeert vóór (of na) goedkeuring per gepland blok het bloktype
+  (alleen planbare catalogusblokken), `purpose`, `whyThisBlock` en `configurationIntent`, zonder het plan opnieuw te
+  genereren (`saveBlockPlanBlockEdit` in `app/trainings/workflow/editing.ts`, Server Action
+  `saveBlockPlanBlockEditAction`; contract `PlannedBlockEditSchema` + `applyPlannedBlockEdit` in
+  `modules/block-plan/compose.ts`, strict). Trusted: id, volgorde, Certum-fase, titel, leerdoel, routebeleid, capability
+  gaps. Altijd een nieuwe Block Plan-revision (`manual-edit`, n → n+1, `expectedRevisionId` verplicht); de oude
+  goedkeuring geldt niet voor de nieuwe; inhoud op de oude revision telt niet meer als current. De server valideert het
+  volledige plan opnieuw (Zod + `checkBlockPlanInvariants`: catalogus, fasen, open-choice-regels, geen bron-URL). UI:
+  "Bewerken" per blok in `BlockPlanReview` (geen JSON). Geen toevoegen, verwijderen of herordenen in V1.
+- **Organisatiegebonden sourceNeeds.** `SourceNeedV2.scope?: "professional" | "organisation_specific"`
+  (`sourceNeedScope`: zonder scope = `professional`, nooit afgeleid uit tekst). De Claude-provider kan de scope nog niet
+  zetten (`BlueprintV2DesignSchema` laat hem weg); classificatie volgt later met eigen prompt en evals. Alleen
+  professionele Bron-refs blokkeren (`blockingSourceNeedsFor`); organisatiegebonden refs zonder organisatiebron blijven
+  zichtbaar (`organisation_source`-requirement, `review.organisationSpecificOpen`, label "Organisatiespecifiek") maar
+  houden een generieke training niet op `incomplete`. Gegenereerde Bron-inhoud mag alleen naar gedekte sourceNeeds
+  verwijzen (invariant `bronverwijzing-zonder-bron`); de mock verwijst hoogstens neutraal naar de eigen werkwijze.
+  Heeft een Bron-blok alleen organisatiegebonden refs, dan moeten die gedekt zijn (zonder kennis geen Bron-inhoud).
+  Mock-marker `#organisatie` voegt een organisatiegebonden SN2 toe.
+- **Zichtbare bronvalidatie.** Een niet-gevalideerde bron toont titel, URL en de volledige `relevantContent` prominent,
+  met de verklaring direct eronder. Deterministisch, ook in de opslaglaag (`relevantContentIssue`): relevante inhoud die
+  exact de titel is, exact de URL of uitsluitend een http(s)-URL kan niet worden gevalideerd (`source_content_invalid`).
+  Een bron wordt alleen via `validateSource` goedgekeurd (`sourceValidation: true`), nooit via een generiek besluit.
+  Geen kwaliteitsscore en geen minimumlengte.
+- **Trainingstitel.** Canoniek is de titel van de goedgekeurde Blueprint: `appendWorkflowEvent` zet hem in het
+  trainingsrecord bij iedere Blueprint-goedkeuring; downstream generatie wijzigt hem nooit.
+- **Actuele unresolved refs.** `composeContentFromSnapshot` geeft de actuele brondekking mee (`sourceCoverageOf`);
+  een `source`-requirement noemt alleen nog open professionele sourceNeeds. Opgeslagen revisions blijven ongewijzigd.
+- **Diagnose open-vraag-fouten (geen wijziging):** zie `evals/full-training-pilot/diagnosis-open-question.md`
+  (vermoedelijk `question` > 600 tekens, alleen client-side gecontroleerd).
+
 ### Block Content en Training Content Package (stap 10A)
 
 - **Na beide menselijke goedkeuringen** (Blueprint én Block Plan) maakt Certum de inhoud per gepland blok. Server-side
@@ -572,6 +606,8 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 11C, persistence cut-over V1: de Studio onthoudt en hervat trainingen (bewezen tegen Supabase).
 - Stap 11D, persistence performance V1: Training Record Snapshot; alle V1-doelen gehaald.
 - Stap 12A, Training Review & Editor V1: handmatig bewerken als nieuwe revision, review per blok, Start/Einde, readiness.
+- Stap 15A, Pilot-driven Product Corrections V1: Block Plan Override, organisatiegebonden sourceNeeds, zichtbare
+  bronvalidatie, titelsynchronisatie en actuele unresolved refs (mock bewezen).
 - Stap 13A, Source Workspace V1: bronnen toevoegen en valideren, dekking per sourceNeed, Bron-inhoud alleen uit
   gevalideerde bronnen, provenance en stale-afhankelijkheid (mock bewezen; migratie 002 op Supabase dev).
 

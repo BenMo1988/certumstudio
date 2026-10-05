@@ -181,6 +181,18 @@ zolang Actie geen gesprek met tegenspel bevat.
 | `stale_unresolved_refs` | Klein | De openstaande eis van Bron noemt nog SN1–SN3 terwijl SN1 en SN2 gedekt zijn (de UI-telling "1 bron ontbreekt" klopt wel). |
 | `bron_content_didactic_density`, `assessment_role_consistency` | WATCH (uit SG) | Niet te beoordelen (geen Bron-inhoud); assessmentRoles in TR-0014 zijn consistent (Context/Bron `none`, Actie–Feedback `formative`, Toets `transfer`). |
 
+## Opvolging (Step 15A, 2026-10-05)
+
+| Bevinding | Prioriteit | Status na 15A |
+| --- | --- | --- |
+| `action_phase_worksheet` | P0 | Human Block Plan Override gebouwd: de opleider kan een werkvorm (bijv. Open vraag → Chat simulatie) vóór goedkeuring corrigeren zonder regeneratie. Of dit de training een praktijksimulatie maakt, bewijst Pilot 2. |
+| `organisation_specific_source_need` | P0 | Opgelost in het model: `scope` per sourceNeed; organisatiegebonden kennis blokkeert niet. Open: de Blueprint-provider classificeert de scope nog niet (TR-0014 en nieuwe Claude-Blueprints blijven `professional`). |
+| `source_validation_visibility` | P0 | Opgelost: volledige inhoud prominent bij valideren, verklaring direct bij de passage. |
+| `url_only_relevant_content` | WATCH | Opgelost voor de bewezen vormen (alleen titel, alleen URL). |
+| `training_title_not_synced` | P1 | Opgelost voor nieuwe goedkeuringen; TR-0014 zelf houdt de oude recordtitel (de UI toonde al de Blueprint-titel). |
+| `stale_unresolved_refs` | P1 | Opgelost: actuele refs volgen de brondekking. |
+| `open_question_structured_output_failure` | P1 | Gediagnosticeerd, niet gewijzigd: [diagnosis-open-question.md](diagnosis-open-question.md). |
+
 ## Bewijs in deze map
 
 | Bestand | Inhoud |
