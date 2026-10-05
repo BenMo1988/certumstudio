@@ -198,6 +198,11 @@ function ReviewSummary({ ws }: { ws: TrainingWorkspaceView }) {
           <Icon name="check" className="size-4" />
           Training gereed
         </p>
+      ) : null}
+      {r.readiness === "approved" ? (
+        <div className="mt-3" data-testid="preview-entry">
+          <Button href={`/trainings/${ws.training.id}/preview`}>Voorbeeld als deelnemer bekijken</Button>
+        </div>
       ) : (
         <p className="mt-4 rounded-md border border-attention/30 bg-attention-50 px-4 py-3 text-[15px] font-medium text-attention-700" data-testid="review-cta">
           {open.join(" · ")}

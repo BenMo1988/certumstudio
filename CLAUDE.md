@@ -524,6 +524,54 @@ Blueprint-prompt.
   target, plannedBlockId, catalogBlockId, certumPhase, duur, uitkomst, resultStatus, estimatedMinutes, errorKind,
   validationStage, violationCodes) en `certum.block_content` (flow, aantallen). Nooit inhoud.
 
+### Participant Preview V1 (stap 17A)
+
+Een trainer doorloopt een goedgekeurde training als deelnemer, om te zien of de simulatie tijdens het gebruik werkt
+als een professioneel gesprek onder druk. Het is geen LMS en geen deelnemersomgeving.
+
+- **Toegang:** de knop "Voorbeeld als deelnemer bekijken" verschijnt bij Training gereed en leidt naar
+  `/trainings/[id]/preview`. `loadPreview` (`app/trainings/preview/preview-runtime.ts`) eist stage `training_ready` én
+  een goedgekeurd pakket. Anders toont de pagina een blokkade.
+  - De server controleert dit bij iedere runtime-call opnieuw, via de bulk-snapshot (4 queries).
+- **Trainer preview:** een permanente banner "Trainer preview — niet voor deelnemers". De trainer bevestigt één keer
+  per previewsessie dat er uitsluitend synthetische testantwoorden worden gebruikt.
+  - De server eist die bevestiging bij iedere call (`attestation_required`).
+  - Iedere nieuwe deelnemerstekst moet door de lokale Privacy Preflight (`safe`); anders volgt geen call en komen
+    alleen de categorieën terug.
+- **Weergave:** `buildPreview` (`modules/preview/`) toont Vaste Start, dan de blokken op `sequence`, dan Vast Einde.
+  - V1 ondersteunt Tekst, Chat simulatie, Open vraag en AI Feedback. Elk ander bloktype, en elk blok zonder
+    gegenereerde inhoud, wordt een expliciete capability blocker. Er wordt niets nagebootst.
+  - De weergave bevat geen persona-instructies, gespreksdoel, feedbackinstructies of revision-ids, en heeft geen
+    bewerk- of goedkeuringsknoppen.
+- **Ephemeral:** antwoorden, gesprekken en feedback bestaan alleen in de React-state van de browser
+  (`components/studio/preview/ParticipantPreview.tsx`). Verversen of "Preview opnieuw starten" wist alles.
+  - Een previewantwoord is nooit een trainingswijziging.
+  - **Attempt-persistence (pogingen opslaan) is een latere, aparte productlaag**, met een eigen besluit, schema en
+    privacyregels.
+- **Chat runtime** (`previewChatTurn`):
+  - Server Actions nemen alleen ids, de eigen beurten, het nieuwe bericht en de bevestiging aan.
+  - De server laadt persona, scenario, eerste bericht en gespreksdoel uit het goedgekeurde blok; de client kan die niet
+    vervangen.
+  - Ieder chatblok heeft een eigen geschiedenis.
+  - Een gespreksdoel (indien aanwezig) wordt herkend zoals in BC Online, via sleutelwoorden.
+  - "Gesprek afronden" kiest de trainer. Er is een veiligheidsgrens van `MAX_PARTICIPANT_TURNS` (12) beurten.
+  - De tijdslimiet is alleen een indicatie; er is geen timer.
+  - Prompt: `participant-chat/v1` (`knowledge/prompts/participant-chat-v1.ts`), platte tekst. De runtimeregels zijn: in
+    de rol blijven, reageren op wat er gezegd wordt, geen beslissende nieuwe feiten, geen docentfeedback, geen verzonnen
+    regels, bij `goal: null` niet naar één route sturen, geen instructies onthullen.
+- **AI Feedback runtime** (`previewFeedback`):
+  - De context bestaat uitsluitend uit de `availableContext` van het goedgekeurde blok. Alleen gegenereerde Open
+    vraag-blokken met een ingevuld antwoord tellen mee.
+  - Door de client verzonnen ids en chattranscripten worden genegeerd.
+  - Prompt `participant-feedback/v1`, platte tekst.
+- **Provider:** `CERTUM_PREVIEW_PROVIDER` (standaard `mock`, los van de andere providers, geen terugval).
+  - `CLAUDE_PREVIEW_DEFAULTS`: `claude-opus-5-5`, chat `low`, feedback `medium`, `maxRetries: 0`.
+  - Bij `claude` is iedere chatbeurt en iedere feedback een betaalde call.
+  - De mock reageert op de deelnemer en stelt een vervolgvraag; mockfeedback noemt alleen de gebruikte context.
+- **Logging:** `certum.preview_runtime` bevat alleen training, blok, bloktype, promptversie, provider/model/effort,
+  duur, tokens, uitkomst/fouttype en aantallen (beurten, contextitems). Nooit berichten, antwoorden, replies, feedback,
+  broninhoud of prompts (tests).
+
 ### Privacy in logs (niet onderhandelbaar)
 
 - Log **nooit** de inputtekst, prompts of providerresponses: niet naar de console, niet naar analytics en niet naar
@@ -572,6 +620,7 @@ src/
     training-blueprint/ Training Blueprint: V1-contract (baseline), v2/ (actief), invarianten, goedkeuringsgates
     block-plan/        BC Online Block Plan V1: contract en invarianten
     block-content/     Block Content V1 en Training Content Package: contract, trusted compose, invarianten, review
+    preview/           Participant Preview: deelnemersweergave van een goedgekeurd pakket
     sources/           Certum Source V1: brongegevens en dekking per sourceNeed
   knowledge/           Certum-kennis en methodiek; platform/ bevat de BC Online-blokcatalogus
   services/            Externe koppelingen, elk achter een interface, alleen server-side
@@ -579,6 +628,7 @@ src/
     blueprint/         TrainingBlueprintService V1 en v2/ (mock + Claude), BlockPlanService-contract en mock
     block-plan/        Block Plan-provider: Claude, config, diagnose, logging, factory
     block-content/     Block Content: mock + Claude, ontwerpschema per blok, orchestrator, logging, factory
+    preview/           Participant Preview-runtime: mock + Claude (platte tekst), config, factory
     storage/           Certum Training Record: Postgres-repository (plain SQL), migratierunner, hashing
 ```
 
@@ -625,6 +675,7 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 11C, persistence cut-over V1: de Studio onthoudt en hervat trainingen (bewezen tegen Supabase).
 - Stap 11D, persistence performance V1: Training Record Snapshot; alle V1-doelen gehaald.
 - Stap 12A, Training Review & Editor V1: handmatig bewerken als nieuwe revision, review per blok, Start/Einde, readiness.
+- Stap 17A, Participant Preview V1: een gereede training als deelnemer doorlopen (ephemeral, mock bewezen op TR-0018).
 - Stap 16, Full Training Pilot 2 (TR-0018): interactieve praktijksimulatie geproduceerd en Training gereed;
   runtime nog niet bewezen (volgende stap: Participant Preview).
 - Stap 15B, SourceNeed Scope Review: de opleider classificeert iedere kennisbehoefte vóór goedkeuring (mock bewezen).
@@ -640,6 +691,7 @@ Routes:
 - `/trainings/[id]`: de hervatbare workflow van één training: analyse en richting, Blueprint, Block Plan en Training
   Content als opleiderswerkplek (per blok bekijken, bewerken als nieuwe versie, goedkeuren, laten aanpassen, opnieuw
   genereren; Vaste Start en Vast Einde bewerken en goedkeuren).
+- `/trainings/[id]/preview`: Participant Preview van een gereede training (trainer preview, niets wordt opgeslagen).
 
 Er is één centrale instroom voor het maken van trainingen: `/trainings/new`. `?input=casus` (of `onderwerp`, of
 `praktijkvraag`) selecteert vooraf een soort; de dashboardactie "Casus invoeren" gebruikt dat. Er komt geen aparte
@@ -695,6 +747,7 @@ CERTUM_ANALYSIS_PROVIDER=claude    # echte Certum Analyse via Claude
 CERTUM_BLUEPRINT_PROVIDER=mock     # standaard; claude = echte Blueprint Generation (betaald)
 CERTUM_BLOCK_PLAN_PROVIDER=mock    # standaard; claude = echt Block Plan (betaald)
 CERTUM_BLOCK_CONTENT_PROVIDER=mock # standaard; claude = echte Block Content, één aanroep per blok (betaald)
+CERTUM_PREVIEW_PROVIDER=mock       # standaard; claude = echte Participant Preview, één aanroep per beurt (betaald)
 ANTHROPIC_API_KEY=sk-ant-...       # alleen nodig bij claude
 DATABASE_URL=postgres://...        # Supabase Postgres (Frankfurt); alleen server-side, nooit loggen
 ```

@@ -1,0 +1,58 @@
+/*
+ * Participant Preview runtime (Step 17A): de trainer doorloopt een goedgekeurde training als deelnemer. Twee runtime-
+ * taken, elk achter een interface (mock of Claude), alleen server-side:
+ * - de fictieve persona van een Chat simulatie laten antwoorden;
+ * - AI Feedback geven op uitsluitend de server-goedgekeurde context.
+ * Alle trusted configuratie komt server-side uit de current goedgekeurde blokrevisions; de browser levert alleen de
+ * deelnemerstekst en de eigen gespreksgeschiedenis van dat ene blok.
+ */
+
+export interface PreviewChatTurn {
+  role: "participant" | "persona";
+  text: string;
+}
+
+/** Trusted Chat simulatie-configuratie uit de goedgekeurde blokrevision (nooit uit de browser). */
+export interface PreviewChatConfig {
+  personaName: string;
+  personaInstructions: string;
+  scenarioContext: string | null;
+  firstMessage: string;
+  /** Sleutelwoorddoel zoals in BC Online; `null` bij open keuze. */
+  goal: { keywords: string[]; messageOnGoal: string; instructionAfterGoal: string } | null;
+}
+
+export interface PreviewChatRequest {
+  config: PreviewChatConfig;
+  /** De volledige geschiedenis van dít blok, beginnend met het eerste bericht van de persona. */
+  history: PreviewChatTurn[];
+  /** Of het gespreksdoel (sleutelwoorden) al bereikt is; de persona volgt dan de instructie na doelbehaling. */
+  goalReached: boolean;
+}
+
+/** Een antwoord van de deelnemer dat AI Feedback aantoonbaar krijgt (catalogus: antwoorden op eerdere vraagblokken). */
+export interface PreviewFeedbackContextItem {
+  plannedBlockId: string;
+  blockTitle: string;
+  question: string;
+  answer: string;
+}
+
+export interface PreviewFeedbackRequest {
+  /** Trusted instructies uit de goedgekeurde AI Feedback-blokrevision. */
+  instructions: string;
+  /** Uitsluitend server-gefilterde context (`availableContext`); nooit chatgeschiedenis. */
+  context: PreviewFeedbackContextItem[];
+}
+
+/** Een runtime-antwoord: de tekst voor de deelnemer en, bij een echte provider, alleen tokenaantallen (metadata). */
+export interface PreviewRuntimeResult {
+  text: string;
+  usage: { inputTokens: number; outputTokens: number } | null;
+}
+
+export interface PreviewRuntimeService {
+  readonly info: { provider: "mock" | "claude"; model: string | null; chatEffort: string | null; feedbackEffort: string | null };
+  chatReply(request: PreviewChatRequest): Promise<PreviewRuntimeResult>;
+  feedback(request: PreviewFeedbackRequest): Promise<PreviewRuntimeResult>;
+}
