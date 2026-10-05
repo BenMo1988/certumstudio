@@ -15,7 +15,7 @@ import { toAnalysisError, type ClaudeMessagesClient } from "../analysis/claude/c
 import { AnalysisError } from "../analysis/errors";
 import type { ClaudeBlockContentSettings } from "./config";
 import { buildBlockContentDesignSchema, FrameDesignSchema } from "./design";
-import { BlockContentValidationError } from "./diagnostics";
+import { BlockContentValidationError, diagnosedOutputFormat } from "./diagnostics";
 import { finalizeBlockContent, finalizeFrame, targetOf } from "./finalize";
 import type { BlockContentRequest, BlockContentService, FrameContentRequest } from "./services";
 
@@ -66,9 +66,11 @@ export class ClaudeBlockContentService implements BlockContentService {
         max_tokens: this.settings.maxTokens,
         system,
         messages: [{ role: "user", content }],
-        output_config: { effort: this.settings.effort, format: zodOutputFormat(schema) },
+        output_config: { effort: this.settings.effort, format: diagnosedOutputFormat(schema) },
       } as ParseRequest);
     } catch (error) {
+      // Inhoudsvrije diagnose uit `diagnosedOutputFormat` (issuecode, veldpad, grens) blijft behouden.
+      if (error instanceof BlockContentValidationError) throw error;
       const mapped = toAnalysisError(error);
       // De SDK-melding kan inhoud bevatten en wordt niet doorgegeven.
       if (mapped.kind === "invalid-output") throw new BlockContentValidationError("structured_output", []);

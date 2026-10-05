@@ -380,3 +380,54 @@ describe("grounding v1.1 (training-block-content/v1.1, contract block-content/v1
     expect(entries[0]).toMatchObject({ promptVersion: "training-block-content/v1.2", contentContractVersion: "block-content/v1" });
   });
 });
+
+describe("structured-output diagnose (TR-0018): inhoudsvrij, zonder gedragswijziging", () => {
+  const SECRET = "GEHEIME-PASSAGE-QX91";
+  /** Bootst de SDK na: de ruwe output gaat door de parse-functie van het meegegeven outputformaat. */
+  function claudeParsing(raw: string) {
+    const parse = vi.fn(async (request: unknown) => {
+      const format = (request as { output_config: { format: { parse: (content: string) => unknown } } }).output_config.format;
+      return { stop_reason: "end_turn", parsed_output: format.parse(raw) };
+    });
+    return new ClaudeBlockContentService({ messages: { parse } } as unknown as ClaudeMessagesClient, CLAUDE_BLOCK_CONTENT_DEFAULTS);
+  }
+  const tekstDesign = (text: string) => ({
+    result: {
+      status: "generated",
+      accreditation: { learningGoalContribution: "Schetst de situatie.", assessmentRole: "none", estimatedMinutes: 3, sourceNeedRefs: [] },
+      content: { title: "De situatie", text },
+    },
+  });
+
+  it("een te lange tekst: veld, issuecode en grens uit het schema, nooit de inhoud", async () => {
+    const service = claudeParsing(JSON.stringify(tekstDesign(`${SECRET} `.repeat(400))));
+    const entries: BlockContentGenerationLogEntry[] = [];
+    const logged = withBlockContentLogging(service, { provider: "claude", promptVersion: TRAINING_BLOCK_CONTENT_V1_2_PROMPT_VERSION }, (e) => entries.push(e));
+    const error = await logged.generate(request("BLP-001", "blok-1")).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(BlockContentValidationError);
+    expect(error).toMatchObject({ kind: "invalid-output", stage: "structured_output", codes: ["too_big@result.content.text:max=4000"] });
+    expect(entries.at(-1)).toMatchObject({ outcome: "error", errorKind: "invalid-output", validationStage: "structured_output", violationCodes: ["too_big@result.content.text:max=4000"] });
+    expect(JSON.stringify(entries)).not.toContain(SECRET);
+    expect(String((error as Error).message)).not.toContain(SECRET);
+  });
+
+  it("ongeldige JSON: alleen `invalid_json`, geen fragment van de output", async () => {
+    const service = claudeParsing(`{"result": "${SECRET}`);
+    const error = await service.generate(request("BLP-001", "blok-1")).catch((e: unknown) => e);
+    expect(error).toMatchObject({ stage: "structured_output", codes: ["invalid_json"] });
+    expect(String((error as Error).message)).not.toContain(SECRET);
+  });
+
+  it("ongeldige status of ontbrekend veld: alleen code en veldpad", async () => {
+    const invalid = { result: { ...tekstDesign("Tekst").result, status: SECRET } };
+    const error = await claudeParsing(JSON.stringify(invalid)).generate(request("BLP-001", "blok-1")).catch((e: unknown) => e);
+    expect((error as BlockContentValidationError).stage).toBe("structured_output");
+    expect((error as BlockContentValidationError).codes.every((c) => /^[a-z_]+@[A-Za-z0-9_.()]+(:(max|min)=\d+)?$/.test(c))).toBe(true);
+    expect(JSON.stringify((error as BlockContentValidationError).codes)).not.toContain(SECRET);
+  });
+
+  it("geldige output gaat ongewijzigd door dezelfde parse (geen gedragswijziging)", async () => {
+    const block = await claudeParsing(JSON.stringify(tekstDesign("Een korte, geldige situatieschets."))).generate(request("BLP-001", "blok-1"));
+    expect(block.body.status === "generated" && block.body.content.catalogBlockId === "certum.bco.tekst" && block.body.content.text).toBe("Een korte, geldige situatieschets.");
+  });
+});
