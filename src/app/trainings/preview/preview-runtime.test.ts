@@ -360,7 +360,26 @@ describe("Participant Preview V1: logging", () => {
       if (c.catalogBlockId === "certum.bco.ai-feedback") expect(logged).not.toContain(c.instructions);
     }
     expect(Object.keys(runtimeLogs[0]).sort()).toEqual(
-      ["catalogBlockId", "durationMs", "effort", "event", "kind", "model", "outcome", "participantTurns", "plannedBlockId", "promptVersion", "provider", "stopReason", "trainingId"].sort(),
+      [
+        "catalogBlockId",
+        "contentBlockTypes",
+        "durationMs",
+        "effort",
+        "event",
+        "kind",
+        "maxTokens",
+        "model",
+        "outcome",
+        "participantTurns",
+        "plannedBlockId",
+        "promptVersion",
+        "provider",
+        "stopReason",
+        "thinkingBlockPresent",
+        "trainingId",
+        "visibleChars",
+        "visibleWords",
+      ].sort(),
     );
     expect(runtimeLogs[1]).toMatchObject({ event: "certum.preview_runtime", kind: "feedback", promptVersion: "participant-feedback/v1.1", outcome: "success", contextItems: 1 });
   });
@@ -503,6 +522,51 @@ describe("Participant Preview: trusted synthetic context (Step 17C)", () => {
     expect(p.created()).toBe(0);
     expect(p.logs).toHaveLength(0);
   }, 120_000);
+});
+
+describe("Participant Preview: runtimemetadata (Step 17E)", () => {
+  it("logt tokens, maxTokens, stop reason, lengtes en bloktypes; nooit de tekst", async () => {
+    const runtime = new SpyRuntime();
+    runtime.feedback = async () => ({
+      text: "Zichtbare feedbacktekst met zeven woorden erin.",
+      stopReason: "end_turn",
+      usage: { inputTokens: 2449, outputTokens: 1900 },
+      response: { maxTokens: 4000, visibleChars: 47, visibleWords: 7, contentBlockTypes: ["thinking", "text"], thinkingBlockPresent: true },
+    });
+    const p = previewDeps(runtime);
+    const fb = feedbackBlock(ready.workspace.content!.package, "feedback");
+    expect(await previewFeedback(p.deps, { trainingId: ready.id, plannedBlockId: fb.plannedBlockId, answers: { "blok-3": "Antwoord." }, syntheticAttested: true })).toMatchObject({ status: "ok" });
+    const log = p.logs.find((l) => l.event === "certum.preview_runtime");
+    expect(log).toMatchObject({
+      outcome: "success",
+      stopReason: "end_turn",
+      inputTokens: 2449,
+      outputTokens: 1900,
+      maxTokens: 4000,
+      visibleChars: 47,
+      visibleWords: 7,
+      contentBlockTypes: ["thinking", "text"],
+      thinkingBlockPresent: true,
+      promptVersion: "participant-feedback/v1.1",
+    });
+    expect(JSON.stringify(p.logs)).not.toContain("Zichtbare");
+  });
+
+  it("ook bij afkapping alleen metadata; de afgekapte tekst gaat niet naar de client", async () => {
+    const runtime = new SpyRuntime();
+    runtime.feedback = async () => ({
+      text: "AFGEKAPTE-TEKST die",
+      stopReason: "max_tokens",
+      usage: { inputTokens: 2449, outputTokens: 4000 },
+      response: { maxTokens: 4000, visibleChars: 19, visibleWords: 2, contentBlockTypes: ["thinking", "text"], thinkingBlockPresent: true },
+    });
+    const p = previewDeps(runtime);
+    const fb = feedbackBlock(ready.workspace.content!.package, "feedback");
+    const result = await previewFeedback(p.deps, { trainingId: ready.id, plannedBlockId: fb.plannedBlockId, answers: { "blok-3": "Antwoord." }, syntheticAttested: true });
+    expect(result).toEqual({ status: "rejected", reason: "output_truncated" });
+    expect(p.logs.find((l) => l.event === "certum.preview_runtime")).toMatchObject({ outcome: "error", errorKind: "output_truncated", stopReason: "max_tokens", outputTokens: 4000, maxTokens: 4000 });
+    expect(JSON.stringify(p.logs) + JSON.stringify(result)).not.toContain("AFGEKAPTE");
+  });
 });
 
 describe("Participant Preview: afgekapte output (Step 17C)", () => {

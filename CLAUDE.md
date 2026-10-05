@@ -582,13 +582,17 @@ als een professioneel gesprek onder druk. Het is geen LMS en geen deelnemersomge
 - **Afgekapte output (Step 17C):** de provider geeft `stopReason` door en de runtimelaag beslist.
   `stop_reason: max_tokens` is nooit een compleet antwoord, in chat noch feedback. De runtime geeft dan
   `output_truncated`, toont geen gedeeltelijke tekst en doet geen automatische retry. De mock-marker `#afkappen`
-  simuleert dit.
+  simuleert dit. Opnieuw genereren is in de UI een aparte, expliciete actie ("Dit start een nieuwe AI-aanroep.").
+  Eén UI-actie start hooguit één call tegelijk (`components/studio/preview/preview-state.ts`).
 - **Provider:** `CERTUM_PREVIEW_PROVIDER` (standaard `mock`, los van de andere providers, geen terugval).
-  - `CLAUDE_PREVIEW_DEFAULTS`: `claude-opus-5-5`, chat `low`, feedback `medium`, `maxRetries: 0`.
+  - `CLAUDE_PREVIEW_DEFAULTS`: `claude-opus-5-5`, chat `low` (`max_tokens` 1200), feedback `medium` (`max_tokens`
+    4000), `maxRetries: 0`. Op dit model staat thinking altijd aan en is `max_tokens` één gedeeld plafond voor
+    thinking + zichtbare tekst. De waarden zijn technische headroom; de lengte begrenzen de prompts (Step 17E).
   - Bij `claude` is iedere chatbeurt en iedere feedback een betaalde call.
   - De mock reageert op de deelnemer en stelt een vervolgvraag; mockfeedback noemt alleen de gebruikte context.
 - **Logging:** `certum.preview_privacy` bevat per call de preflightversie en -status, `findings`, `trustedExempted`,
-  `remainingCategories` en `outcome`. `certum.preview_runtime` bevat ook `stopReason`, en verder alleen training, blok, bloktype, promptversie, provider/model/effort,
+  `remainingCategories` en `outcome`. `certum.preview_runtime` bevat ook `stopReason`, `maxTokens`, `visibleChars`,
+  `visibleWords`, `contentBlockTypes` en `thinkingBlockPresent` (nooit een afgeleid aantal thinking-tokens), en verder alleen training, blok, bloktype, promptversie, provider/model/effort,
   duur, tokens, uitkomst/fouttype en aantallen (beurten, contextitems). Nooit berichten, antwoorden, replies, feedback,
   broninhoud of prompts (tests).
 

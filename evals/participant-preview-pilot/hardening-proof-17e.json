@@ -1,0 +1,144 @@
+{
+  "ordinaryChat": {
+    "personaBubbles": 2
+  },
+  "ordinaryFeedback": {
+    "feedbackShown": true,
+    "truncatedBox": null,
+    "buttons": [],
+    "verderEnabled": true
+  },
+  "truncated": {
+    "feedbackShown": false,
+    "truncatedBox": "De feedback kon niet volledig worden gegenereerd.\n\nFeedback opnieuw genereren\nDit start een nieuwe AI-aanroep.",
+    "buttons": [
+      "Feedback opnieuw genereren"
+    ],
+    "verderEnabled": false
+  },
+  "noAutoRetry": true,
+  "retryCallsAfterDoubleClick": 1,
+  "afterRetry": {
+    "feedbackShown": false,
+    "truncatedBox": "De feedback kon niet volledig worden gegenereerd.\n\nFeedback opnieuw genereren\nDit start een nieuwe AI-aanroep.",
+    "buttons": [
+      "Feedback opnieuw genereren"
+    ],
+    "verderEnabled": false
+  },
+  "runtimeLogs": [
+    {
+      "event": "certum.preview_runtime",
+      "kind": "chat",
+      "trainingId": "e4726c9f-03b1-4bf3-8350-d57efb3cd625",
+      "plannedBlockId": "blok-2",
+      "catalogBlockId": "certum.bco.chat-simulatie",
+      "promptVersion": "participant-chat/v1",
+      "provider": "mock",
+      "model": null,
+      "effort": null,
+      "participantTurns": 1,
+      "durationMs": 1,
+      "outcome": "success",
+      "stopReason": "end_turn",
+      "maxTokens": null,
+      "visibleChars": 147,
+      "visibleWords": 26,
+      "contentBlockTypes": [
+        "text"
+      ],
+      "thinkingBlockPresent": false
+    },
+    {
+      "event": "certum.preview_runtime",
+      "kind": "feedback",
+      "trainingId": "e4726c9f-03b1-4bf3-8350-d57efb3cd625",
+      "plannedBlockId": "blok-4",
+      "catalogBlockId": "certum.bco.ai-feedback",
+      "promptVersion": "participant-feedback/v1.1",
+      "provider": "mock",
+      "model": null,
+      "effort": null,
+      "contextItems": 1,
+      "durationMs": 0,
+      "outcome": "success",
+      "stopReason": "end_turn",
+      "maxTokens": null,
+      "visibleChars": 201,
+      "visibleWords": 33,
+      "contentBlockTypes": [
+        "text"
+      ],
+      "thinkingBlockPresent": false
+    },
+    {
+      "event": "certum.preview_runtime",
+      "kind": "chat",
+      "trainingId": "e4726c9f-03b1-4bf3-8350-d57efb3cd625",
+      "plannedBlockId": "blok-6",
+      "catalogBlockId": "certum.bco.chat-simulatie",
+      "promptVersion": "participant-chat/v1",
+      "provider": "mock",
+      "model": null,
+      "effort": null,
+      "participantTurns": 1,
+      "durationMs": 0,
+      "outcome": "success",
+      "stopReason": "end_turn",
+      "maxTokens": null,
+      "visibleChars": 141,
+      "visibleWords": 25,
+      "contentBlockTypes": [
+        "text"
+      ],
+      "thinkingBlockPresent": false
+    },
+    {
+      "event": "certum.preview_runtime",
+      "kind": "feedback",
+      "trainingId": "e4726c9f-03b1-4bf3-8350-d57efb3cd625",
+      "plannedBlockId": "blok-8",
+      "catalogBlockId": "certum.bco.ai-feedback",
+      "promptVersion": "participant-feedback/v1.1",
+      "provider": "mock",
+      "model": null,
+      "effort": null,
+      "contextItems": 2,
+      "durationMs": 0,
+      "outcome": "error",
+      "errorKind": "output_truncated",
+      "stopReason": "max_tokens",
+      "maxTokens": null,
+      "visibleChars": 36,
+      "visibleWords": 5,
+      "contentBlockTypes": [
+        "text"
+      ],
+      "thinkingBlockPresent": false
+    },
+    {
+      "event": "certum.preview_runtime",
+      "kind": "feedback",
+      "trainingId": "e4726c9f-03b1-4bf3-8350-d57efb3cd625",
+      "plannedBlockId": "blok-8",
+      "catalogBlockId": "certum.bco.ai-feedback",
+      "promptVersion": "participant-feedback/v1.1",
+      "provider": "mock",
+      "model": null,
+      "effort": null,
+      "contextItems": 2,
+      "durationMs": 1,
+      "outcome": "error",
+      "errorKind": "output_truncated",
+      "stopReason": "max_tokens",
+      "maxTokens": null,
+      "visibleChars": 36,
+      "visibleWords": 5,
+      "contentBlockTypes": [
+        "text"
+      ],
+      "thinkingBlockPresent": false
+    }
+  ],
+  "logContentFree": true
+}

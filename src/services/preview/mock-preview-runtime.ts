@@ -1,4 +1,11 @@
-import type { PreviewChatRequest, PreviewFeedbackRequest, PreviewRuntimeResult, PreviewRuntimeService } from "./services";
+import { visibleTextMeta, type PreviewChatRequest, type PreviewFeedbackRequest, type PreviewRuntimeResult, type PreviewRuntimeService } from "./services";
+
+const result = (text: string, stopReason: string): PreviewRuntimeResult => ({
+  text,
+  stopReason,
+  usage: null,
+  response: { maxTokens: null, ...visibleTextMeta(text), contentBlockTypes: ["text"], thinkingBlockPresent: false },
+});
 
 /*
  * Mock-runtime voor Participant Preview: deterministisch, zonder netwerk of AI. Bewijst het gedrag dat de preview nodig
@@ -33,8 +40,8 @@ export class MockPreviewRuntimeService implements PreviewRuntimeService {
     } else {
       text = `Goed. Laten we dan afspreken hoe we verder gaan. (mock-beurt ${participantTurns.length})`;
     }
-    if (last.includes(MOCK_TRUNCATE_MARKER)) return { text: "Ik vind het lastig, want", stopReason: "max_tokens", usage: null };
-    return { text, stopReason: "end_turn", usage: null };
+    if (last.includes(MOCK_TRUNCATE_MARKER)) return result("Ik vind het lastig, want", "max_tokens");
+    return result(text, "end_turn");
   }
 
   async feedback(request: PreviewFeedbackRequest): Promise<PreviewRuntimeResult> {
@@ -43,8 +50,8 @@ export class MockPreviewRuntimeService implements PreviewRuntimeService {
       ? `Mock-feedback op basis van ${request.context.length} antwoord(en): ${used.join("; ")}. Je antwoord laat zien welke afweging je maakte; benoem nog explicieter wat voor jou de doorslag gaf.`
       : "Mock-feedback: er zijn geen antwoorden beschikbaar om op te reageren.";
     if (request.context.some((c) => c.answer.includes(MOCK_TRUNCATE_MARKER))) {
-      return { text: "Mock-feedback die halverwege een zin", stopReason: "max_tokens", usage: null };
+      return result("Mock-feedback die halverwege een zin", "max_tokens");
     }
-    return { text, stopReason: "end_turn", usage: null };
+    return result(text, "end_turn");
   }
 }

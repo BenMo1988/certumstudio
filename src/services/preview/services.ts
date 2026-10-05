@@ -53,6 +53,26 @@ export interface PreviewRuntimeResult {
   text: string;
   stopReason: string | null;
   usage: { inputTokens: number; outputTokens: number } | null;
+  /** Inhoudsvrije metadata over de providerrespons (Step 17E): alleen aantallen en bloktypes, nooit tekst. */
+  response: PreviewResponseMeta;
+}
+
+export interface PreviewResponseMeta {
+  /** Het `max_tokens` dat in de request stond (`null` bij de mock). */
+  maxTokens: number | null;
+  /** Lengte van de zichtbare tekst die de runtime zou tonen. */
+  visibleChars: number;
+  visibleWords: number;
+  /** Typen van de contentblokken in de respons, in volgorde (bijv. ["thinking", "text"]); nooit de inhoud. */
+  contentBlockTypes: string[];
+  /** Of de respons een thinking-blok bevatte. Het aantal thinking-tokens geeft de API niet apart; wordt niet afgeleid. */
+  thinkingBlockPresent: boolean;
+}
+
+/** Aantallen over een zichtbare tekst; nooit de tekst zelf. */
+export function visibleTextMeta(text: string): { visibleChars: number; visibleWords: number } {
+  const trimmed = text.trim();
+  return { visibleChars: trimmed.length, visibleWords: trimmed ? trimmed.split(/\s+/).length : 0 };
 }
 
 export interface PreviewRuntimeService {

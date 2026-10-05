@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useTransition, type ReactNode } from "react";
+import { useRef, useState, useTransition, type ReactNode } from "react";
 import { previewChatTurnAction, previewFeedbackAction } from "@/app/trainings/preview/actions";
 import type { PreviewRejection } from "@/app/trainings/preview/preview-runtime";
 import type { PreviewModel, PreviewStep } from "@/modules/preview";
 import type { PreviewChatTurn } from "@/services/preview/services";
 import { Button } from "../Button";
 import { Icon } from "../Icon";
+import { createSingleFlight, feedbackView, isFeedbackComplete, type FeedbackEntry } from "./preview-state";
 
 /*
  * Participant Preview V1: de trainer doorloopt een goedgekeurde training als deelnemer. Eén rustige kolom, in de echte
@@ -42,7 +43,7 @@ interface State {
   answers: Record<string, string>;
   submitted: Record<string, boolean>;
   chats: Record<string, ChatState>;
-  feedback: Record<string, { text: string; usedContext: string[] }>;
+  feedback: Record<string, FeedbackEntry>;
 }
 
 const initial: State = { confirmed: false, index: 0, reached: 0, answers: {}, submitted: {}, chats: {}, feedback: {} };
@@ -51,6 +52,22 @@ export function ParticipantPreview({ trainingId, code, preview }: { trainingId: 
   const [state, setState] = useState<State>(initial);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  // Eén runtime-call tegelijk: een dubbele klik of Enter start nooit twee (betaalde) aanroepen.
+  const singleFlight = useRef(createSingleFlight());
+  /** Start een runtime-actie: hooguit één tegelijk, en zichtbaar als `pending` zolang ze loopt. */
+  const runAction = (task: () => Promise<void>) =>
+    void singleFlight.current(
+      () =>
+        new Promise<void>((resolve) =>
+          startTransition(async () => {
+            try {
+              await task();
+            } finally {
+              resolve();
+            }
+          }),
+        ),
+    );
   const step = preview.steps[state.index];
   const total = preview.steps.length;
   const completed = isComplete(step, state);
@@ -114,7 +131,7 @@ export function ParticipantPreview({ trainingId, code, preview }: { trainingId: 
             setAnswer={(id, v) => setState((s) => ({ ...s, answers: { ...s.answers, [id]: v } }))}
             submitAnswer={(id) => setState((s) => ({ ...s, submitted: { ...s.submitted, [id]: true } }))}
             sendChat={(id, message) =>
-              startTransition(async () => {
+              runAction(async () => {
                 setError(null);
                 const chat = state.chats[id] ?? { turns: [], closed: false, goalMessage: null };
                 const result = await previewChatTurnAction(trainingId, id, chat.turns, message, state.confirmed);
@@ -140,16 +157,21 @@ export function ParticipantPreview({ trainingId, code, preview }: { trainingId: 
             }
             closeChat={(id) => setState((s) => ({ ...s, chats: { ...s.chats, [id]: { ...(s.chats[id] ?? { turns: [], goalMessage: null }), closed: true } } }))}
             requestFeedback={(id) =>
-              startTransition(async () => {
+              runAction(async () => {
                 setError(null);
                 // De server bepaalt welke antwoorden als context zijn toegestaan; de client stuurt alleen de eigen antwoorden.
                 const submittedAnswers = Object.fromEntries(Object.entries(state.answers).filter(([k]) => state.submitted[k]));
                 const result = await previewFeedbackAction(trainingId, id, submittedAnswers, state.confirmed);
+                if (result.status === "rejected" && result.reason === "output_truncated") {
+                  // Afgekapt: een eigen stand met een expliciete, aparte actie om opnieuw (betaald) te genereren.
+                  setState((s) => ({ ...s, feedback: { ...s.feedback, [id]: { status: "truncated" } } }));
+                  return;
+                }
                 if (result.status !== "ok") {
                   setError(MESSAGES[result.reason] + (result.categories?.length ? ` (${result.categories.join(", ")})` : ""));
                   return;
                 }
-                setState((s) => ({ ...s, feedback: { ...s.feedback, [id]: { text: result.feedback, usedContext: result.usedContext } } }));
+                setState((s) => ({ ...s, feedback: { ...s.feedback, [id]: { status: "done", text: result.feedback, usedContext: result.usedContext } } }));
               })
             }
           />
@@ -210,7 +232,7 @@ function isComplete(step: PreviewStep, state: State): boolean {
     case "open-vraag":
       return !!state.submitted[step.plannedBlockId];
     case "ai-feedback":
-      return !!state.feedback[step.plannedBlockId];
+      return isFeedbackComplete(state.feedback[step.plannedBlockId]);
     default:
       return true;
   }
@@ -332,17 +354,28 @@ function StepView({
     case "chat":
       return <ChatStep step={step} chat={state.chats[step.plannedBlockId]} readOnly={readOnly} pending={pending} send={sendChat} close={closeChat} />;
     case "ai-feedback": {
-      const result = state.feedback[step.plannedBlockId];
+      const entry = state.feedback[step.plannedBlockId];
+      const view = feedbackView(entry);
       return (
         <article data-testid="step-ai-feedback" data-block={step.plannedBlockId}>
           <Header eyebrow={step.phase} title={step.title} minutes={step.estimatedMinutes} />
           <p className="mt-4 text-sm text-muted">
             Deze feedback is gebaseerd op je antwoorden bij: {step.basedOn.length ? step.basedOn.map((b) => b.title).join(", ") : "geen eerdere vragen"}.
           </p>
-          {result ? (
-            <div className="mt-5 rounded-md border border-petrol-100 bg-petrol-50 px-4 py-4 text-[15px] leading-relaxed whitespace-pre-wrap text-ink" data-testid="feedback-text" data-used={result.usedContext.join(",")}>
-              {result.text}
+          {view === "done" && entry?.status === "done" ? (
+            <div className="mt-5 rounded-md border border-petrol-100 bg-petrol-50 px-4 py-4 text-[15px] leading-relaxed whitespace-pre-wrap text-ink" data-testid="feedback-text" data-used={entry.usedContext.join(",")}>
+              {entry.text}
             </div>
+          ) : view === "truncated" ? (
+            <section className="mt-5 rounded-md border border-attention/30 bg-attention-50 px-4 py-4" data-testid="feedback-truncated">
+              <p className="text-[15px] font-medium text-attention-700">De feedback kon niet volledig worden gegenereerd.</p>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <Button variant="secondary" disabled={pending || readOnly} onClick={() => requestFeedback(step.plannedBlockId)}>
+                  {pending ? "Feedback wordt gemaakt…" : "Feedback opnieuw genereren"}
+                </Button>
+                <span className="text-sm text-attention-700">Dit start een nieuwe AI-aanroep.</span>
+              </div>
+            </section>
           ) : (
             <div className="mt-5">
               <Button disabled={pending || readOnly} onClick={() => requestFeedback(step.plannedBlockId)}>

@@ -25,8 +25,10 @@ export const CLAUDE_PREVIEW_DEFAULTS = {
   effort: "medium",
   chatEffort: "low",
   maxTokens: 1_500,
-  chatMaxTokens: 600,
-  feedbackMaxTokens: 1_500,
+  // max_tokens is op claude-opus-5-5 één gedeeld plafond voor (altijd actieve) thinking + zichtbare tekst. Dit is
+  // technische headroom, geen gewenste lengte: de lengte begrenzen de prompts (Step 17E, `preview_feedback_truncation`).
+  chatMaxTokens: 1_200,
+  feedbackMaxTokens: 4_000,
   timeoutMs: 60_000,
   // 0: een SDK-retry kan een onzichtbare tweede (betaalde) beurt zijn.
   maxRetries: 0,

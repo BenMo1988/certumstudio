@@ -295,3 +295,136 @@ Bewijs: `hardening-proof-17c.json`, met alleen structuur en `certum.preview_*`-m
 - **Prestatie:** een runtime-call blijft 4 queries (test). De vertrouwde set wordt in het geheugen afgeleid uit
   dezelfde snapshot (`buildPreview` + detector), zonder extra query.
 - **Duur in de dev-server (mock):** server actions van ongeveer 0,2–0,25 s inclusief de Supabase-roundtrip.
+
+## Step 17D: volledige live sessie, gestopt op feedbacktruncatie
+
+Een nieuwe, volledige live sessie vanaf Start op codebasis `0d2d46c`. Datum: 2026-10-05.
+- **Opzet:** alleen `CERTUM_PREVIEW_PROVIDER=claude`; de generatieproviders stonden expliciet op mock (vooraf
+  gecontroleerd). De usage probe stond op 0 (`usage-17d.jsonl`). Mohamed was de deelnemer.
+- **Stopmoment:** bij Feedback 1 (blok-4) verscheen de melding `output_truncated`. De pilot is gestopt volgens het
+  afgesproken stopcriterium.
+
+### Metadata (geen inhoud)
+
+| # | Soort | Blok | Prompt | Model / effort / max_tokens | Input | Output | stop_reason | Runtime-uitkomst | Duur |
+| --- | --- | --- | --- | --- | ---: | ---: | --- | --- | ---: |
+| 1 | chat | blok-2 | `participant-chat/v1` | opus-5-5 / low / 600 | 2.535 | 233 | end_turn | success | 6,9 s |
+| 2 | chat | blok-2 | `participant-chat/v1` | opus-5-5 / low / 600 | 3.069 | 288 | end_turn | success | 5,9 s |
+| 3 | feedback | blok-4 | `participant-feedback/v1.1` | opus-5-5 / medium / 1500 | 2.449 | **1.500** | **max_tokens** | `output_truncated` | 16,2 s |
+| 4 | feedback | blok-4 | `participant-feedback/v1.1` | opus-5-5 / medium / 1500 | 2.449 | **1.500** | **max_tokens** | `output_truncated` | 16,3 s |
+
+- **Calls:** 4 live calls (2 chat, 2 feedback), allemaal HTTP 200.
+- **Tokens:** 10.502 input, 3.521 output. Geschatte kosten tegen $4 / $20 per MTok: ongeveer $0,11.
+- **Twee feedbackcalls:** er vonden twee feedbackcalls plaats, en beide eindigden onafhankelijk op `max_tokens`.
+  - Dit was geen automatische retry: `maxRetries: 0` en de code bevat geen retry.
+  - Call 4 was een tweede, aparte server action. De serverlog toont vier POST-requests; call 4 startte ongeveer 5 s
+    nadat call 3 klaar was, met identieke input.
+  - Preciezer dan "een tweede server action" is call 4 met de beschikbare metadata niet toe te schrijven. Een bevestigde
+    dubbele klik is het niet.
+  - In deze versie bleef "Feedback ophalen" na de melding direct klikbaar; Step 17E maakt een nieuwe poging een
+    expliciete, aparte actie.
+- **Privacy:** 4 besluiten (2 chat, 2 feedback), allemaal `safe`, met 0 bevindingen, 0 vrijstellingen en
+  0 blokkades.
+
+### Pilotstatus (voorlopig, door Mohamed vastgesteld)
+
+| Onderdeel | Oordeel |
+| --- | --- |
+| Truncation handling | **PASS**: afgekapte output wordt niet meer als feedback getoond |
+| Feedback runtime reliability | **RUNTIME_BLOCKER** `preview_feedback_truncation` |
+| Runtime conversation (Actie-chat) | YES_WITH_NOTES |
+| Feedback experience | NOT_COMPLETED |
+| Transfer | NOT_STARTED |
+| Whole training experience | INCOMPLETE |
+| Flight-simulator promise | NOT_YET_PROVEN |
+
+### Diagnose `preview_feedback_truncation` (zonder gedragswijziging)
+
+1. **Exact 1500/1500?** Ja, bij beide feedbackcalls.
+2. **stop_reason:** `max_tokens`, bij beide.
+3. **Input:** 2.449 tokens, bij beide identiek.
+4. **Effort:** `medium` (`CLAUDE_PREVIEW_DEFAULTS.effort`, gelogd als `effort: medium`).
+5. **max_tokens in de request:** 1500 (`feedbackMaxTokens`, doorgegeven in `claude-preview-runtime.ts:32`). De probe
+   legt de requestbody niet vast; dat `output_tokens` exact op 1500 uitkomt, bevestigt het plafond.
+6. **Actieve prompt:** `participant-feedback/v1.1`. De runtime logt die versie en de Claude-runtime gebruikt
+   `PARTICIPANT_FEEDBACK_V1_1_SYSTEM`, zoals in de code geïnspecteerd.
+7. **Verbruikt reasoning het budget?** Uit de vastgelegde metadata is dat **niet** vast te stellen. `usage` geeft één
+   `output_tokens`-totaal, en de probe legt geen bloktypes of zichtbare tekstlengte vast. Wel gedocumenteerd
+   (Claude API-documentatie, modelnotities):
+   - op `claude-opus-5-5` staat thinking altijd aan; uitschakelen geeft een 400 en `effort` is de enige knop;
+   - de ruwe thinking-tekst wordt standaard niet getoond, maar telt wel mee;
+   - `max_tokens` is één hard plafond voor thinking én zichtbare tekst samen.
+
+   Onze requests zetten geen `thinking`, dus adaptive thinking draaide gegarandeerd. Hoeveel van de 1500 tokens dat
+   was, is niet gemeten.
+8. **Omvang van de context:** `contextItems: 1` (het antwoord op blok-3). Tekenlengtes worden niet gelogd. De
+   2.449 inputtokens omvatten de systeemprompt, de feedbackinstructies, de vraag en het antwoord samen.
+9. **Aparte instelling voor zichtbare output of reasoning?** Nee. Er is geen apart plafond voor zichtbare tekst en op
+   dit model geen thinking-budget (`budget_tokens` geeft een 400). Alleen `max_tokens` (totaal) en `effort` bestaan.
+
+**Onderscheid per laag:**
+- **Runtime-outputlimiet:** werkt correct; `max_tokens` wordt `output_truncated`.
+- **Provider-tokenbudget:** 1500 is een totaalplafond voor thinking plus tekst. Het is bij het ontwerp van 17A
+  gedimensioneerd alsof het alleen zichtbare tekst betrof. Dat is een ontwerpfout in Certum, niet in de provider.
+- **Reasoning/effort:** bij `medium` denkt het model adaptief. De omvang daarvan is onbekend, het bestaan staat vast.
+- **Promptgehoorzaamheid:** onbekend. Zichtbare tekst van 350–500 Nederlandse woorden is grofweg 600–1.000 tokens
+  (een schatting, niet gemeten), dus zelfs bij volledige gehoorzaamheid past tekst plus thinking mogelijk niet in
+  1500. Dat de zichtbare tekst te lang was, is niet aangetoond.
+
+**Bewezen** is dat het totaalplafond twee keer werd bereikt, met de v1.1-prompt actief en effort `medium`. **Niet
+bewezen** is hoe de 1500 tokens verdeeld waren over thinking en tekst.
+
+### Oplossingsrichtingen (ontwerp, niet gebouwd)
+
+| | A. Feedback-effort `medium` → `low` | B. Technische headroom (bijv. 4000) + v1.1-budget behouden | C. Strenger outputcontract (sterkte, aanscherping, vraag) |
+| --- | --- | --- | --- |
+| Kwaliteit | Waarschijnlijk goed (de documentatie noemt `low`/`medium` sterk op dit model), maar ongemeten voor feedback | Ongewijzigd ten opzichte van wat v1.1 bedoelt | Compacter; risico op schraler of schematischer |
+| Truncatierisico | Lager, niet weg: thinking blijft aan en deelt het plafond | Laag: ruimte voor thinking plus 350–500 woorden | Laag effect: raakt alleen de zichtbare tekst, niet thinking |
+| Latency | Lager | Gelijk (het model stopt als het klaar is) | Iets lager |
+| Kosten | Lager | Alleen werkelijk verbruikte tokens; een hoger plafond kost niets extra tenzij het gebruikt wordt | Iets lager |
+| Voorspelbaarheid | Middel | Hoog voor truncatie; lengte blijft aan de prompt | Middel |
+| Complexiteit | Eén configwaarde | Eén configwaarde | Nieuwe promptversie (v1.2) en evals |
+
+**Aanbeveling: B.**
+- Het gedocumenteerde mechanisme is dat `max_tokens` thinking plus tekst afdekt, en 1500 was alleen op tekst
+  gedimensioneerd. B corrigeert precies die rekenfout, zonder de feedbackkwaliteit (effort) of de didactiek (prompt)
+  te veranderen.
+- Neem daarbij één observability-aanvulling op, alleen metadata: de lengte van de zichtbare tekst (tekens of woorden)
+  en of er een thinking-blok was. Dan bewijst de volgende run of v1.1 wordt gehoorzaamd en hoeveel thinking kost.
+- A pas daarna, en alleen als latency of kosten uit die metadata een reden geven. C alleen als de zichtbare tekst
+  aantoonbaar te lang blijkt.
+
+**Aandachtspunten:**
+- **Chat:** de chat (600, effort `low`) deelt hetzelfde mechanisme. Gemeten: 233 en 288 tokens, dus er is nu
+  ruimte, maar de headroom is krap. Het voorstel is de chat in dezelfde wijziging ruimer te zetten.
+- **Retry-knop:** dat "Feedback ophalen" na `output_truncated` direct opnieuw klikbaar was, maakte een tweede betaalde
+  call mogelijk. Dit is opgepakt in Step 17E.
+
+## Step 17E: correctie van het runtime-tokenbudget
+
+Besluit van Mohamed: optie B, plus twee kleine hardeningpunten. Didactiek, prompts en effort blijven ongewijzigd.
+
+- **Headroom:**
+  - feedback `max_tokens` 1500 → **4000**;
+  - chat `max_tokens` 600 → **1200**.
+
+  Dit is technische headroom voor de altijd actieve thinking plus zichtbare tekst, geen gewenste lengte. Ongewijzigd
+  blijven: `claude-opus-5-5`, chat `low` / feedback `medium`, `participant-chat/v1`, `participant-feedback/v1.1`,
+  `maxRetries: 0` en geen fallback. `max_tokens` blijft `output_truncated`.
+- **Metadata** (`certum.preview_runtime`, per providerrespons): `stopReason`, `inputTokens`, `outputTokens`,
+  `maxTokens`, `effort`, `promptVersion`, `visibleChars`, `visibleWords`, `contentBlockTypes` en `thinkingBlockPresent`.
+  - Er komt geen aantal thinking-tokens, omdat de API dat niet apart geeft; het wordt ook niet afgeleid.
+  - Er wordt geen tekst gelogd.
+- **Expliciete betaalde retry:**
+  - Na `output_truncated` toont het feedbackblok "De feedback kon niet volledig worden gegenereerd.", met een aparte
+    actie "Feedback opnieuw genereren" en de tekst "Dit start een nieuwe AI-aanroep."
+  - Er is geen automatische retry en "Verder" blijft dicht tot er complete feedback is.
+  - Eén UI-actie start hooguit één call tegelijk (single flight; ook een dubbele klik binnen één render).
+  - **Chat:** voor de chat was dit niet nodig. Na een verzonden bericht is het invoerveld leeg, dus opnieuw versturen
+    vraagt een nieuw, bewust bericht. De single flight geldt ook daar.
+- **Browserbewijs (mocks, TR-0018, 0 Claude-calls):** `hardening-proof-17e.json`.
+  - De gewone chat en de gewone feedback werken.
+  - Afgekapte feedback toont de expliciete stand, zonder "Feedback ophalen".
+  - Na 3 s volgt geen automatische call.
+  - Een dubbele klik op "Feedback opnieuw genereren" start precies 1 nieuwe call.
+  - De logs bevatten alleen aantallen en bloktypes, geen inhoud.

@@ -52,12 +52,17 @@ describe("Participant Preview-runtime", () => {
         { role: "participant", text: "Ja." },
       ],
     });
-    expect(result).toEqual({ text: "Antwoord.", stopReason: "end_turn", usage: { inputTokens: 10, outputTokens: 3 } });
+    expect(result).toEqual({
+      text: "Antwoord.",
+      stopReason: "end_turn",
+      usage: { inputTokens: 10, outputTokens: 3 },
+      response: { maxTokens: 1200, visibleChars: 9, visibleWords: 1, contentBlockTypes: ["text"], thinkingBlockPresent: false },
+    });
     const req = calls[0] as { system: string; messages: { role: string }[]; max_tokens: number; output_config: { effort: string } };
     expect(req.system).toContain(config.personaInstructions);
     expect(req.system).toContain(config.firstMessage);
     expect(req.messages.map((m) => m.role)).toEqual(["user", "assistant", "user"]);
-    expect(req.max_tokens).toBe(CLAUDE_PREVIEW_DEFAULTS.chatMaxTokens);
+    expect(req.max_tokens).toBe(1200);
     expect(req.output_config.effort).toBe(CLAUDE_PREVIEW_DEFAULTS.chatEffort);
   });
 
@@ -79,7 +84,7 @@ describe("Participant Preview-runtime", () => {
     for (const rule of ["hooguit drie korte inhoudelijke onderdelen", "concrete sterkte", "concrete aanscherping", "criteria uit de goedgekeurde instructies", "Je kent het gesprek of de simulatie zelf niet", "Introduceer geen theorie"]) {
       expect(req.system).toContain(rule);
     }
-    expect(req.max_tokens).toBe(1500);
+    expect(req.max_tokens).toBe(4000);
   });
 
   it("de stop reason gaat mee, zodat de runtimelaag max_tokens als afgekapt kan behandelen", async () => {
@@ -88,6 +93,34 @@ describe("Participant Preview-runtime", () => {
     expect(await runtime.feedback({ instructions: "x", context: [] })).toMatchObject({ stopReason: "max_tokens", usage: { inputTokens: 10, outputTokens: 1500 } });
     const empty = new ClaudePreviewRuntimeService(fakeClient({ stop_reason: "max_tokens", content: [] }).client, CLAUDE_PREVIEW_DEFAULTS);
     expect(await empty.chatReply({ config, goalReached: false, history: [{ role: "persona", text: config.firstMessage }, { role: "participant", text: "Hoi" }] })).toMatchObject({ stopReason: "max_tokens" });
+  });
+
+  it("Step 17E: alleen de technische headroom verandert; promptversies, effort en retries blijven gelijk", async () => {
+    const { PARTICIPANT_CHAT_V1_PROMPT_VERSION } = await import("@/knowledge/prompts/participant-chat-v1");
+    const { PARTICIPANT_FEEDBACK_V1_1_PROMPT_VERSION } = await import("@/knowledge/prompts/participant-feedback-v1-1");
+    expect(PARTICIPANT_CHAT_V1_PROMPT_VERSION).toBe("participant-chat/v1");
+    expect(PARTICIPANT_FEEDBACK_V1_1_PROMPT_VERSION).toBe("participant-feedback/v1.1");
+    expect(CLAUDE_PREVIEW_DEFAULTS).toMatchObject({ model: "claude-opus-5-5", chatEffort: "low", effort: "medium", chatMaxTokens: 1200, feedbackMaxTokens: 4000, maxRetries: 0 });
+  });
+
+  it("responsmetadata: alleen aantallen en bloktypes, thinking-aanwezigheid zonder thinking-inhoud", async () => {
+    const withThinking = {
+      stop_reason: "end_turn",
+      content: [
+        { type: "thinking", thinking: "GEHEIME-REDENERING", signature: "sig" },
+        { type: "text", text: "Drie woorden hier." },
+      ],
+      usage: { input_tokens: 2000, output_tokens: 900 },
+    };
+    const result = await new ClaudePreviewRuntimeService(fakeClient(withThinking).client, CLAUDE_PREVIEW_DEFAULTS).feedback({ instructions: "x", context: [] });
+    expect(result.text).toBe("Drie woorden hier.");
+    expect(result.response).toEqual({ maxTokens: 4000, visibleChars: 18, visibleWords: 3, contentBlockTypes: ["thinking", "text"], thinkingBlockPresent: true });
+    expect(JSON.stringify(result.response)).not.toContain("GEHEIME");
+    expect(JSON.stringify(result.response)).not.toContain("Drie");
+    // Geen thinking-tokenaantal: de API geeft dat niet apart, dus het wordt niet afgeleid.
+    expect(Object.keys(result.response)).not.toContain("thinkingTokens");
+    const plain = await new ClaudePreviewRuntimeService(fakeClient(ok).client, CLAUDE_PREVIEW_DEFAULTS).chatReply({ config, goalReached: false, history: [{ role: "persona", text: config.firstMessage }, { role: "participant", text: "Hoi" }] });
+    expect(plain.response).toMatchObject({ maxTokens: 1200, contentBlockTypes: ["text"], thinkingBlockPresent: false });
   });
 
   it("refusal en leeg antwoord worden providerneutrale fouten", async () => {

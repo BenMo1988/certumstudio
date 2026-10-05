@@ -63,6 +63,12 @@ export interface PreviewRuntimeLogEntry {
   errorKind?: string;
   /** De stop reason van de provider (metadata, geen inhoud). */
   stopReason?: string | null;
+  /** Step 17E: het `max_tokens` in de request en inhoudsvrije responsmetadata (aantallen en bloktypes, nooit tekst). */
+  maxTokens?: number | null;
+  visibleChars?: number;
+  visibleWords?: number;
+  contentBlockTypes?: string[];
+  thinkingBlockPresent?: boolean;
   inputTokens?: number;
   outputTokens?: number;
   participantTurns?: number;
@@ -159,7 +165,16 @@ function logRuntime(deps: PreviewDeps, entry: PreviewRuntimeLogEntry) {
 }
 
 function usageOf(result: PreviewRuntimeResult | null) {
-  return result?.usage ? { inputTokens: result.usage.inputTokens, outputTokens: result.usage.outputTokens } : {};
+  if (!result) return {};
+  const { maxTokens, visibleChars, visibleWords, contentBlockTypes, thinkingBlockPresent } = result.response;
+  return {
+    ...(result.usage ? { inputTokens: result.usage.inputTokens, outputTokens: result.usage.outputTokens } : {}),
+    maxTokens,
+    visibleChars,
+    visibleWords,
+    contentBlockTypes,
+    thinkingBlockPresent,
+  };
 }
 
 /**

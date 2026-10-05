@@ -3,7 +3,7 @@ import { PARTICIPANT_FEEDBACK_V1_1_SYSTEM, buildParticipantFeedbackRequest } fro
 import { toAnalysisError, type ClaudeMessagesClient } from "../analysis/claude/claude-training-analysis-service";
 import { AnalysisError } from "../analysis/errors";
 import type { ClaudePreviewSettings } from "./config";
-import type { PreviewChatRequest, PreviewFeedbackRequest, PreviewRuntimeResult, PreviewRuntimeService } from "./services";
+import { visibleTextMeta, type PreviewChatRequest, type PreviewFeedbackRequest, type PreviewRuntimeResult, type PreviewRuntimeService } from "./services";
 
 type CreateRequest = Parameters<ClaudeMessagesClient["messages"]["create"]>[0];
 type Message = { role: "user" | "assistant"; content: string };
@@ -55,6 +55,12 @@ export class ClaudePreviewRuntimeService implements PreviewRuntimeService {
     if (!text && message.stop_reason !== "max_tokens") throw new AnalysisError("empty", "Geen antwoord ontvangen.");
     const usage = message.usage ? { inputTokens: message.usage.input_tokens ?? 0, outputTokens: message.usage.output_tokens ?? 0 } : null;
     // De stop reason gaat mee; de runtimelaag behandelt `max_tokens` als afgekapt (nooit als compleet antwoord).
-    return { text, stopReason: message.stop_reason, usage };
+    const contentBlockTypes = message.content.map((b) => b.type);
+    return {
+      text,
+      stopReason: message.stop_reason,
+      usage,
+      response: { maxTokens, ...visibleTextMeta(text), contentBlockTypes, thinkingBlockPresent: contentBlockTypes.includes("thinking") },
+    };
   }
 }
