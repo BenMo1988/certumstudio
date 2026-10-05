@@ -591,7 +591,7 @@ Gebruik voor trainingen altijd `/trainings/...` (meervoud). Goedkeuren maakt nog
 
 ## Evals
 
-Er zijn zes evalsets, elk met een eigen README:
+Er zijn zeven evalsets, elk met een eigen README:
 - `evals/training-analysis/` (CA-001 t/m CA-008): de inhoud van de analyse door een AI-provider.
 - `evals/privacy-preflight/` (PP-001 t/m PP-003): de lokale Privacy Preflight, zonder externe AI.
 - `evals/training-blueprint/` (BP-001 t/m BP-003): Blueprint en Block Plan; V1-baseline beoordeeld, V2-verwachtingen vastgelegd.
@@ -599,6 +599,8 @@ Er zijn zes evalsets, elk met een eigen README:
 - `evals/training-block-content/` (BC-001 t/m BC-007): Block Content per blok; baseline, bevestiging v1.1 en review; gesloten.
 - `evals/source-grounding/` (SG-001, SG-002): Bron-inhoud alleen uit gevalideerde bronnen (v1.2); gesloten
   (WATCH: `bron_content_didactic_density`, `assessment_role_consistency`).
+- `evals/full-training-pilot/` (TR-0014): eerste volledige training met echte Claude-output, als product beoordeeld
+  (YES_AFTER_EDIT; PRODUCT_BLOCKER `organisation_specific_source_need`; zie `report.md`).
 
 Kwaliteitsbasis voor Certum Analyse staat in `evals/training-analysis/`. Er staat alleen
 synthetische data in en het is geen productiecode. Elke run wordt vastgelegd met promptVersion, model en effort.

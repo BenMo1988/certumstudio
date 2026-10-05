@@ -1,0 +1,2473 @@
+{
+  "exportedAt": "2026-10-05T08:12:36.678Z",
+  "training": {
+    "code": "TR-0014",
+    "title": "Nieuwe training · Casus",
+    "status": "concept"
+  },
+  "revisions": [
+    {
+      "id": "756881cc-313f-4458-8683-1aac25ccb563",
+      "type": "analysis",
+      "key": "main",
+      "revisionNo": 1,
+      "current": true,
+      "approved": true,
+      "lastDecision": "direction_selected",
+      "promptVersion": "training-analysis/v2.1.1",
+      "modelVersion": "claude-opus-5-5 · medium",
+      "createdAt": "2026-10-05T05:32:05.616Z",
+      "basedOn": [],
+      "payload": {
+        "outcome": "ready",
+        "summary": "Een jeugdprofessional in een wijkteam begeleidt sinds twee maanden een gezin met een 15-jarig meisje. Het meisje vertelt in een individueel gesprek dat ze de afgelopen weken een paar keer 's avonds laat de deur uit is gegaan om af te spreken met een 19-jarige jongen die ze online heeft leren kennen. Volgens haar is hij aardig en is er niets gebeurd wat ze niet wilde. Ze vraagt nadrukkelijk dit niet aan haar moeder te vertellen en zegt dat ze anders niets meer vertelt. De volgende ochtend belt de moeder. Zij vertelt dat haar dochter moe en prikkelbaar is en vraagt of de professional iets weet wat zij als moeder zou moeten weten. De professional twijfelt wat hij antwoordt, wat hij met het verhaal van het meisje doet en of hij eerst meer moet weten.",
+        "rationale": "De casus bevat een concreet en spanningsvol keuzemoment: een jongere vraagt om geheimhouding terwijl haar moeder direct om informatie vraagt, en de professional twijfelt hoe en wanneer hij handelt. Er zijn meerdere verdedigbare routes, waardoor de richtingen als open keuze zijn opgezet. Of een vaste organisatiewerkwijze geldt, kan dit routebeleid nog veranderen.",
+        "targetAudience": "Jeugdprofessionals in wijkteams die gezinnen met jongeren begeleiden.",
+        "abstractionNotes": [
+          {
+            "advice": "Bij uitwerking leeftijden en termijnen globaler formuleren, zolang het leeftijdsverschil en de minderjarigheid als relevant gegeven behouden blijven.",
+            "feature": "De combinatie van precieze leeftijden, de duur van de begeleiding en de manier waarop de jongeren elkaar hebben leren kennen."
+          },
+          {
+            "advice": "Het citaat kan worden geparafraseerd of herschreven, met behoud van de strekking dat zij het contact afhankelijk maakt van geheimhouding.",
+            "feature": "Het letterlijke citaat van het meisje."
+          }
+        ],
+        "sourceCandidates": [
+          {
+            "term": "Beroepsgeheim en regels rond het delen van informatie met ouders in de jeugdhulp",
+            "whyPossiblyRelevant": "De professional moet bepalen wat hij van wat een 15-jarige hem vertelt met haar moeder kan of mag delen; welke regels daarvoor gelden, kan de Bron-fase onderzoeken."
+          },
+          {
+            "term": "Meldcode huiselijk geweld en kindermishandeling",
+            "whyPossiblyRelevant": "De input beschrijft nachtelijke afspraken van een minderjarige met een oudere jongen die zij online heeft ontmoet; of en hoe een afwegingskader voor zorgsignalen hier van toepassing is, kan later worden onderzocht."
+          },
+          {
+            "term": "Kennis over signalen van online benadering en uitbuiting van minderjarigen",
+            "whyPossiblyRelevant": "De Bron-fase kan nagaan welke signalen in de literatuur worden genoemd en hoe professionals deze kunnen wegen, zonder dat de input vaststelt dat hiervan sprake is."
+          }
+        ],
+        "trainingDirections": [
+          {
+            "id": "antwoord-aan-moeder",
+            "focus": "De moeder belt en vraagt rechtstreeks of de professional iets weet wat zij moet weten, terwijl het meisje kort daarvoor om geheimhouding heeft gevraagd. De professional moet ter plekke bepalen wat hij de moeder antwoordt.",
+            "title": "Reageren op de directe vraag van de moeder",
+            "sourceRefs": [
+              "S3",
+              "S4",
+              "S5",
+              "S6"
+            ],
+            "routePolicy": "open_choice",
+            "proposedLearningGoal": "De deelnemer kan in een telefoongesprek met een ouder die om informatie over haar kind vraagt, bepalen hoe hij recht doet aan de zorg van de ouder en aan het vertrouwen dat de jongere hem heeft gegeven, en zijn antwoord professioneel verantwoorden."
+          },
+          {
+            "id": "vertrouwelijkheid-jongere",
+            "focus": "Het meisje vertelt over afspraken 's avonds laat met een oudere jongen die ze online heeft leren kennen en vraagt nadrukkelijk dit niet aan haar moeder te vertellen, met de mededeling dat ze anders niets meer vertelt. De professional moet bepalen wat hij met deze informatie en dit verzoek doet.",
+            "title": "Omgaan met het geheimhoudingsverzoek van de jongere",
+            "sourceRefs": [
+              "S2",
+              "S3",
+              "S6"
+            ],
+            "routePolicy": "open_choice",
+            "proposedLearningGoal": "De deelnemer kan afwegen hoe hij omgaat met informatie die een jongere hem onder voorwaarde van geheimhouding toevertrouwt, waarbij hij de vertrouwensrelatie, de zorgen die de informatie oproept en zijn professionele verantwoordelijkheid meeweegt, en kan zijn keuze tegenover de jongere en zichzelf onderbouwen."
+          },
+          {
+            "id": "eerst-meer-weten",
+            "focus": "De professional twijfelt of hij al genoeg weet om een keuze te maken, of dat hij eerst zelf meer moet weten. Het keuzemoment betreft de vraag hoeveel duidelijkheid nodig is voordat hij handelt en wat uitstel betekent voor het meisje en de moeder.",
+            "title": "Handelen of eerst meer informatie verzamelen",
+            "sourceRefs": [
+              "S2",
+              "S5",
+              "S6"
+            ],
+            "routePolicy": "open_choice",
+            "proposedLearningGoal": "De deelnemer kan beoordelen of de beschikbare informatie voldoende is om te handelen of dat nadere verkenning nodig is, daarbij de risico's van handelen en van uitstellen voor de jongere en de ouder afwegen, en deze inschatting professioneel verantwoorden."
+          }
+        ],
+        "professionalDilemma": "De professional moet bepalen hoe hij omgaat met het uitdrukkelijke verzoek van het meisje om vertrouwelijkheid, waarbij zij dreigt het contact te verbreken, terwijl de moeder hem direct vraagt of er iets is wat zij moet weten. Daarbij weegt hij zijn vertrouwensrelatie met het meisje, de vraag van de moeder en zijn eigen inschatting van de situatie tegen elkaar af. Ook moet hij beslissen of hij nu al een keuze maakt of eerst meer informatie verzamelt.",
+        "decisionRelevantGaps": [
+          {
+            "affects": "richtingkeuze",
+            "question": "Geldt binnen de organisatie van de professional een vastgelegde werkwijze of afspraak voor situaties waarin een minderjarige contact heeft met een aanzienlijk oudere persoon die zij online heeft leren kennen?",
+            "howItChangesTheDecision": "Als de organisatie één handelingslijn voorschrijft, kan een of meer richtingen beter als prescribed_action worden vormgegeven en verschuift het leerdoel van afwegen naar zorgvuldig uitvoeren van die lijn."
+          },
+          {
+            "affects": "doelgroep",
+            "question": "Is de training bedoeld voor beginnende of voor ervaren jeugdprofessionals?",
+            "howItChangesTheDecision": "Bij beginnende professionals ligt de nadruk eerder op herkennen en verantwoorden van de afweging, bij ervaren professionals op het hanteren van de spanning in het gesprek met jongere en ouder."
+          }
+        ],
+        "proposedLearningGoal": "De deelnemer kan in een situatie waarin een jongere om geheimhouding vraagt en een ouder om informatie, bepalen hoe hij de vertrouwensrelatie met de jongere, de vraag van de ouder en zijn eigen verantwoordelijkheid voor de veiligheid van de jongere tegen elkaar afweegt, en deze keuze professioneel onderbouwen."
+      }
+    },
+    {
+      "id": "67f5b3b7-2aca-4345-9734-59bd690411b8",
+      "type": "block_content",
+      "key": "blok-1",
+      "revisionNo": 1,
+      "current": false,
+      "approved": false,
+      "lastDecision": null,
+      "promptVersion": "training-block-content/v1.2",
+      "modelVersion": "claude-opus-5-5 · medium",
+      "createdAt": "2026-10-05T05:41:36.205Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b",
+        "1b8c6b10-cb2c-4b25-8dab-4eebd9952b75"
+      ],
+      "payload": {
+        "body": {
+          "status": "generated",
+          "content": {
+            "text": "Je werkt als jeugdprofessional in een wijkteam. Sinds twee maanden begeleid je het gezin van Lotte, een meisje van 15, en haar moeder, Ingrid de Wit. Je ziet Lotte af en toe apart, zodat zij ruimte heeft om haar eigen verhaal te doen.\n\nGisteren had je zo'n individueel gesprek met Lotte. Halverwege het gesprek vertelde ze dat ze de afgelopen weken een paar keer 's avonds laat de deur uit is gegaan. Ze spreekt af met een jongen van 19 die ze online heeft leren kennen. Volgens Lotte is hij aardig en is er niets gebeurd wat ze zelf niet wilde. Ze vertelde het rustig, alsof het voor haar niet zo bijzonder is.\n\nAan het eind van het gesprek keek ze je aan en zei nadrukkelijk: 'Dit mag je echt niet aan mijn moeder vertellen. Als je dat doet, vertel ik je niks meer.' Je hebt het gesprek afgesloten zonder daar al iets over toe te zeggen.\n\nVanochtend belde Ingrid je op. Ze klonk bezorgd. Lotte is de laatste tijd moe en prikkelbaar, vertelde ze, en ze weet niet goed wat er met haar dochter aan de hand is. Toen vroeg ze je rechtstreeks: 'Weet jij iets wat ik moet weten?' Je hebt het gesprek beëindigd zonder inhoudelijk op haar vraag in te gaan.\n\nVeel weet je nog niet. Je weet niet wie de jongen precies is en wat er tijdens die afspraken gebeurt, behalve wat Lotte zelf vertelde. Je weet ook niet of er binnen je organisatie een vastgelegde werkwijze of afspraak bestaat voor een situatie als deze.\n\nJe hebt de telefoon net neergelegd. Je hebt nog geen verdere stappen gezet, niet richting Lotte en niet richting haar moeder. Je hebt Lottes verhaal, haar uitdrukkelijke verzoek om geheimhouding en de vraag van haar moeder in je hoofd, en je twijfelt: wat doe je met wat Lotte je heeft toevertrouwd, en moet je eerst meer weten voordat je een keuze maakt?",
+            "title": "De situatie: een geheim en een telefoontje",
+            "catalogBlockId": "certum.bco.tekst"
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 1,
+        "certumPhase": "context",
+        "routePolicy": "open_choice",
+        "reviewStatus": "draft",
+        "accreditation": {
+          "workform": "Tekst",
+          "assessmentRole": "none",
+          "sourceNeedRefs": [],
+          "estimatedMinutes": 4,
+          "learningGoalContribution": "Dit blok zet de situatie neer waarin de deelnemer later zijn afweging maakt: het toevertrouwde verhaal, het geheimhoudingsverzoek met de dreiging het contact te verbreken, de directe vraag van de moeder en wat hij nog niet weet. Zo ontstaat de spanning tussen vertrouwensrelatie, zorg en professionele verantwoordelijkheid waarop het leerdoel is gericht."
+        },
+        "catalogBlockId": "certum.bco.tekst",
+        "plannedBlockId": "blok-1"
+      }
+    },
+    {
+      "id": "920d4891-2ad8-4731-8314-b1407d83a17e",
+      "type": "block_content",
+      "key": "blok-1",
+      "revisionNo": 2,
+      "current": true,
+      "approved": false,
+      "lastDecision": null,
+      "promptVersion": null,
+      "modelVersion": "manual-edit",
+      "createdAt": "2026-10-05T08:12:12.315Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b",
+        "1b8c6b10-cb2c-4b25-8dab-4eebd9952b75"
+      ],
+      "payload": {
+        "body": {
+          "status": "generated",
+          "content": {
+            "text": "Je werkt als jeugdprofessional in een wijkteam. Sinds twee maanden begeleid je een gezin met een meisje van 15 en haar moeder. Je ziet het meisje af en toe apart, zodat zij ruimte heeft om haar eigen verhaal te doen.\n\nGisteren had je zo'n individueel gesprek met haar. Halverwege het gesprek vertelde ze dat ze de afgelopen weken een paar keer 's avonds laat de deur uit is gegaan. Ze spreekt af met een jongen van 19 die ze online heeft leren kennen. Volgens haar is hij aardig en is er niets gebeurd wat ze zelf niet wilde.\n\nAan het eind van het gesprek keek ze je aan en zei nadrukkelijk: 'Dit mag je echt niet aan mijn moeder vertellen. Als je dat doet, vertel ik je niks meer.' Je hebt het gesprek afgesloten zonder daar al iets over toe te zeggen.\n\nVanochtend belde haar moeder je op. Ze klonk bezorgd. Haar dochter is de laatste tijd moe en prikkelbaar, vertelde ze, en ze weet niet goed wat er met haar aan de hand is. Toen vroeg ze je rechtstreeks: 'Weet jij iets wat ik moet weten?' Je hebt het gesprek beëindigd zonder inhoudelijk op haar vraag in te gaan.\n\nVeel weet je nog niet. Je weet niet wie de jongen precies is en wat er tijdens die afspraken gebeurt, behalve wat het meisje zelf vertelde. Je weet ook niet of er binnen je organisatie een vastgelegde werkwijze of afspraak bestaat voor een situatie als deze.\n\nJe hebt de telefoon net neergelegd. Je hebt nog geen verdere stappen gezet, niet richting het meisje en niet richting haar moeder. Je hebt haar verhaal, haar uitdrukkelijke verzoek om geheimhouding en de vraag van haar moeder in je hoofd, en je twijfelt: wat doe je met wat zij je heeft toevertrouwd, en moet je eerst meer weten voordat je een keuze maakt?",
+            "title": "De situatie: een geheim en een telefoontje",
+            "catalogBlockId": "certum.bco.tekst"
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 1,
+        "certumPhase": "context",
+        "routePolicy": "open_choice",
+        "reviewStatus": "draft",
+        "accreditation": {
+          "workform": "Tekst",
+          "assessmentRole": "none",
+          "sourceNeedRefs": [],
+          "estimatedMinutes": 4,
+          "learningGoalContribution": "Dit blok zet de situatie neer waarin de deelnemer later zijn afweging maakt: het toevertrouwde verhaal, het geheimhoudingsverzoek met de dreiging het contact te verbreken, de directe vraag van de moeder en wat hij nog niet weet. Zo ontstaat de spanning tussen vertrouwensrelatie, zorg en professionele verantwoordelijkheid waarop het leerdoel is gericht."
+        },
+        "catalogBlockId": "certum.bco.tekst",
+        "plannedBlockId": "blok-1"
+      }
+    },
+    {
+      "id": "645116aa-c59d-41d5-8a67-500bca411c19",
+      "type": "block_content",
+      "key": "blok-2",
+      "revisionNo": 1,
+      "current": false,
+      "approved": false,
+      "lastDecision": null,
+      "promptVersion": "training-block-content/v1.2",
+      "modelVersion": "claude-opus-5-5 · medium",
+      "createdAt": "2026-10-05T05:41:52.216Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b",
+        "1b8c6b10-cb2c-4b25-8dab-4eebd9952b75"
+      ],
+      "payload": {
+        "body": {
+          "status": "generated",
+          "content": {
+            "title": "Jouw keuze na het telefoontje",
+            "feedback": "Meerdere routes zijn hier verdedigbaar. Lees je antwoord nog eens terug. Wordt duidelijk welke keuze je maakt en op welk moment je handelt? Benoem je welke informatie je mist en wat die betekent voor je keuze? Maak je zichtbaar hoe je de vertrouwensrelatie, de zorgen en je verantwoordelijkheid tegen elkaar hebt afgewogen? Verbind je je keuze met concrete elementen uit de situatie, zoals haar verzoek, haar dreiging niets meer te vertellen, het leeftijdsverschil met de jongen, de late afspraken en de vraag van de moeder?",
+            "question": "De moeder heeft net opgehangen en je hebt nog geen stappen gezet. Wat doe je met wat het meisje je toevertrouwde en met haar verzoek om het niet aan haar moeder te vertellen? Beschrijf je keuze, of je nu handelt of eerst meer informatie verzamelt, en welke informatie je mist. Onderbouw je keuze met een weging van de vertrouwensrelatie, de zorgen die haar verhaal oproept en je professionele verantwoordelijkheid. Verwijs daarbij naar concrete elementen uit de situatie. Er is niet één juiste route.",
+            "exampleAnswer": null,
+            "catalogBlockId": "certum.bco.open-vraag"
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 2,
+        "certumPhase": "actie",
+        "routePolicy": "open_choice",
+        "reviewStatus": "draft",
+        "accreditation": {
+          "workform": "Open vraag",
+          "assessmentRole": "formative",
+          "sourceNeedRefs": [],
+          "estimatedMinutes": 15,
+          "learningGoalContribution": "De deelnemer maakt een eigen keuze over de toevertrouwde informatie en het geheimhoudingsverzoek. Hij onderbouwt die met een expliciete weging van vertrouwensrelatie, zorg en professionele verantwoordelijkheid, inclusief het moment van handelen en de informatie die hij mist."
+        },
+        "catalogBlockId": "certum.bco.open-vraag",
+        "plannedBlockId": "blok-2"
+      }
+    },
+    {
+      "id": "1b9d2802-dda6-48b8-a429-54a35f57a9c6",
+      "type": "block_content",
+      "key": "blok-2",
+      "revisionNo": 2,
+      "current": true,
+      "approved": false,
+      "lastDecision": null,
+      "promptVersion": null,
+      "modelVersion": "manual-edit",
+      "createdAt": "2026-10-05T08:12:14.606Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b",
+        "1b8c6b10-cb2c-4b25-8dab-4eebd9952b75"
+      ],
+      "payload": {
+        "body": {
+          "status": "generated",
+          "content": {
+            "title": "Jouw keuze na het telefoontje",
+            "feedback": "Meerdere routes zijn hier verdedigbaar. Lees je antwoord nog eens terug. Wordt duidelijk welke keuze je maakt en op welk moment je handelt? Benoem je welke informatie je mist en wat die betekent voor je keuze? Maak je zichtbaar hoe je de vertrouwensrelatie, de zorgen en je verantwoordelijkheid tegen elkaar hebt afgewogen? Verbind je je keuze met concrete elementen uit de situatie, zoals haar verzoek, haar dreiging niets meer te vertellen, het leeftijdsverschil met de jongen, de late afspraken en de vraag van de moeder?",
+            "question": "De moeder heeft net opgehangen en je hebt nog geen stappen gezet. Wat doe je met wat het meisje je toevertrouwde en met haar verzoek om het niet aan haar moeder te vertellen?\n\nBeschrijf:\n1. je keuze, en of je nu handelt of eerst meer informatie verzamelt;\n2. welke informatie je mist;\n3. hoe je de vertrouwensrelatie, de zorgen die haar verhaal oproept en je professionele verantwoordelijkheid tegen elkaar afweegt.\n\nVerwijs daarbij naar concrete elementen uit de situatie.",
+            "exampleAnswer": null,
+            "catalogBlockId": "certum.bco.open-vraag"
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 2,
+        "certumPhase": "actie",
+        "routePolicy": "open_choice",
+        "reviewStatus": "draft",
+        "accreditation": {
+          "workform": "Open vraag",
+          "assessmentRole": "formative",
+          "sourceNeedRefs": [],
+          "estimatedMinutes": 15,
+          "learningGoalContribution": "De deelnemer maakt een eigen keuze over de toevertrouwde informatie en het geheimhoudingsverzoek. Hij onderbouwt die met een expliciete weging van vertrouwensrelatie, zorg en professionele verantwoordelijkheid, inclusief het moment van handelen en de informatie die hij mist."
+        },
+        "catalogBlockId": "certum.bco.open-vraag",
+        "plannedBlockId": "blok-2"
+      }
+    },
+    {
+      "id": "729cc78c-74c6-4b04-ba54-e8f3e77d1e05",
+      "type": "block_content",
+      "key": "blok-3",
+      "revisionNo": 1,
+      "current": true,
+      "approved": false,
+      "lastDecision": null,
+      "promptVersion": "training-block-content/v1.2",
+      "modelVersion": "claude-opus-5-5 · medium",
+      "createdAt": "2026-10-05T05:42:07.412Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b",
+        "1b8c6b10-cb2c-4b25-8dab-4eebd9952b75"
+      ],
+      "payload": {
+        "body": {
+          "status": "generated",
+          "content": {
+            "title": "Wat zeg je tegen het meisje?",
+            "feedback": "Er is niet één juiste manier om dit gesprek te voeren. Welke keuze je ook hebt gemaakt, kijk bij het teruglezen van je antwoord naar deze punten. Ga je zichtbaar in op haar verzoek en op haar zorg dat ze het contact kwijtraakt? Ben je eerlijk over wat je wel en niet doet, ook als dat niet is wat zij hoopt? Past je toon en woordkeuze bij een 15-jarige en laat je ruimte voor haar reactie en haar inbreng? Maak je duidelijk waarom je deze keuze maakt, zonder je zorg te verzwijgen of groter te maken dan je kunt onderbouwen? Kun je achter je eigen uitleg staan als zij er kritisch op reageert?",
+            "question": "Neem de keuze die je in de vorige vraag hebt gemaakt als uitgangspunt. Stel je voor dat je het meisje binnenkort weer spreekt. Schrijf in je eigen woorden op wat je haar over je keuze zou zeggen. Ga daarbij in op haar verzoek om het niet aan haar moeder te vertellen en op haar dreiging om anders niets meer te vertellen. Licht daarna toe waarom je het op deze manier zou zeggen, gezien haar positie als 15-jarige en jullie vertrouwensrelatie.",
+            "exampleAnswer": null,
+            "catalogBlockId": "certum.bco.open-vraag"
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 3,
+        "certumPhase": "actie",
+        "routePolicy": "open_choice",
+        "reviewStatus": "draft",
+        "accreditation": {
+          "workform": "Open vraag",
+          "assessmentRole": "formative",
+          "sourceNeedRefs": [],
+          "estimatedMinutes": 10,
+          "learningGoalContribution": "De deelnemer verwoordt hoe hij zijn eigen keuze tegenover het meisje zou toelichten. Zo oefent hij het onderbouwen van zijn keuze tegenover de jongere, aansluitend bij haar verzoek en haar positie als 15-jarige."
+        },
+        "catalogBlockId": "certum.bco.open-vraag",
+        "plannedBlockId": "blok-3"
+      }
+    },
+    {
+      "id": "c7b6ccea-1d8b-47c0-912a-a7fae261c607",
+      "type": "block_content",
+      "key": "blok-4",
+      "revisionNo": 1,
+      "current": false,
+      "approved": false,
+      "lastDecision": null,
+      "promptVersion": "training-block-content/v1.2",
+      "modelVersion": "claude-opus-5-5 · medium",
+      "createdAt": "2026-10-05T05:43:21.636Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b",
+        "1b8c6b10-cb2c-4b25-8dab-4eebd9952b75"
+      ],
+      "payload": {
+        "body": {
+          "status": "generated",
+          "content": {
+            "title": "Terugkijken op je afweging",
+            "feedback": "Er is niet één juiste weging. Een sterke reflectie maakt zichtbaar welke belangen je tegen elkaar hebt afgezet, welk belang de doorslag gaf en waarom. Ze benoemt ook eerlijk wat je met je keuze op het spel zet, bijvoorbeeld voor het vertrouwen van het meisje, voor haar veiligheid of voor je eigen verantwoordelijkheid. Daarnaast laat ze zien wat je keuze juist mogelijk maakt. Vraag jezelf af of je deze afweging ook hardop aan het meisje zou kunnen uitleggen, en of je keuze zou veranderen als je meer wist over de jongen en de afspraken.",
+            "question": "Kijk terug op de keuze die je net hebt gemaakt over het verzoek van het meisje en over het moment waarop je handelt. Welk gewicht gaf je aan je vertrouwensrelatie met haar, aan de zorgen die haar verhaal bij je oproept en aan je professionele verantwoordelijkheid? Welk element woog uiteindelijk het zwaarst, en waarom? Wat riskeer je met je keuze voor het meisje en voor jullie relatie, en wat maak je er juist mee mogelijk? Verwijs daarbij naar concrete elementen uit de situatie.",
+            "exampleAnswer": null,
+            "catalogBlockId": "certum.bco.open-vraag"
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 4,
+        "certumPhase": "reflectie",
+        "routePolicy": "open_choice",
+        "reviewStatus": "draft",
+        "accreditation": {
+          "workform": "Open vraag",
+          "assessmentRole": "formative",
+          "sourceNeedRefs": [],
+          "estimatedMinutes": 8,
+          "learningGoalContribution": "De deelnemer maakt de weging tussen vertrouwensrelatie, zorg en professionele verantwoordelijkheid achter zijn eigen keuze expliciet. Hij doordenkt wat die keuze riskeert en mogelijk maakt voor het meisje en de relatie."
+        },
+        "catalogBlockId": "certum.bco.open-vraag",
+        "plannedBlockId": "blok-4"
+      }
+    },
+    {
+      "id": "82b62bf6-53f5-4727-a3e4-13436892b42e",
+      "type": "block_content",
+      "key": "blok-4",
+      "revisionNo": 2,
+      "current": true,
+      "approved": false,
+      "lastDecision": null,
+      "promptVersion": null,
+      "modelVersion": "manual-edit",
+      "createdAt": "2026-10-05T08:12:16.876Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b",
+        "1b8c6b10-cb2c-4b25-8dab-4eebd9952b75"
+      ],
+      "payload": {
+        "body": {
+          "status": "generated",
+          "content": {
+            "title": "Terugkijken op je afweging",
+            "feedback": "Er is niet één juiste weging. Een sterke reflectie maakt zichtbaar welke belangen je tegen elkaar hebt afgezet, welk belang de doorslag gaf en waarom. Ze benoemt ook eerlijk wat je met je keuze op het spel zet, bijvoorbeeld voor het vertrouwen van het meisje, voor haar veiligheid of voor je eigen verantwoordelijkheid. Daarnaast laat ze zien wat je keuze juist mogelijk maakt. Vraag jezelf af of je deze afweging ook hardop aan het meisje zou kunnen uitleggen, en of je keuze zou veranderen als je meer wist over de jongen en de afspraken.",
+            "question": "Kijk terug op je keuze en op wat je het meisje zou zeggen. Welk element woog uiteindelijk het zwaarst in je afweging, en waarom juist dat? Wat riskeer je met je keuze voor het meisje en voor jullie relatie, en wat maak je er juist mee mogelijk? Past wat je haar zou zeggen bij die afweging?",
+            "exampleAnswer": null,
+            "catalogBlockId": "certum.bco.open-vraag"
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 4,
+        "certumPhase": "reflectie",
+        "routePolicy": "open_choice",
+        "reviewStatus": "draft",
+        "accreditation": {
+          "workform": "Open vraag",
+          "assessmentRole": "formative",
+          "sourceNeedRefs": [],
+          "estimatedMinutes": 8,
+          "learningGoalContribution": "De deelnemer maakt de weging tussen vertrouwensrelatie, zorg en professionele verantwoordelijkheid achter zijn eigen keuze expliciet. Hij doordenkt wat die keuze riskeert en mogelijk maakt voor het meisje en de relatie."
+        },
+        "catalogBlockId": "certum.bco.open-vraag",
+        "plannedBlockId": "blok-4"
+      }
+    },
+    {
+      "id": "b3936866-fbdf-4135-a9a5-f02a9c092c7f",
+      "type": "block_content",
+      "key": "blok-5",
+      "revisionNo": 1,
+      "current": true,
+      "approved": false,
+      "lastDecision": null,
+      "promptVersion": "training-block-content/v1.2",
+      "modelVersion": "claude-opus-5-5 · medium",
+      "createdAt": "2026-10-05T05:43:47.696Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b",
+        "1b8c6b10-cb2c-4b25-8dab-4eebd9952b75"
+      ],
+      "payload": {
+        "body": {
+          "status": "generated",
+          "content": {
+            "title": "Feedback op je afweging",
+            "instructions": "Je geeft formatieve feedback aan een jeugdprofessional in een wijkteam. Je ontvangt zijn antwoorden op drie eerdere vragen: zijn keuze en onderbouwing over wat hij doet met wat een 15-jarig meisje hem toevertrouwde, hoe hij die keuze aan het meisje zou toelichten, en zijn reflectie op de weging die hij maakte. Achtergrond: het meisje vertelde dat ze een paar keer 's avonds laat afsprak met een 19-jarige jongen die ze online leerde kennen, zei dat er niets gebeurde wat ze niet wilde en vroeg nadrukkelijk het niet aan haar moeder te vertellen, anders vertelt ze niets meer. De volgende ochtend belde de moeder met de vraag of de professional iets weet wat zij moet weten. Over de jongen, de aard van de afspraken en een eventuele organisatieafspraak is niets bekend. Baseer je feedback op wat de deelnemer zelf schrijft. Noemt hij een element uit de situatie niet, stel dan een vraag of nodig hem uit het mee te wegen, zonder te doen alsof hij het bewust negeerde. Meerdere routes zijn professioneel verdedigbaar. Beoordeel nooit welke route hij kiest en suggereer geen route als de juiste of betere. Beoordeel de kwaliteit van de afweging. Geef feedback op drie dimensies. Eén: zorgvuldigheid van de afweging. Weegt hij de vertrouwensrelatie, de zorgen die het verhaal oproept en zijn professionele verantwoordelijkheid expliciet en evenwichtig, en is zijn onderbouwing navolgbaar? Twee: aansluiting op het meisje en de situatie. Past zijn toelichting bij haar verzoek en haar positie als 15-jarige, en houdt hij rekening met de vraag van de moeder? Drie: omgang met ontbrekende informatie en het moment van handelen. Benoemt hij wat hij mist, en maakt hij zichtbaar of en waarom hij nu kiest of eerst meer informatie verzamelt? Betrek bij elke dimensie ook de consequenties die hij voorziet voor het meisje en de relatie, en wat zijn keuze riskeert of mogelijk maakt. Gebruik zijn reflectie om te laten zien waar zijn weging consistent is met zijn keuze en toelichting, en waar niet. Noem per dimensie concreet wat sterk is en wat hij kan aanscherpen, met verwijzing naar zijn eigen formuleringen. Sluit af met een of twee vragen die hem uitnodigen zijn afweging verder te doordenken. Noem geen wetten, richtlijnen, protocollen, organisatieafspraken of onderzoek en presenteer geen kaders als feit; die komen later in de training aan bod. Geef geen cijfer of eindoordeel. Schrijf in helder, zakelijk en respectvol Nederlands, direct gericht aan de deelnemer, zonder opmaak.",
+            "catalogBlockId": "certum.bco.ai-feedback",
+            "availableContext": [
+              "blok-2",
+              "blok-3",
+              "blok-4"
+            ],
+            "unavailableContext": []
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 5,
+        "certumPhase": "feedback",
+        "routePolicy": "open_choice",
+        "reviewStatus": "draft",
+        "accreditation": {
+          "workform": "AI Feedback",
+          "assessmentRole": "formative",
+          "sourceNeedRefs": [],
+          "estimatedMinutes": 5,
+          "learningGoalContribution": "Dit blok geeft de deelnemer route-neutrale feedback op de zorgvuldigheid van zijn afweging tussen vertrouwensrelatie, zorg en verantwoordelijkheid, op de aansluiting van zijn toelichting op het meisje en op zijn omgang met ontbrekende informatie. Zo kan hij zijn afweging aanscherpen voordat hij die naast gevalideerde kennis legt."
+        },
+        "catalogBlockId": "certum.bco.ai-feedback",
+        "plannedBlockId": "blok-5"
+      }
+    },
+    {
+      "id": "2faf2245-d1e0-4189-81e6-540d37ad69a7",
+      "type": "block_content",
+      "key": "blok-6",
+      "revisionNo": 1,
+      "current": true,
+      "approved": false,
+      "lastDecision": null,
+      "promptVersion": "training-block-content/v1.2",
+      "modelVersion": "claude-opus-5-5 · medium",
+      "createdAt": "2026-10-05T05:43:48.235Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b",
+        "1b8c6b10-cb2c-4b25-8dab-4eebd9952b75"
+      ],
+      "payload": {
+        "body": {
+          "status": "needs_source",
+          "whatToValidate": "SN1: Welke professionele en wettelijke kaders gelden voor vertrouwelijkheid en het delen van informatie die een 15-jarige toevertrouwt, ook richting ouders, en welke ruimte en grenzen bieden die voor de professional? SN2: Welke inzichten bestaan er over het inschatten van zorgen bij een minderjarige die 's avonds afspreekt met een aanzienlijk oudere persoon die zij online heeft leren kennen, en over het verkrijgen van meer informatie zonder het contact te schaden? SN3: Bestaat er binnen de organisatie een vastgelegde werkwijze of afspraak voor situaties waarin een minderjarige contact heeft met een aanzienlijk oudere online kennis, en wat houdt die in?",
+          "generatableAfterValidation": "Na validatie: De deelnemer legt na handelen, reflectie en feedback zijn keuze naast gevalideerde kennis. Zo ziet hij waar zijn afweging steun vindt en waar zijn handelingsruimte anders ligt dan hij aannam."
+        },
+        "version": "block-content/v1",
+        "sequence": 6,
+        "certumPhase": "bron",
+        "routePolicy": "open_choice",
+        "reviewStatus": "draft",
+        "accreditation": {
+          "workform": "Tekst",
+          "assessmentRole": "none",
+          "sourceNeedRefs": [
+            "SN1",
+            "SN2",
+            "SN3"
+          ],
+          "estimatedMinutes": null,
+          "learningGoalContribution": "De deelnemer legt na handelen, reflectie en feedback zijn keuze naast gevalideerde kennis. Zo ziet hij waar zijn afweging steun vindt en waar zijn handelingsruimte anders ligt dan hij aannam."
+        },
+        "catalogBlockId": "certum.bco.tekst",
+        "plannedBlockId": "blok-6"
+      }
+    },
+    {
+      "id": "2df69e30-f808-40f9-bbe8-fdf4ca3e18de",
+      "type": "block_content",
+      "key": "blok-7",
+      "revisionNo": 1,
+      "current": true,
+      "approved": false,
+      "lastDecision": null,
+      "promptVersion": "training-block-content/v1.2",
+      "modelVersion": "claude-opus-5-5 · medium",
+      "createdAt": "2026-10-05T05:44:10.389Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b",
+        "1b8c6b10-cb2c-4b25-8dab-4eebd9952b75"
+      ],
+      "payload": {
+        "body": {
+          "status": "generated",
+          "content": {
+            "text": "Een paar weken later heb je opnieuw een individueel gesprek met het 15-jarige meisje. Hoe je eerder ook hebt gehandeld, het contact met haar is blijven bestaan en ze praat open met je.\n\nHalverwege het gesprek vertelt ze dat ze niet meer afspreekt met de 19-jarige jongen. Ze heeft het zelf uitgemaakt, zegt ze, omdat hij steeds vaker aandrong om bij hem thuis af te spreken in plaats van buiten. Dat wilde ze niet. Sindsdien stuurt hij haar af en toe nog berichten. Ze reageert daar niet op en zegt dat ze het onder controle heeft. Ze klinkt opgelucht, maar ook wat onzeker als ze over zijn berichten praat.\n\nAan het eind van het gesprek vraagt ze je opnieuw nadrukkelijk dit niet aan haar moeder te vertellen. Ze is bang dat haar moeder dan haar telefoon afpakt en haar niet meer vertrouwt, nu het juist beter gaat thuis. Haar moeder heeft je de afgelopen weken niets meer gevraagd.\n\nWat je nu weet: het meisje heeft het contact zelf verbroken en vertelt uit zichzelf over het aandringen van de jongen. Wat je niet weet: wat hij precies in zijn berichten schrijft, hoe vaak hij nog contact zoekt, wat er tijdens de eerdere afspraken verder is gebeurd en of hij zich bij haar uitblijvende reactie neerlegt.\n\nHet gesprek is net afgelopen. Je hebt nog niets gedaan met wat ze je vertelde en nog met niemand anders gesproken. Je staat opnieuw voor de vraag wat je doet met wat zij je heeft toevertrouwd en met haar verzoek om geheimhouding, en of je nu een keuze maakt of eerst meer wilt weten. In het volgende blok maak je die afweging.",
+            "title": "Een nieuw gesprek, een nieuw geheim",
+            "catalogBlockId": "certum.bco.tekst"
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 7,
+        "certumPhase": "toets",
+        "routePolicy": "open_choice",
+        "reviewStatus": "draft",
+        "accreditation": {
+          "workform": "Tekst",
+          "assessmentRole": "transfer",
+          "sourceNeedRefs": [],
+          "estimatedMinutes": 3,
+          "learningGoalContribution": "Dit blok zet een nieuw, vergelijkbaar keuzemoment neer waarin de mate van zorg en de beschikbare informatie verschillen van de oorspronkelijke situatie. Zo kan de deelnemer zijn afweging tussen vertrouwensrelatie, zorg en professionele verantwoordelijkheid toepassen op gewijzigde omstandigheden."
+        },
+        "catalogBlockId": "certum.bco.tekst",
+        "plannedBlockId": "blok-7"
+      }
+    },
+    {
+      "id": "dad95176-852b-4c79-8f94-473ea6b0bbf0",
+      "type": "block_content",
+      "key": "blok-8",
+      "revisionNo": 1,
+      "current": false,
+      "approved": false,
+      "lastDecision": null,
+      "promptVersion": "training-block-content/v1.2",
+      "modelVersion": "claude-opus-5-5 · medium",
+      "createdAt": "2026-10-05T05:45:02.678Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b",
+        "1b8c6b10-cb2c-4b25-8dab-4eebd9952b75"
+      ],
+      "payload": {
+        "body": {
+          "status": "generated",
+          "content": {
+            "title": "Een nieuw geheim: jouw afweging",
+            "feedback": "Er is niet één juiste keuze in deze situatie. Kijk bij het teruglezen van je antwoord vooral naar de kwaliteit van je afweging. Heb je de vertrouwensrelatie, de zorgen en je professionele verantwoordelijkheid alle drie expliciet gewogen? Sluit je toelichting aan bij de jongere, bij het verzoek om geheimhouding en bij wat je wel en niet weet? Maak je duidelijk welke verschillen met de eerdere situatie je keuze beïnvloeden, en past de mate waarin je keuze verschuift bij hoe groot die verschillen zijn? Als je keuze hetzelfde blijft, is het net zo belangrijk dat je uitlegt waarom de verschillen daar geen aanleiding toe geven.",
+            "question": "Lees de nieuwe situatie die je net hebt gelezen nog eens door. Wat doe je nu met wat de jongere je heeft toevertrouwd en met het verzoek om geheimhouding? Beschrijf je keuze en onderbouw die met een expliciete weging van de vertrouwensrelatie, de zorgen die de informatie oproept en je professionele verantwoordelijkheid. Schrijf ook op wat je de jongere over je keuze zou zeggen. Vergelijk tot slot met je eerdere afweging: welke elementen in deze situatie verschuiven je keuze, of juist niet, en waarom?",
+            "exampleAnswer": null,
+            "catalogBlockId": "certum.bco.open-vraag"
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 8,
+        "certumPhase": "toets",
+        "routePolicy": "open_choice",
+        "reviewStatus": "draft",
+        "accreditation": {
+          "workform": "Open vraag",
+          "assessmentRole": "transfer",
+          "sourceNeedRefs": [],
+          "estimatedMinutes": 15,
+          "learningGoalContribution": "Dit blok laat de deelnemer de afweging tussen vertrouwensrelatie, zorg en professionele verantwoordelijkheid opnieuw maken in een gewijzigde situatie. Zo wordt zichtbaar of hij zijn keuze proportioneel aanpast en tegenover de jongere kan verantwoorden."
+        },
+        "catalogBlockId": "certum.bco.open-vraag",
+        "plannedBlockId": "blok-8"
+      }
+    },
+    {
+      "id": "cb3abfad-6211-4a96-9f52-6e6c4a54f2d7",
+      "type": "block_content",
+      "key": "blok-8",
+      "revisionNo": 2,
+      "current": true,
+      "approved": false,
+      "lastDecision": null,
+      "promptVersion": null,
+      "modelVersion": "manual-edit",
+      "createdAt": "2026-10-05T08:12:19.039Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b",
+        "1b8c6b10-cb2c-4b25-8dab-4eebd9952b75"
+      ],
+      "payload": {
+        "body": {
+          "status": "generated",
+          "content": {
+            "title": "Een nieuw geheim: jouw afweging",
+            "feedback": "Er is niet één juiste keuze in deze situatie. Kijk bij het teruglezen van je antwoord vooral naar de kwaliteit van je afweging. Heb je de vertrouwensrelatie, de zorgen en je professionele verantwoordelijkheid alle drie expliciet gewogen? Sluit je toelichting aan bij de jongere, bij het verzoek om geheimhouding en bij wat je wel en niet weet? Maak je duidelijk welke verschillen met de eerdere situatie je keuze beïnvloeden, en past de mate waarin je keuze verschuift bij hoe groot die verschillen zijn? Als je keuze hetzelfde blijft, is het net zo belangrijk dat je uitlegt waarom de verschillen daar geen aanleiding toe geven.",
+            "question": "Bekijk de nieuwe situatie nog eens. Wat doe je nu met wat de jongere je heeft toevertrouwd en met het verzoek om geheimhouding? Beschrijf je keuze en onderbouw die met een expliciete weging van de vertrouwensrelatie, de zorgen die de informatie oproept en je professionele verantwoordelijkheid. Schrijf ook op wat je de jongere over je keuze zou zeggen. Vergelijk tot slot met je eerdere afweging: welke elementen in deze situatie verschuiven je keuze, of juist niet, en waarom?",
+            "exampleAnswer": null,
+            "catalogBlockId": "certum.bco.open-vraag"
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 8,
+        "certumPhase": "toets",
+        "routePolicy": "open_choice",
+        "reviewStatus": "draft",
+        "accreditation": {
+          "workform": "Open vraag",
+          "assessmentRole": "transfer",
+          "sourceNeedRefs": [],
+          "estimatedMinutes": 15,
+          "learningGoalContribution": "Dit blok laat de deelnemer de afweging tussen vertrouwensrelatie, zorg en professionele verantwoordelijkheid opnieuw maken in een gewijzigde situatie. Zo wordt zichtbaar of hij zijn keuze proportioneel aanpast en tegenover de jongere kan verantwoorden."
+        },
+        "catalogBlockId": "certum.bco.open-vraag",
+        "plannedBlockId": "blok-8"
+      }
+    },
+    {
+      "id": "d8eca235-e18d-4eb6-ba72-39f9ce872788",
+      "type": "block_content",
+      "key": "blok-9",
+      "revisionNo": 1,
+      "current": true,
+      "approved": false,
+      "lastDecision": null,
+      "promptVersion": "training-block-content/v1.2",
+      "modelVersion": "claude-opus-5-5 · medium",
+      "createdAt": "2026-10-05T05:45:23.910Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b",
+        "1b8c6b10-cb2c-4b25-8dab-4eebd9952b75"
+      ],
+      "payload": {
+        "body": {
+          "status": "generated",
+          "content": {
+            "title": "Feedback op je afweging in de nieuwe situatie",
+            "instructions": "Je geeft feedback aan een jeugdprofessional uit een wijkteam die een praktijksimulatie volgt. In de oorspronkelijke situatie vertrouwde een 15-jarig meisje hem toe dat ze 's avonds laat afspreekt met een 19-jarige jongen die ze online leerde kennen. Ze vroeg dit geheim te houden voor haar moeder en dreigde anders niets meer te vertellen. Daarna belde haar moeder met de vraag of de professional iets weet wat zij moet weten. In de transfervraag kreeg de deelnemer een vergelijkbaar moment: een jongere vertrouwt in een later gesprek nieuwe informatie toe onder voorwaarde van geheimhouding, terwijl de mate van zorg of de beschikbare informatie anders is.\n\nJe beschikt over de antwoorden van de deelnemer op de eerdere vragen: zijn keuze en onderbouwing in de oorspronkelijke situatie, zijn toelichting aan het meisje, zijn reflectie en zijn antwoord op de transfervraag. Richt je feedback vooral op het antwoord op de transfervraag. Gebruik de eerdere antwoorden alleen waar dat helpt om de verschuiving in zijn afweging te bespreken. De precieze beschrijving van de nieuwe situatie ken je niet. Ga uit van wat de deelnemer zelf over die situatie en de gewijzigde elementen schrijft. Vul niets aan en verzin geen details. Noemt de deelnemer niet duidelijk wat er anders is, zeg dat dan en vraag hem dat expliciet te maken.\n\nGeef feedback op vier punten:\n1. Afweging: weegt hij de vertrouwensrelatie met de jongere, de zorgen die de informatie oproept en zijn professionele verantwoordelijkheid expliciet en evenwichtig tegen elkaar af?\n2. Aansluiting op de situatie: sluiten de keuze en de toelichting aan de jongere aan bij diens verzoek, positie en leeftijd en bij de gewijzigde omstandigheden zoals hij die beschrijft?\n3. Onderbouwing: is de keuze navolgbaar, verwijst hij naar concrete elementen uit de situatie en maakt hij zichtbaar welke informatie hij mist en of hij nu handelt of eerst meer wil weten?\n4. Proportionaliteit van de verschuiving: laat hij zien welke elementen zijn keuze ten opzichte van zijn eerdere afweging verschuiven en waarom? Past de mate van verschuiving bij de mate waarin zorg of informatie is veranderd? Een keuze die gelijk blijft kan ook proportioneel zijn, als hij dat beargumenteert.\n\nMeerdere routes zijn professioneel verdedigbaar. Beoordeel niet welke route hij kiest en stel geen route voor als de juiste. Beoordeel alleen de kwaliteit van de afweging. Noem geen wetten, richtlijnen, protocollen, organisatieafspraken of onderzoek als feit. Als iets daarvan relevant lijkt, nodig hem uit zijn keuze te toetsen aan de kaders die in de training zijn aangereikt, zonder die zelf in te vullen.\n\nSchrijf in helder, zakelijk Nederlands en spreek de deelnemer aan met je. Begin met wat sterk is in zijn afweging, benoem daarna concreet wat beter onderbouwd of explicieter kan, en sluit af met een vraag die hem helpt zijn afweging verder aan te scherpen. Gebruik geen opmaak zoals kopjes of opsommingstekens.",
+            "catalogBlockId": "certum.bco.ai-feedback",
+            "availableContext": [
+              "blok-2",
+              "blok-3",
+              "blok-4",
+              "blok-8"
+            ],
+            "unavailableContext": []
+          }
+        },
+        "version": "block-content/v1",
+        "sequence": 9,
+        "certumPhase": "toets",
+        "routePolicy": "open_choice",
+        "reviewStatus": "draft",
+        "accreditation": {
+          "workform": "AI Feedback",
+          "assessmentRole": "transfer",
+          "sourceNeedRefs": [],
+          "estimatedMinutes": 5,
+          "learningGoalContribution": "Dit blok geeft route-neutrale terugkoppeling op de transferafweging. Zo ziet de deelnemer of hij relatie, zorg en verantwoordelijkheid ook in een gewijzigde situatie navolgbaar en proportioneel weegt en tegenover de jongere kan verantwoorden."
+        },
+        "catalogBlockId": "certum.bco.ai-feedback",
+        "plannedBlockId": "blok-9"
+      }
+    },
+    {
+      "id": "1b8c6b10-cb2c-4b25-8dab-4eebd9952b75",
+      "type": "block_plan",
+      "key": "main",
+      "revisionNo": 1,
+      "current": true,
+      "approved": true,
+      "lastDecision": "approved",
+      "promptVersion": "training-block-plan/v1",
+      "modelVersion": "claude-opus-5-5 · medium",
+      "createdAt": "2026-10-05T05:39:51.058Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b"
+      ],
+      "payload": {
+        "version": "bc-online-block-plan/v1",
+        "endIntent": {
+          "closingIntent": "De afsluiting benadrukt dat omgaan met een toevertrouwd geheim van een jongere een afweging blijft tussen relatie, zorg en verantwoordelijkheid. De kwaliteit zit in een navolgbare en tegenover de jongere te verantwoorden keuze.",
+          "summaryIntent": "Vat de kern samen: de elementen die de afweging bepalen, het belang van het moment van handelen en van ontbrekende informatie, en hoe gewijzigde omstandigheden de keuze kunnen verschuiven.",
+          "followUpRecommendation": null
+        },
+        "courseShell": {
+          "title": "Een toevertrouwd geheim van een 15-jarige: wat doe je ermee?",
+          "status": "concept",
+          "skjPoints": null,
+          "description": "Praktijksimulatie voor jeugdprofessionals in wijkteams. De deelnemer bepaalt wat hij doet met een geheim dat een 15-jarige hem toevertrouwt, nadat haar moeder belt met een directe vraag. Hij onderbouwt zijn keuze, reflecteert op zijn afweging, ontvangt feedback, legt zijn keuze naast gevalideerde kaders en past de afweging toe in een gewijzigde situatie.",
+          "estimatedDurationMinutes": null
+        },
+        "startIntent": {
+          "learningGoals": [
+            "De deelnemer kan afwegen hoe hij omgaat met informatie die een jongere hem onder voorwaarde van geheimhouding toevertrouwt, waarbij hij de vertrouwensrelatie, de zorgen die de informatie oproept en zijn professionele verantwoordelijkheid meeweegt, en kan zijn keuze tegenover de jongere en zichzelf onderbouwen."
+          ],
+          "explanationIntent": "De start introduceert de rol van de deelnemer als jeugdprofessional die sinds twee maanden een gezin begeleidt. De uitleg maakt duidelijk dat er meerdere verdedigbare routes zijn en dat het gaat om een navolgbare afweging, niet om één juist antwoord. Ook licht de start de opbouw toe: eerst handelen, dan reflectie, feedback, bronnen en een nieuwe situatie.",
+          "estimatedDurationMinutes": null
+        },
+        "plannedBlocks": [
+          {
+            "id": "blok-1",
+            "purpose": "De deelnemer leert de situatie kennen. Het gaat om het gesprek met het meisje, haar eigen duiding, haar geheimhoudingsverzoek met de dreiging het contact te verbreken en het telefoontje van de moeder met haar directe vraag. De spanning ontstaat zonder dat de bewust onbekende informatie wordt prijsgegeven.",
+            "sequence": 1,
+            "certumPhase": "context",
+            "whyThisBlock": "Een situatieschets in tekst is het eenvoudigste middel om alle bekende elementen helder neer te zetten, inclusief wat de professional niet weet.",
+            "catalogBlockId": "certum.bco.tekst",
+            "configurationIntent": [
+              {
+                "intent": "Beschrijf de inhoud van het individuele gesprek, het verzoek van het meisje en het telefoontje van de moeder, conform scenarioPremise en learningArc.context.",
+                "setting": "inhoud situatieschets"
+              },
+              {
+                "intent": "Laat meer informatie over de jongen, de aard van de afspraken en een eventuele organisatieafspraak bewust open.",
+                "setting": "bewust onbekend"
+              },
+              {
+                "intent": "Sluit af op het moment direct na het telefoontje, voordat de professional verdere stappen heeft gezet.",
+                "setting": "keuzemoment"
+              }
+            ]
+          },
+          {
+            "id": "blok-2",
+            "purpose": "De deelnemer maakt een eigen keuze over wat hij met de toevertrouwde informatie en het geheimhoudingsverzoek doet. Daarbij hoort of hij nu handelt of eerst meer informatie verzamelt, welke informatie hij mist en een onderbouwing met een expliciete weging van relatie, zorg en verantwoordelijkheid.",
+            "sequence": 2,
+            "certumPhase": "actie",
+            "whyThisBlock": "Bij meerdere verdedigbare routes en een open keuze maakt een open antwoord de keuze en de afweging zichtbaar zonder een juist antwoord op te leggen.",
+            "catalogBlockId": "certum.bco.open-vraag",
+            "configurationIntent": [
+              {
+                "intent": "Vraag om een eigen keuze inclusief het moment van handelen, de ontbrekende informatie en een onderbouwing die verwijst naar concrete elementen uit de situatie.",
+                "setting": "opdracht"
+              },
+              {
+                "intent": "Geen voorbeeldantwoord tonen dat één route als juist neerzet. Hooguit later intern gebruiken als illustratie van een navolgbare afweging.",
+                "setting": "voorbeeldantwoord"
+              }
+            ]
+          },
+          {
+            "id": "blok-3",
+            "purpose": "De deelnemer verwoordt hoe hij zijn keuze tegenover het meisje zou toelichten, aansluitend bij haar verzoek en haar positie als 15-jarige.",
+            "sequence": 3,
+            "certumPhase": "actie",
+            "whyThisBlock": "Een afzonderlijke open vraag levert apart bewijs voor het tweede succescriterium en blijft eenvoudiger dan een gespreksimulatie met sleutelwoorden.",
+            "catalogBlockId": "certum.bco.open-vraag",
+            "configurationIntent": [
+              {
+                "intent": "Laat de deelnemer in eigen woorden opschrijven wat hij het meisje over zijn keuze zou zeggen en waarom op die manier.",
+                "setting": "opdracht"
+              }
+            ]
+          },
+          {
+            "id": "blok-4",
+            "purpose": "De deelnemer kijkt terug op zijn gekozen omgang met het verzoek en het gekozen moment van handelen. Hij maakt expliciet welk gewicht hij gaf aan de vertrouwensrelatie, de zorg en zijn verantwoordelijkheid, en wat hij met zijn keuze riskeert of mogelijk maakt.",
+            "sequence": 4,
+            "certumPhase": "reflectie",
+            "whyThisBlock": "Een open reflectievraag laat de deelnemer de expliciete trade-off uit de Blueprint zelf verwoorden. Het antwoord dient ook als input voor AI Feedback.",
+            "catalogBlockId": "certum.bco.open-vraag",
+            "configurationIntent": [
+              {
+                "intent": "Richt de reflectie op de weging tussen relatie, zorg en verantwoordelijkheid en op de risico's en mogelijkheden van de eigen keuze voor het meisje en de relatie.",
+                "setting": "reflectieopdracht"
+              }
+            ]
+          },
+          {
+            "id": "blok-5",
+            "purpose": "De deelnemer krijgt feedback op zijn gekozen omgang met informatie en verzoek en op de kwaliteit van zijn onderbouwing, toelichting en reflectie. Daarbij komen ook zijn omgang met onzekerheid en de vraag van de moeder aan bod.",
+            "sequence": 5,
+            "certumPhase": "feedback",
+            "whyThisBlock": "AI Feedback ontvangt de antwoorden op de eerdere vraagblokken. Zo kan de feedback ingaan op de individuele afweging in plaats van op een gekozen optie.",
+            "catalogBlockId": "certum.bco.ai-feedback",
+            "configurationIntent": [
+              {
+                "intent": "Gebruik de antwoorden op beide Actie-vragen en op de Reflectie-vraag.",
+                "setting": "input"
+              },
+              {
+                "intent": "Geef feedback op zorgvuldigheid van de afweging, aansluiting op het meisje en de situatie, en omgang met ontbrekende informatie en het moment van handelen, op basis van afweging, aansluiting, onderbouwing en consequenties.",
+                "setting": "beoordelingsdimensies"
+              },
+              {
+                "intent": "Beoordeel niet welke route gekozen is, maar of de belangen expliciet en evenwichtig zijn gewogen en of de keuze navolgbaar tegenover het meisje te verantwoorden is.",
+                "setting": "route-neutraliteit"
+              }
+            ]
+          },
+          {
+            "id": "blok-6",
+            "purpose": "De deelnemer legt na handelen, reflectie en feedback zijn keuze naast gevalideerde kennis. Zo ziet hij waar zijn afweging steun vindt en waar zijn handelingsruimte anders ligt dan hij aannam.",
+            "sequence": 6,
+            "certumPhase": "bron",
+            "whyThisBlock": "Een tekstblok kan later gevalideerde broninhoud tonen bij SN1, SN2 en SN3, zonder dat er nu bronnen worden vastgelegd.",
+            "catalogBlockId": "certum.bco.tekst",
+            "configurationIntent": [
+              {
+                "intent": "Toon later gevalideerde inhoud bij SN1 over kaders voor vertrouwelijkheid bij minderjarigen, SN2 over het inschatten van zorgen en het verkrijgen van informatie, en SN3 over een eventuele organisatieafspraak.",
+                "setting": "broninhoud"
+              },
+              {
+                "intent": "Nodig de deelnemer uit de eigen keuze naast de kaders te leggen, zonder één route als juist aan te wijzen.",
+                "setting": "koppeling aan keuze"
+              },
+              {
+                "intent": "Maak zichtbaar als een organisatieafspraak niet gevalideerd beschikbaar is, in plaats van die in te vullen.",
+                "setting": "open vraag SN3"
+              }
+            ]
+          },
+          {
+            "id": "blok-7",
+            "purpose": "De deelnemer krijgt een nieuw, vergelijkbaar keuzemoment: in een later gesprek vertrouwt een jongere nieuwe informatie toe onder voorwaarde van geheimhouding, maar de mate van zorg of de beschikbare informatie is anders.",
+            "sequence": 7,
+            "certumPhase": "toets",
+            "whyThisBlock": "Een korte tekstschets is voldoende om een gewijzigde situatie voor transfer neer te zetten.",
+            "catalogBlockId": "certum.bco.tekst",
+            "configurationIntent": [
+              {
+                "intent": "Beschrijf een vergelijkbaar moment conform newDecisionPoint, waarin minstens één element van zorg of beschikbare informatie duidelijk verschilt van de oorspronkelijke situatie.",
+                "setting": "nieuwe situatie"
+              }
+            ]
+          },
+          {
+            "id": "blok-8",
+            "purpose": "De deelnemer maakt opnieuw een navolgbare afweging met expliciete weging van relatie, zorg en verantwoordelijkheid. Hij geeft een passende toelichting aan de jongere en laat zien welke elementen zijn keuze verschuiven en waarom.",
+            "sequence": 8,
+            "certumPhase": "toets",
+            "whyThisBlock": "Een open antwoord maakt de transfer en de proportionaliteit van de aangepaste afweging zichtbaar. Een toets met een juist antwoord past niet bij meerdere verdedigbare routes.",
+            "catalogBlockId": "certum.bco.open-vraag",
+            "configurationIntent": [
+              {
+                "intent": "Vraag om een keuze, een onderbouwing, een toelichting aan de jongere en een expliciete vergelijking met de eerdere afweging.",
+                "setting": "transferopdracht"
+              }
+            ]
+          },
+          {
+            "id": "blok-9",
+            "purpose": "De deelnemer krijgt terugkoppeling op zijn transferafweging, gericht op afweging, aansluiting op de situatie, onderbouwing en proportionaliteit.",
+            "sequence": 9,
+            "certumPhase": "toets",
+            "whyThisBlock": "AI Feedback kan het transferantwoord als context gebruiken en route-neutraal terugkoppelen.",
+            "catalogBlockId": "certum.bco.ai-feedback",
+            "configurationIntent": [
+              {
+                "intent": "Gebruik het antwoord op de transfervraag en waar zinvol de eerdere antwoorden in Actie.",
+                "setting": "input"
+              },
+              {
+                "intent": "Koppel terug op afweging, aansluiting op situatie, onderbouwing en proportionaliteit van de verschuiving, zonder een route als juist aan te merken.",
+                "setting": "beoordelingsbasis"
+              }
+            ]
+          }
+        ],
+        "capabilityGaps": [
+          {
+            "need": "AI Feedback die aantoonbaar de volledige scenariocontext kent, zoals de situatieschets, het geheimhoudingsverzoek en de vraag van de moeder, naast de antwoorden van de deelnemer.",
+            "whyNeeded": "De feedback moet beoordelen of de keuze en de toelichting aansluiten op het meisje en de situatie. Dat vraagt kennis van de situatie zelf en niet alleen van de antwoorden.",
+            "workaround": {
+              "type": "partial",
+              "limitation": "AI Feedback ontvangt aantoonbaar alleen antwoorden op eerdere vraagblokken. Situatie-elementen die de deelnemer niet noemt, kan de feedback niet meewegen. Het oordeel over aansluiting op de situatie blijft daardoor onvolledig.",
+              "description": "De open vragen in Actie en Reflectie vragen de deelnemer zijn afweging expliciet te koppelen aan concrete elementen uit de situatie. Daardoor komt een deel van de context via de eerdere vraagblokken bij AI Feedback terecht."
+            },
+            "certumPhase": "feedback"
+          }
+        ],
+        "blueprintVersion": "blueprint-contract/v2"
+      }
+    },
+    {
+      "id": "8afcadfb-0380-443f-832f-3bf03001561b",
+      "type": "blueprint",
+      "key": "main",
+      "revisionNo": 1,
+      "current": true,
+      "approved": true,
+      "lastDecision": "approved",
+      "promptVersion": "training-blueprint/v2.1",
+      "modelVersion": "claude-opus-5-5 · medium",
+      "createdAt": "2026-10-05T05:37:33.137Z",
+      "basedOn": [
+        "756881cc-313f-4458-8683-1aac25ccb563"
+      ],
+      "payload": {
+        "title": "Een toevertrouwd geheim van een 15-jarige: wat doe je ermee?",
+        "version": "blueprint-contract/v2",
+        "ambiguity": "multiple_defensible_actions",
+        "sourceRefs": [
+          "S2",
+          "S3",
+          "S6"
+        ],
+        "assumptions": [
+          {
+            "reason": "Een vast startmoment is nodig zodat de vraag van de moeder deel uitmaakt van de situatie, terwijl de focus ligt op de omgang met het verzoek van het meisje.",
+            "assumption": "Het keuzemoment ligt na het telefoontje van de moeder, voordat de professional verdere stappen heeft gezet richting het meisje of de moeder."
+          }
+        ],
+        "learningArc": {
+          "bron": {
+            "learningIntent": "Na handelen, reflectie en feedback legt de deelnemer zijn eigen keuze naast gevalideerde kaders over vertrouwelijkheid bij minderjarigen, inzichten over het inschatten van zorgen en eventuele organisatieafspraken, zodat hij ziet waar zijn afweging steun vindt en waar zijn handelingsruimte anders ligt dan hij aannam.",
+            "sourceNeedRefs": [
+              "SN1",
+              "SN2",
+              "SN3"
+            ]
+          },
+          "actie": {
+            "routePolicy": "open_choice",
+            "participantMust": "Een eigen keuze maken over wat hij met de toevertrouwde informatie en het geheimhoudingsverzoek doet, inclusief het moment waarop hij handelt, en die keuze onderbouwen alsof hij haar aan het meisje en aan zichzelf moet uitleggen.",
+            "performanceType": "keuze_maken_en_onderbouwen"
+          },
+          "toets": {
+            "demonstrate": "Opnieuw een navolgbare afweging maken over het omgaan met informatie die onder voorwaarde van geheimhouding is toevertrouwd, met expliciete weging van relatie, zorg en verantwoordelijkheid en een passende toelichting aan de jongere.",
+            "evaluationBasis": [
+              "afweging",
+              "aansluiting_op_situatie",
+              "onderbouwing",
+              "proportionaliteit"
+            ],
+            "newDecisionPoint": "Een vergelijkbaar moment waarin een jongere in een later gesprek nieuwe informatie toevertrouwt onder voorwaarde van geheimhouding, waarbij de mate van zorg of de beschikbare informatie anders is dan in de oorspronkelijke situatie.",
+            "transferEvidence": "De deelnemer past de afweging aan op gewijzigde omstandigheden en laat zien welke elementen zijn keuze verschuiven en waarom."
+          },
+          "context": {
+            "tensionArises": "Het verzoek van het meisje en het risico het contact te verliezen staan tegenover de zorgen die haar verhaal oproept, de directe vraag van de moeder en de eigen professionele verantwoordelijkheid, terwijl de informatie onvolledig is.",
+            "participantKnows": "Wat het meisje in het individuele gesprek vertelde over de afspraken met de 19-jarige jongen, haar eigen duiding daarvan, haar geheimhoudingsverzoek met de dreiging niets meer te vertellen, en de vraag van de moeder na het telefoontje.",
+            "deliberatelyUnknown": "Meer over de jongen, de aard van de afspraken en wat er precies is gebeurd, en of er binnen de organisatie een vastgelegde werkwijze voor deze situatie geldt."
+          },
+          "feedback": {
+            "dimensions": [
+              "Zorgvuldigheid van de afweging tussen vertrouwensrelatie, zorg en verantwoordelijkheid",
+              "Aansluiting van de keuze en de toelichting op het meisje en de situatie",
+              "Omgang met ontbrekende informatie en het moment van handelen"
+            ],
+            "respondsTo": "De gekozen omgang met informatie en verzoek én de kwaliteit van de onderbouwing, waaronder hoe de deelnemer omgaat met onzekerheid en de vraag van de moeder in de achtergrond.",
+            "evaluationBasis": [
+              "afweging",
+              "aansluiting_op_situatie",
+              "onderbouwing",
+              "consequenties"
+            ],
+            "multipleDefensibleHandling": "Verschillende routes kunnen verdedigbaar zijn; feedback beoordeelt niet welke route gekozen is, maar of de belangen expliciet en evenwichtig zijn gewogen, of de consequenties voor het meisje en de relatie zijn doordacht en of de keuze navolgbaar tegenover het meisje kan worden verantwoord."
+          },
+          "reflectie": {
+            "looksBackOn": "De eigen gekozen omgang met het verzoek van het meisje en het gekozen moment van handelen.",
+            "explicitTradeOff": "Welk gewicht de deelnemer gaf aan de vertrouwensrelatie met het meisje tegenover de zorgen die haar verhaal oproept en zijn professionele verantwoordelijkheid, en wat hij met zijn keuze riskeert of mogelijk maakt."
+          }
+        },
+        "sourceNeeds": [
+          {
+            "id": "SN1",
+            "question": "Welke professionele en wettelijke kaders gelden voor vertrouwelijkheid en het delen van informatie die een 15-jarige toevertrouwt, ook richting ouders, en welke ruimte en grenzen bieden die voor de professional?",
+            "whyNeeded": "De deelnemer moet zijn keuze na het handelen kunnen toetsen aan wat geheimhouding tegenover een minderjarige wel en niet kan inhouden.",
+            "sourceType": "wet_regelgeving"
+          },
+          {
+            "id": "SN2",
+            "question": "Welke inzichten bestaan er over het inschatten van zorgen bij een minderjarige die 's avonds afspreekt met een aanzienlijk oudere persoon die zij online heeft leren kennen, en over het verkrijgen van meer informatie zonder het contact te schaden?",
+            "whyNeeded": "De deelnemer moet zijn inschatting van de zorg en zijn keuze om nu te handelen of eerst meer te weten kunnen verdiepen.",
+            "sourceType": "richtlijn_protocol"
+          },
+          {
+            "id": "SN3",
+            "question": "Bestaat er binnen de organisatie een vastgelegde werkwijze of afspraak voor situaties waarin een minderjarige contact heeft met een aanzienlijk oudere online kennis, en wat houdt die in?",
+            "whyNeeded": "Dit is een open vraag uit de analyse die bepaalt binnen welke handelingsruimte de deelnemer zijn afweging maakt.",
+            "sourceType": "organisatiebeleid"
+          }
+        ],
+        "learningGoal": "De deelnemer kan afwegen hoe hij omgaat met informatie die een jongere hem onder voorwaarde van geheimhouding toevertrouwt, waarbij hij de vertrouwensrelatie, de zorgen die de informatie oproept en zijn professionele verantwoordelijkheid meeweegt, en kan zijn keuze tegenover de jongere en zichzelf onderbouwen.",
+        "decisionPoint": {
+          "task": "Bepaal, na het telefoontje van de moeder, wat je doet met wat het meisje je heeft toevertrouwd en met haar uitdrukkelijke verzoek om geheimhouding, inclusief of je nu een keuze maakt of eerst meer informatie verzamelt, en onderbouw hoe je dit tegenover het meisje en jezelf verantwoordt.",
+          "routePolicy": "open_choice"
+        },
+        "targetAudience": "Jeugdprofessionals in wijkteams die gezinnen met jongeren begeleiden.",
+        "participantRole": "Jeugdprofessional in een wijkteam die sinds twee maanden een gezin met een 15-jarig meisje begeleidt.",
+        "scenarioPremise": "In een individueel gesprek heeft het 15-jarige meisje verteld dat ze de afgelopen weken een paar keer 's avonds laat de deur uit is gegaan om af te spreken met een 19-jarige jongen die ze online heeft leren kennen. Volgens haar is hij aardig en is er niets gebeurd wat ze niet wilde. Ze vroeg nadrukkelijk dit niet aan haar moeder te vertellen, anders vertelt ze niets meer. De volgende ochtend belde de moeder: haar dochter is moe en prikkelbaar en zij vraagt of de professional iets weet wat zij moet weten. De professional twijfelt wat hij met het verhaal en het verzoek van het meisje doet, en of hij eerst meer moet weten.",
+        "successCriteria": [
+          "De deelnemer bepaalt hoe hij omgaat met de toevertrouwde informatie en het geheimhoudingsverzoek, en onderbouwt die keuze met een expliciete weging van de vertrouwensrelatie, de zorgen die de informatie oproept en zijn professionele verantwoordelijkheid.",
+          "De deelnemer verwoordt hoe hij zijn keuze tegenover het meisje zou toelichten, op een manier die aansluit bij haar verzoek en haar positie als 15-jarige.",
+          "De deelnemer benoemt welke informatie hij mist en maakt zichtbaar of en waarom hij nu een keuze maakt of eerst meer informatie verzamelt."
+        ],
+        "professionalDilemma": "De professional moet bepalen hoe hij omgaat met het uitdrukkelijke verzoek van het meisje om vertrouwelijkheid, waarbij zij dreigt het contact te verbreken, terwijl de moeder hem direct vraagt of er iets is wat zij moet weten. Daarbij weegt hij zijn vertrouwensrelatie met het meisje, de vraag van de moeder en zijn eigen inschatting van de situatie tegen elkaar af. Ook moet hij beslissen of hij nu al een keuze maakt of eerst meer informatie verzamelt.",
+        "selectedDirectionId": "vertrouwelijkheid-jongere"
+      }
+    },
+    {
+      "id": "d7666172-66ea-4578-b956-36aaa7a90f10",
+      "type": "end_content",
+      "key": "main",
+      "revisionNo": 1,
+      "current": true,
+      "approved": false,
+      "lastDecision": null,
+      "promptVersion": "training-block-content/v1.2",
+      "modelVersion": "claude-opus-5-5 · medium",
+      "createdAt": "2026-10-05T05:41:18.039Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b",
+        "1b8c6b10-cb2c-4b25-8dab-4eebd9952b75"
+      ],
+      "payload": {
+        "summary": "Bij informatie die een jongere onder voorwaarde van geheimhouding toevertrouwt, bepalen drie elementen je afweging: de vertrouwensrelatie met de jongere, de zorgen die de informatie oproept en je eigen professionele verantwoordelijkheid. Daarnaast spelen het moment van handelen en de informatie die je mist een rol: kies je nu, of verzamel je eerst meer informatie, en waarom? Een goede afweging maakt deze elementen expliciet, doordenkt de gevolgen voor de jongere en de relatie, en is uit te leggen aan de jongere zelf. Als de omstandigheden veranderen, bijvoorbeeld de mate van zorg of de beschikbare informatie, kan je keuze verschuiven. Het gaat erom dat je kunt laten zien welke elementen die verschuiving veroorzaken en waarom.",
+        "closingText": "Je bent aan het einde van deze praktijksimulatie gekomen. Je hebt een keuze gemaakt over wat je doet met een geheim dat een 15-jarige je toevertrouwde, terwijl haar moeder je een directe vraag stelde. Je hebt die keuze onderbouwd, verwoord hoe je haar aan het meisje zou uitleggen, teruggekeken op je afweging en je afweging opnieuw gemaakt in een gewijzigde situatie. Omgaan met een toevertrouwd geheim van een jongere blijft een afweging tussen de vertrouwensrelatie, de zorgen die de informatie oproept en je professionele verantwoordelijkheid. Er is niet altijd één juiste route. De kwaliteit van je handelen zit in een keuze die je navolgbaar kunt maken en die je tegenover de jongere en tegenover jezelf kunt verantwoorden. Neem mee wat je in deze simulatie hebt ontdekt over je eigen afwegingen, en over de momenten waarop jouw handelingsruimte anders bleek te liggen dan je aannam.",
+        "followUpRecommendation": null
+      }
+    },
+    {
+      "id": "e3407209-4b12-423c-9f67-490e6cccc8ba",
+      "type": "source",
+      "key": "src-1",
+      "revisionNo": 1,
+      "current": false,
+      "approved": false,
+      "lastDecision": "approved",
+      "promptVersion": null,
+      "modelVersion": "manual-edit",
+      "createdAt": "2026-10-05T07:44:41.403Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b"
+      ],
+      "payload": {
+        "url": null,
+        "title": "Beroepscode-2021",
+        "author": null,
+        "version": "certum-source/v1",
+        "publisher": "BPSW",
+        "sourceType": "guideline",
+        "sourceNeedRefs": [
+          "SN1"
+        ],
+        "publicationDate": "2021-10",
+        "relevantContent": "https://www.bpsw.nl/app/data/uploads/2021/10/BPSW-Beroepscode-2021.pdf"
+      }
+    },
+    {
+      "id": "bfb0953d-e41f-41fc-be97-0bbffe22ab3d",
+      "type": "source",
+      "key": "src-1",
+      "revisionNo": 2,
+      "current": false,
+      "approved": false,
+      "lastDecision": null,
+      "promptVersion": null,
+      "modelVersion": "manual-edit",
+      "createdAt": "2026-10-05T07:52:40.539Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b"
+      ],
+      "payload": {
+        "url": "https://www.bpsw.nl/app/data/uploads/2021/10/BPSW-Beroepscode-2021.pdf",
+        "title": "Beroepscode-2021",
+        "author": null,
+        "version": "certum-source/v1",
+        "publisher": "BPSW",
+        "sourceType": "guideline",
+        "sourceNeedRefs": [
+          "SN1"
+        ],
+        "publicationDate": "2021-10",
+        "relevantContent": "https://www.bpsw.nl/app/data/uploads/2021/10/BPSW-Beroepscode-2021.pdf"
+      }
+    },
+    {
+      "id": "1cdadf21-4c48-4f92-b68d-db78343c3182",
+      "type": "source",
+      "key": "src-1",
+      "revisionNo": 3,
+      "current": false,
+      "approved": false,
+      "lastDecision": "approved",
+      "promptVersion": null,
+      "modelVersion": "manual-edit",
+      "createdAt": "2026-10-05T07:52:54.169Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b"
+      ],
+      "payload": {
+        "url": "https://www.bpsw.nl/app/data/uploads/2021/10/BPSW-Beroepscode-2021.pdf",
+        "title": "Beroepscode-2021",
+        "author": null,
+        "version": "certum-source/v1",
+        "publisher": "BPSW",
+        "sourceType": "guideline",
+        "sourceNeedRefs": [
+          "SN1"
+        ],
+        "publicationDate": "2021-10",
+        "relevantContent": "Beroepscode-2021"
+      }
+    },
+    {
+      "id": "9cba2caa-a4b3-44d2-95f6-577c379382b9",
+      "type": "source",
+      "key": "src-1",
+      "revisionNo": 4,
+      "current": true,
+      "approved": true,
+      "lastDecision": "approved",
+      "promptVersion": null,
+      "modelVersion": "manual-edit",
+      "createdAt": "2026-10-05T07:59:45.081Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b"
+      ],
+      "payload": {
+        "url": "https://www.bpsw.nl/app/data/uploads/2021/10/BPSW-Beroepscode-2021.pdf",
+        "title": "Beroepscode voor professionals in sociaal werk",
+        "author": null,
+        "version": "certum-source/v1",
+        "publisher": "Beroepsvereniging van Professionals in Sociaal Werk (BPSW)",
+        "sourceType": "guideline",
+        "sourceNeedRefs": [
+          "SN1"
+        ],
+        "publicationDate": "2021-10",
+        "relevantContent": "Artikel 10 - Vertrouwelijkheid\nDe professional behandelt informatie over mensen en hun omstandigheden vertrouwelijk.\nToelichting: De professional dient een betrouwbare partner te zijn. Mensen moeten erop kunnen rekenen dat alle vertrouwelijke informatie geheim blijft. De plicht tot geheimhouding dient niet alleen het belang van de mensen op wie het handelen gericht is, maar ook het algemeen belang en dat van het beroep. Iedere persoon moet zich zonder angst voor schending van diens privacy tot een professional kunnen wenden.\n\nArtikel 11 - Uitwisselen van informatie\nDe professional vraagt toestemming voordat hij aan derden informatie over cliënten vraagt of verschaft, of met hen overlegt om op te treden voor of namens de cliënt.\nToelichting […]: Geen toestemming is vereist wanneer gevaar dreigt of wettelijke verplichtingen gelden die hiervan afwijken. Zie hiervoor artikel 13. Maar ook bij deze uitzondering geldt dat de professional streeft naar toestemming, tenzij met het vragen van toestemming ernstig nadeel voor cliënten of derden ontstaat. […] Wettelijk vastgelegde leeftijdsgrenzen bepalen of de professional aan de jeugdige zelf, en/of aan diens wettelijke vertegenwoordiger(s), of aan jeugdige én wettelijke vertegenwoordigers toestemming vraagt voor het uitwisselen van informatie. Als de jeugdige ook toestemming moet geven, dan is het van belang om de wilsbekwaamheid vast te stellen. Het niet verkrijgen van toestemming om informatie uit te wisselen, betekent overigens niet automatisch dat de professionele relatie moet worden beëindigd. Het is wel aanleiding om met de betrokkene te bespreken op welke manier dat de hulpverlening of ondersteuning kan belemmeren.\n\nArtikel 13 - Het verstrekken van informatie buiten toestemming\nHet is de professional toegestaan om onder bepaalde omstandigheden zijn plicht tot geheimhouding te doorbreken, dit mag:\n- als het delen van informatie het laatste redmiddel is om gevaar voor personen te voorkomen en toestemming vragen niet mogelijk of wenselijk is;\n- als toestemming vanwege wettelijke bepalingen niet nodig is;\n- als de cliënt (gedeeltelijk) wilsonbekwaam is en er in een noodsituatie geen wettelijke vertegenwoordiger geraadpleegd kan worden.\nToelichting […]: In geval van handelen bij (een vermoeden van) ernstig nadeel voor personen (conflict van plichten) overlegt de professional met beroepsgenoten en/of andere deskundigen. Om te bepalen op welke wijze, naar wie en hoe verstrekkend informatie gedeeld mag worden, worden criteria van schade, doeltreffendheid, subsidiariteit en proportionaliteit gehanteerd. Met (een vermoeden van) ernstig nadeel voor personen wordt niet alleen fysiek gevaar bedoeld, maar ook andere bedreigingen, zoals bedreiging van psychisch of seksueel geweld. […] Handelen buiten toestemming betekent niet automatisch dat het uitwisselen van informatie tevens buiten medeweten geschiedt. Alleen wanneer het op de hoogte brengen van het voornemen om buiten toestemming te handelen een ernstig nadeel oplevert voor betrokkenen, kan de professional na zorgvuldige afweging besluiten om ook buiten medeweten te handelen.\n\nBegrippenlijst - Conflict van plichten\nBij een conflict van plichten staan de plicht tot geheimhouding en de plicht om te spreken om gevaar of ernstig nadeel af te wenden tegenover elkaar. Bij een conflict van plichten is het van belang om een aantal vragen te beantwoorden.\n- Toestemmingsvereiste: Is alles in het werk gesteld om toestemming van de persoon tot doorbreking van het geheim te verkrijgen?\n- Schadevereiste: Levert het niet doorbreken van je geheimhoudingsplicht naar alle waarschijnlijkheid ernstige schade op?\n- Gewetensnood: Leidt het handhaven van de geheimhouding tot een ernstig conflict met het eigen geweten?\n- Subsidiariteit: Is er geen andere weg dan het doorbreken van het beroepsgeheim om het probleem op te lossen?\n- Doelmatigheid: Is het (vrijwel) zeker dat door de geheimdoorbreking de schade aan de ander (of de cliënt zelf) kan worden voorkomen?\n- Proportionaliteit: Hoeveel informatie moet je delen (mate van schending) om de schade af te wenden?"
+      }
+    },
+    {
+      "id": "5ca6af1d-9c96-4058-b4de-a7e458e2ce0c",
+      "type": "source",
+      "key": "src-2",
+      "revisionNo": 1,
+      "current": false,
+      "approved": false,
+      "lastDecision": "approved",
+      "promptVersion": null,
+      "modelVersion": "manual-edit",
+      "createdAt": "2026-10-05T07:45:39.631Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b"
+      ],
+      "payload": {
+        "url": "https://www.nji.nl/wijkteams/met-wie-mag-het-wijkteam-informatie-delen",
+        "title": "Met wie mag het wijkteam informatie delen?",
+        "author": null,
+        "version": "certum-source/v1",
+        "publisher": "Nederlands Jeugdinstituut (NJi)",
+        "sourceType": "webpage",
+        "sourceNeedRefs": [
+          "SN1"
+        ],
+        "publicationDate": null,
+        "relevantContent": "https://www.nji.nl/wijkteams/met-wie-mag-het-wijkteam-informatie-delen"
+      }
+    },
+    {
+      "id": "2956d76e-2630-4b17-ae4a-9353149c80c1",
+      "type": "source",
+      "key": "src-2",
+      "revisionNo": 2,
+      "current": false,
+      "approved": false,
+      "lastDecision": "approved",
+      "promptVersion": null,
+      "modelVersion": "manual-edit",
+      "createdAt": "2026-10-05T07:54:24.044Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b"
+      ],
+      "payload": {
+        "url": "https://www.nji.nl/wijkteams/met-wie-mag-het-wijkteam-informatie-delen",
+        "title": "Met wie mag het wijkteam informatie delen?",
+        "author": null,
+        "version": "certum-source/v1",
+        "publisher": "Nederlands Jeugdinstituut (NJi)",
+        "sourceType": "webpage",
+        "sourceNeedRefs": [
+          "SN1"
+        ],
+        "publicationDate": null,
+        "relevantContent": "Met wie mag het wijkteam informatie delen?"
+      }
+    },
+    {
+      "id": "5db63582-24dd-4b08-949f-1bf9e91f27c9",
+      "type": "source",
+      "key": "src-2",
+      "revisionNo": 3,
+      "current": true,
+      "approved": true,
+      "lastDecision": "approved",
+      "promptVersion": null,
+      "modelVersion": "manual-edit",
+      "createdAt": "2026-10-05T07:59:46.934Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b"
+      ],
+      "payload": {
+        "url": "https://www.nji.nl/wijkteams/met-wie-mag-het-wijkteam-informatie-delen",
+        "title": "Met wie mag het wijkteam informatie delen?",
+        "author": null,
+        "version": "certum-source/v1",
+        "publisher": "Nederlands Jeugdinstituut (NJi)",
+        "sourceType": "webpage",
+        "sourceNeedRefs": [
+          "SN1"
+        ],
+        "publicationDate": null,
+        "relevantContent": "Wanneer mag het wijkteam informatie delen?\nDe wijkteamprofessional moet bijna altijd toestemming vragen om jouw informatie met anderen te delen. Alleen als de wijkteamprofessional zich veel zorgen maakt, mag die dat zonder jouw toestemming doen. Bijvoorbeeld als je kinderen thuis niet meer veilig zijn en het delen van informatie vervelende gevolgen voorkomt. Dat heet conflict van plichten.\n\nAfspreken wie informatie krijgt\nIn het beste geval praat het wijkteam niet óver jou of het gezin met anderen, maar samen mét jou. Jullie spreken dan samen af aan wie jullie informatie geven en hoe. Daarna is het goed als jullie allebei bij het gesprek zijn. Zo weet je altijd wat er besproken is.\n\nInformatie over de hulp aan je kind\nKrijgt je kind hulp van het wijkteam? De hulpverlener mag niet altijd informatie over je kind delen met jou. Dat hangt af van hoe oud je kind is en of je het gezag hebt.\n- Is je kind 12, 13, 14 of 15 jaar en heb je gezag? De hulpverlener mag je op de hoogte houden. Het wijkteam moet wel eerst met je kind praten over wat het gaat vertellen en hoe.\n- Is je kind 16 of 17 jaar en heb je gezag? Je kind beslist zelf of de hulpverlener informatie met jou mag delen. Maakt het wijkteam zich grote zorgen om de veiligheid van je kind? De hulpverlener kan dan beslissen je toch informatie te geven, ook als je kind dat niet wil."
+      }
+    },
+    {
+      "id": "6dea09ea-f0e6-4f8f-98b1-290c8b0c6b85",
+      "type": "source",
+      "key": "src-3",
+      "revisionNo": 1,
+      "current": false,
+      "approved": false,
+      "lastDecision": null,
+      "promptVersion": null,
+      "modelVersion": "manual-edit",
+      "createdAt": "2026-10-05T07:46:17.355Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b"
+      ],
+      "payload": {
+        "url": "https://www.nji.nl/seksuele-uitbuiting/signalering",
+        "title": "Online seksueel misbruik",
+        "author": null,
+        "version": "certum-source/v1",
+        "publisher": "Nederlands Jeugdinstituut (NJi)",
+        "sourceType": "webpage",
+        "sourceNeedRefs": [
+          "SN2"
+        ],
+        "publicationDate": null,
+        "relevantContent": "https://www.nji.nl/seksuele-uitbuiting/signalering"
+      }
+    },
+    {
+      "id": "7c35c9a1-93f0-4fb6-b03c-bce02c3e89e6",
+      "type": "source",
+      "key": "src-3",
+      "revisionNo": 2,
+      "current": false,
+      "approved": false,
+      "lastDecision": "approved",
+      "promptVersion": null,
+      "modelVersion": "manual-edit",
+      "createdAt": "2026-10-05T07:46:37.889Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b"
+      ],
+      "payload": {
+        "url": "https://www.nji.nl/kindermishandeling/online-seksueel-misbruik",
+        "title": "Online seksueel misbruik",
+        "author": null,
+        "version": "certum-source/v1",
+        "publisher": "Nederlands Jeugdinstituut (NJi)",
+        "sourceType": "webpage",
+        "sourceNeedRefs": [
+          "SN2"
+        ],
+        "publicationDate": null,
+        "relevantContent": "https://www.nji.nl/kindermishandeling/online-seksueel-misbruik"
+      }
+    },
+    {
+      "id": "3d5a7f21-21c9-41db-9687-a627e3f57666",
+      "type": "source",
+      "key": "src-3",
+      "revisionNo": 3,
+      "current": false,
+      "approved": false,
+      "lastDecision": "approved",
+      "promptVersion": null,
+      "modelVersion": "manual-edit",
+      "createdAt": "2026-10-05T07:54:34.673Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b"
+      ],
+      "payload": {
+        "url": "https://www.nji.nl/kindermishandeling/online-seksueel-misbruik",
+        "title": "Online seksueel misbruik",
+        "author": null,
+        "version": "certum-source/v1",
+        "publisher": "Nederlands Jeugdinstituut (NJi)",
+        "sourceType": "webpage",
+        "sourceNeedRefs": [
+          "SN2"
+        ],
+        "publicationDate": null,
+        "relevantContent": "Online seksueel misbruik"
+      }
+    },
+    {
+      "id": "7a9632d0-13f9-4dff-8564-04ba01e84adc",
+      "type": "source",
+      "key": "src-3",
+      "revisionNo": 4,
+      "current": true,
+      "approved": true,
+      "lastDecision": "approved",
+      "promptVersion": null,
+      "modelVersion": "manual-edit",
+      "createdAt": "2026-10-05T07:59:48.903Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b"
+      ],
+      "payload": {
+        "url": "https://www.nji.nl/kindermishandeling/online-seksueel-misbruik",
+        "title": "Online seksueel misbruik",
+        "author": null,
+        "version": "certum-source/v1",
+        "publisher": "Nederlands Jeugdinstituut (NJi)",
+        "sourceType": "webpage",
+        "sourceNeedRefs": [
+          "SN2"
+        ],
+        "publicationDate": null,
+        "relevantContent": "Hoe weet je of een kind online seksueel misbruikt wordt?\nHet is belangrijk om gevoelig te zijn voor signalen van online seksueel misbruik. Gevoelens van schaamte en angst voor reacties van anderen bij het kind of de jongere zorgen vaak dat het moeilijk is om te signaleren. Maar een kind of jongere kan wel ander gedrag gaan vertonen door de angst, stress of schaamte die gepaard gaan met online seksueel misbruik. De volgende signalen kunnen wijzen op online seksueel misbruik.\n- Het belangrijkste signaal is wanneer een kind vertelt wat er is gebeurd. Of in meer voorzichtige woorden aangeeft online contact te hebben met een vreemde.\n- Slachtoffers hebben vaak last van angst, stress en schaamte. Vermijdt iemand het afspreken met vrienden bijvoorbeeld? Dan kan dat een signaal zijn.\n- Bij slachtoffers is er ook vaak sprake van fysieke of mentale afwezigheid op school.\n- Kinderen die offline risico lopen op seksueel misbruik, lopen hier online ook meer kans op."
+      }
+    },
+    {
+      "id": "90dc7ada-9be1-449a-af60-0e0a51556cc3",
+      "type": "source",
+      "key": "src-4",
+      "revisionNo": 1,
+      "current": false,
+      "approved": false,
+      "lastDecision": "approved",
+      "promptVersion": null,
+      "modelVersion": "manual-edit",
+      "createdAt": "2026-10-05T07:47:16.497Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b"
+      ],
+      "payload": {
+        "url": "https://www.nji.nl/seksuele-uitbuiting/signalering",
+        "title": "Signalering van seksuele uitbuiting",
+        "author": null,
+        "version": "certum-source/v1",
+        "publisher": "Nederlands Jeugdinstituut (NJi)",
+        "sourceType": "webpage",
+        "sourceNeedRefs": [
+          "SN2"
+        ],
+        "publicationDate": null,
+        "relevantContent": "https://www.nji.nl/seksuele-uitbuiting/signalering"
+      }
+    },
+    {
+      "id": "24115cd6-eb94-4388-834f-a736eda0fed7",
+      "type": "source",
+      "key": "src-4",
+      "revisionNo": 2,
+      "current": false,
+      "approved": false,
+      "lastDecision": "approved",
+      "promptVersion": null,
+      "modelVersion": "manual-edit",
+      "createdAt": "2026-10-05T07:54:43.740Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b"
+      ],
+      "payload": {
+        "url": "https://www.nji.nl/seksuele-uitbuiting/signalering",
+        "title": "Signalering van seksuele uitbuiting",
+        "author": null,
+        "version": "certum-source/v1",
+        "publisher": "Nederlands Jeugdinstituut (NJi)",
+        "sourceType": "webpage",
+        "sourceNeedRefs": [
+          "SN2"
+        ],
+        "publicationDate": null,
+        "relevantContent": "Signalering van seksuele uitbuiting"
+      }
+    },
+    {
+      "id": "09b39bd6-ad9a-4b2f-9216-a23681765098",
+      "type": "source",
+      "key": "src-4",
+      "revisionNo": 3,
+      "current": true,
+      "approved": true,
+      "lastDecision": "approved",
+      "promptVersion": null,
+      "modelVersion": "manual-edit",
+      "createdAt": "2026-10-05T07:59:50.767Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b"
+      ],
+      "payload": {
+        "url": "https://www.nji.nl/seksuele-uitbuiting/signalering",
+        "title": "Signalering van seksuele uitbuiting",
+        "author": null,
+        "version": "certum-source/v1",
+        "publisher": "Nederlands Jeugdinstituut (NJi)",
+        "sourceType": "webpage",
+        "sourceNeedRefs": [
+          "SN2"
+        ],
+        "publicationDate": null,
+        "relevantContent": "Signaleren van seksuele uitbuiting is lastig\nSignaleren of er sprake is van seksuele uitbuiting is niet eenvoudig. Dit heeft een aantal redenen:\n- De uitbuiters zijn vaak online actief. Hierdoor is het probleem vaak niet zichtbaar.\n- Kinderen die slachtoffer zijn van seksuele uitbuiting ontkennen vaak dat er sprake is van gedwongen seks of uitbuiting. Ook komt het vaak voor dat zij het niet op die manier beleefd hebben.\n\nDe volgende punten dragen bij aan een betere signalering:\n- Een jongere doet een onthulling over seksuele uitbuiting eerder spontaan dan tijdens een gepland gesprek. Bijvoorbeeld tijdens de afwas. Praat dus met elke jongere over seks en eventuele nare ervaringen op dit gebied. Weet wat je kunt doen waardoor een jongere je in vertrouwen neemt. Wees beschikbaar voor de jongere, oordeel niet en bied waar nodig veiligheid.\n- Slachtoffers zien de problematiek vaak anders dan professionals. Zo voelen meisjes zich niet altijd het slachtoffer van seksuele uitbuiting. Ze zien de uitbuiters als hun vriend of ex-vriend, voelen zich sterk loyaal aan hem en ervaren rouw wanneer zij van hem loskomen.\n\n[…] Signalen kunnen ook op andere problematiek wijzen. Wanneer een onderbuikgevoel of signalen aanwezig zijn, is het in ieder geval belangrijk om uit te zoeken wat er aan de hand is."
+      }
+    },
+    {
+      "id": "322316b3-4ac2-4245-add2-bc24232bbab7",
+      "type": "start_content",
+      "key": "main",
+      "revisionNo": 1,
+      "current": true,
+      "approved": false,
+      "lastDecision": null,
+      "promptVersion": "training-block-content/v1.2",
+      "modelVersion": "claude-opus-5-5 · medium",
+      "createdAt": "2026-10-05T05:41:17.548Z",
+      "basedOn": [
+        "8afcadfb-0380-443f-832f-3bf03001561b",
+        "1b8c6b10-cb2c-4b25-8dab-4eebd9952b75"
+      ],
+      "payload": {
+        "title": "Een toevertrouwd geheim van een 15-jarige: wat doe je ermee?",
+        "introduction": "Welkom bij deze praktijksimulatie. Je bent jeugdprofessional in een wijkteam en begeleidt sinds twee maanden een gezin met een 15-jarig meisje. In een individueel gesprek vertrouwt zij je iets toe, met het uitdrukkelijke verzoek het niet aan haar moeder te vertellen. Kort daarna belt haar moeder met een directe vraag. Jij staat voor de keuze wat je doet met wat het meisje je heeft verteld en met haar verzoek. In deze situatie zijn meerdere routes professioneel verdedigbaar. Het gaat dus niet om het ene juiste antwoord, maar om een zorgvuldige en navolgbare afweging. Je weegt de vertrouwensrelatie met het meisje, de zorgen die haar verhaal oproept en je eigen professionele verantwoordelijkheid tegen elkaar af. Je bepaalt ook of je nu een keuze maakt of eerst meer wilt weten, en hoe je je keuze aan het meisje zou uitleggen. De simulatie is als volgt opgebouwd. Eerst lees je de situatie en maak je je eigen keuze, die je onderbouwt. Daarna verwoord je hoe je die keuze tegenover het meisje toelicht. Vervolgens kijk je terug op je afweging en krijg je feedback. Daarna leg je je keuze naast kaders en inzichten over vertrouwelijkheid en het inschatten van zorgen. Tot slot pas je je afweging toe in een nieuwe, vergelijkbare situatie waarin de omstandigheden anders zijn. Neem de tijd om je keuze echt te maken voordat je verder gaat, en verwijs in je antwoorden zo concreet mogelijk naar wat er in de situatie speelt.",
+        "learningGoals": [
+          "De deelnemer kan afwegen hoe hij omgaat met informatie die een jongere hem onder voorwaarde van geheimhouding toevertrouwt, waarbij hij de vertrouwensrelatie, de zorgen die de informatie oproept en zijn professionele verantwoordelijkheid meeweegt, en kan zijn keuze tegenover de jongere en zichzelf onderbouwen."
+        ]
+      }
+    }
+  ],
+  "events": [
+    {
+      "eventNo": 53,
+      "type": "direction_selected",
+      "revisionId": "756881cc-313f-4458-8683-1aac25ccb563",
+      "data": {
+        "trainingDirectionId": "vertrouwelijkheid-jongere"
+      },
+      "at": "2026-10-05T05:36:52.608Z"
+    },
+    {
+      "eventNo": 54,
+      "type": "approved",
+      "revisionId": "8afcadfb-0380-443f-832f-3bf03001561b",
+      "data": {},
+      "at": "2026-10-05T05:39:01.456Z"
+    },
+    {
+      "eventNo": 55,
+      "type": "approved",
+      "revisionId": "1b8c6b10-cb2c-4b25-8dab-4eebd9952b75",
+      "data": {},
+      "at": "2026-10-05T05:40:34.611Z"
+    },
+    {
+      "eventNo": 56,
+      "type": "approved",
+      "revisionId": "e3407209-4b12-423c-9f67-490e6cccc8ba",
+      "data": {},
+      "at": "2026-10-05T07:48:03.906Z"
+    },
+    {
+      "eventNo": 57,
+      "type": "approved",
+      "revisionId": "5ca6af1d-9c96-4058-b4de-a7e458e2ce0c",
+      "data": {},
+      "at": "2026-10-05T07:48:07.361Z"
+    },
+    {
+      "eventNo": 58,
+      "type": "approved",
+      "revisionId": "7c35c9a1-93f0-4fb6-b03c-bce02c3e89e6",
+      "data": {},
+      "at": "2026-10-05T07:48:10.983Z"
+    },
+    {
+      "eventNo": 59,
+      "type": "approved",
+      "revisionId": "90dc7ada-9be1-449a-af60-0e0a51556cc3",
+      "data": {},
+      "at": "2026-10-05T07:48:13.510Z"
+    },
+    {
+      "eventNo": 60,
+      "type": "approved",
+      "revisionId": "1cdadf21-4c48-4f92-b68d-db78343c3182",
+      "data": {},
+      "at": "2026-10-05T07:55:13.294Z"
+    },
+    {
+      "eventNo": 61,
+      "type": "approved",
+      "revisionId": "2956d76e-2630-4b17-ae4a-9353149c80c1",
+      "data": {},
+      "at": "2026-10-05T07:55:15.880Z"
+    },
+    {
+      "eventNo": 62,
+      "type": "approved",
+      "revisionId": "3d5a7f21-21c9-41db-9687-a627e3f57666",
+      "data": {},
+      "at": "2026-10-05T07:55:18.148Z"
+    },
+    {
+      "eventNo": 63,
+      "type": "approved",
+      "revisionId": "24115cd6-eb94-4388-834f-a736eda0fed7",
+      "data": {},
+      "at": "2026-10-05T07:55:20.371Z"
+    },
+    {
+      "eventNo": 64,
+      "type": "approved",
+      "revisionId": "9cba2caa-a4b3-44d2-95f6-577c379382b9",
+      "data": {},
+      "at": "2026-10-05T08:06:56.031Z"
+    },
+    {
+      "eventNo": 65,
+      "type": "approved",
+      "revisionId": "5db63582-24dd-4b08-949f-1bf9e91f27c9",
+      "data": {},
+      "at": "2026-10-05T08:07:41.225Z"
+    },
+    {
+      "eventNo": 66,
+      "type": "approved",
+      "revisionId": "7a9632d0-13f9-4dff-8564-04ba01e84adc",
+      "data": {},
+      "at": "2026-10-05T08:08:23.142Z"
+    },
+    {
+      "eventNo": 67,
+      "type": "approved",
+      "revisionId": "09b39bd6-ad9a-4b2f-9216-a23681765098",
+      "data": {},
+      "at": "2026-10-05T08:08:24.662Z"
+    }
+  ],
+  "workspace": {
+    "training": {
+      "id": "0ff3cc98-453a-46fc-ac1e-8a5dd0e37a32",
+      "code": "TR-0014",
+      "title": "Een toevertrouwd geheim van een 15-jarige: wat doe je ermee?",
+      "createdAt": "2026-10-05T05:31:25.891Z",
+      "updatedAt": "2026-10-05T08:12:19.039Z"
+    },
+    "input": {
+      "kind": "casus",
+      "text": "Een jeugdprofessional in een wijkteam begeleidt sinds twee maanden een gezin met een 15-jarig meisje. In een individueel gesprek vertelt het meisje dat ze de afgelopen weken een paar keer 's avonds laat de deur uit is gegaan om af te spreken met een jongen van 19 die ze online heeft leren kennen. Ze zegt dat hij aardig is, dat er niets is gebeurd wat ze niet wilde, en vraagt de professional nadrukkelijk dit niet aan haar moeder te vertellen: \"Als je het zegt, vertel ik je niks meer.\" De volgende ochtend belt de moeder. Ze vertelt dat haar dochter de laatste tijd moe en prikkelbaar is en vraagt of de professional iets weet wat zij als moeder zou moeten weten. De professional twijfelt wat hij de moeder nu antwoordt, wat hij met het verhaal van het meisje doet en of hij eerst zelf meer moet weten voordat hij een keuze maakt."
+    },
+    "analysis": {
+      "revisionId": "756881cc-313f-4458-8683-1aac25ccb563",
+      "outcome": {
+        "outcome": "ready",
+        "summary": "Een jeugdprofessional in een wijkteam begeleidt sinds twee maanden een gezin met een 15-jarig meisje. Het meisje vertelt in een individueel gesprek dat ze de afgelopen weken een paar keer 's avonds laat de deur uit is gegaan om af te spreken met een 19-jarige jongen die ze online heeft leren kennen. Volgens haar is hij aardig en is er niets gebeurd wat ze niet wilde. Ze vraagt nadrukkelijk dit niet aan haar moeder te vertellen en zegt dat ze anders niets meer vertelt. De volgende ochtend belt de moeder. Zij vertelt dat haar dochter moe en prikkelbaar is en vraagt of de professional iets weet wat zij als moeder zou moeten weten. De professional twijfelt wat hij antwoordt, wat hij met het verhaal van het meisje doet en of hij eerst meer moet weten.",
+        "rationale": "De casus bevat een concreet en spanningsvol keuzemoment: een jongere vraagt om geheimhouding terwijl haar moeder direct om informatie vraagt, en de professional twijfelt hoe en wanneer hij handelt. Er zijn meerdere verdedigbare routes, waardoor de richtingen als open keuze zijn opgezet. Of een vaste organisatiewerkwijze geldt, kan dit routebeleid nog veranderen.",
+        "targetAudience": "Jeugdprofessionals in wijkteams die gezinnen met jongeren begeleiden.",
+        "abstractionNotes": [
+          {
+            "advice": "Bij uitwerking leeftijden en termijnen globaler formuleren, zolang het leeftijdsverschil en de minderjarigheid als relevant gegeven behouden blijven.",
+            "feature": "De combinatie van precieze leeftijden, de duur van de begeleiding en de manier waarop de jongeren elkaar hebben leren kennen."
+          },
+          {
+            "advice": "Het citaat kan worden geparafraseerd of herschreven, met behoud van de strekking dat zij het contact afhankelijk maakt van geheimhouding.",
+            "feature": "Het letterlijke citaat van het meisje."
+          }
+        ],
+        "sourceCandidates": [
+          {
+            "term": "Beroepsgeheim en regels rond het delen van informatie met ouders in de jeugdhulp",
+            "whyPossiblyRelevant": "De professional moet bepalen wat hij van wat een 15-jarige hem vertelt met haar moeder kan of mag delen; welke regels daarvoor gelden, kan de Bron-fase onderzoeken."
+          },
+          {
+            "term": "Meldcode huiselijk geweld en kindermishandeling",
+            "whyPossiblyRelevant": "De input beschrijft nachtelijke afspraken van een minderjarige met een oudere jongen die zij online heeft ontmoet; of en hoe een afwegingskader voor zorgsignalen hier van toepassing is, kan later worden onderzocht."
+          },
+          {
+            "term": "Kennis over signalen van online benadering en uitbuiting van minderjarigen",
+            "whyPossiblyRelevant": "De Bron-fase kan nagaan welke signalen in de literatuur worden genoemd en hoe professionals deze kunnen wegen, zonder dat de input vaststelt dat hiervan sprake is."
+          }
+        ],
+        "trainingDirections": [
+          {
+            "id": "antwoord-aan-moeder",
+            "focus": "De moeder belt en vraagt rechtstreeks of de professional iets weet wat zij moet weten, terwijl het meisje kort daarvoor om geheimhouding heeft gevraagd. De professional moet ter plekke bepalen wat hij de moeder antwoordt.",
+            "title": "Reageren op de directe vraag van de moeder",
+            "sourceRefs": [
+              "S3",
+              "S4",
+              "S5",
+              "S6"
+            ],
+            "routePolicy": "open_choice",
+            "proposedLearningGoal": "De deelnemer kan in een telefoongesprek met een ouder die om informatie over haar kind vraagt, bepalen hoe hij recht doet aan de zorg van de ouder en aan het vertrouwen dat de jongere hem heeft gegeven, en zijn antwoord professioneel verantwoorden."
+          },
+          {
+            "id": "vertrouwelijkheid-jongere",
+            "focus": "Het meisje vertelt over afspraken 's avonds laat met een oudere jongen die ze online heeft leren kennen en vraagt nadrukkelijk dit niet aan haar moeder te vertellen, met de mededeling dat ze anders niets meer vertelt. De professional moet bepalen wat hij met deze informatie en dit verzoek doet.",
+            "title": "Omgaan met het geheimhoudingsverzoek van de jongere",
+            "sourceRefs": [
+              "S2",
+              "S3",
+              "S6"
+            ],
+            "routePolicy": "open_choice",
+            "proposedLearningGoal": "De deelnemer kan afwegen hoe hij omgaat met informatie die een jongere hem onder voorwaarde van geheimhouding toevertrouwt, waarbij hij de vertrouwensrelatie, de zorgen die de informatie oproept en zijn professionele verantwoordelijkheid meeweegt, en kan zijn keuze tegenover de jongere en zichzelf onderbouwen."
+          },
+          {
+            "id": "eerst-meer-weten",
+            "focus": "De professional twijfelt of hij al genoeg weet om een keuze te maken, of dat hij eerst zelf meer moet weten. Het keuzemoment betreft de vraag hoeveel duidelijkheid nodig is voordat hij handelt en wat uitstel betekent voor het meisje en de moeder.",
+            "title": "Handelen of eerst meer informatie verzamelen",
+            "sourceRefs": [
+              "S2",
+              "S5",
+              "S6"
+            ],
+            "routePolicy": "open_choice",
+            "proposedLearningGoal": "De deelnemer kan beoordelen of de beschikbare informatie voldoende is om te handelen of dat nadere verkenning nodig is, daarbij de risico's van handelen en van uitstellen voor de jongere en de ouder afwegen, en deze inschatting professioneel verantwoorden."
+          }
+        ],
+        "professionalDilemma": "De professional moet bepalen hoe hij omgaat met het uitdrukkelijke verzoek van het meisje om vertrouwelijkheid, waarbij zij dreigt het contact te verbreken, terwijl de moeder hem direct vraagt of er iets is wat zij moet weten. Daarbij weegt hij zijn vertrouwensrelatie met het meisje, de vraag van de moeder en zijn eigen inschatting van de situatie tegen elkaar af. Ook moet hij beslissen of hij nu al een keuze maakt of eerst meer informatie verzamelt.",
+        "decisionRelevantGaps": [
+          {
+            "affects": "richtingkeuze",
+            "question": "Geldt binnen de organisatie van de professional een vastgelegde werkwijze of afspraak voor situaties waarin een minderjarige contact heeft met een aanzienlijk oudere persoon die zij online heeft leren kennen?",
+            "howItChangesTheDecision": "Als de organisatie één handelingslijn voorschrijft, kan een of meer richtingen beter als prescribed_action worden vormgegeven en verschuift het leerdoel van afwegen naar zorgvuldig uitvoeren van die lijn."
+          },
+          {
+            "affects": "doelgroep",
+            "question": "Is de training bedoeld voor beginnende of voor ervaren jeugdprofessionals?",
+            "howItChangesTheDecision": "Bij beginnende professionals ligt de nadruk eerder op herkennen en verantwoorden van de afweging, bij ervaren professionals op het hanteren van de spanning in het gesprek met jongere en ouder."
+          }
+        ],
+        "proposedLearningGoal": "De deelnemer kan in een situatie waarin een jongere om geheimhouding vraagt en een ouder om informatie, bepalen hoe hij de vertrouwensrelatie met de jongere, de vraag van de ouder en zijn eigen verantwoordelijkheid voor de veiligheid van de jongere tegen elkaar afweegt, en deze keuze professioneel onderbouwen."
+      },
+      "segments": [
+        {
+          "id": "S1",
+          "text": "Een jeugdprofessional in een wijkteam begeleidt sinds twee maanden een gezin met een 15-jarig meisje."
+        },
+        {
+          "id": "S2",
+          "text": "In een individueel gesprek vertelt het meisje dat ze de afgelopen weken een paar keer 's avonds laat de deur uit is gegaan om af te spreken met een jongen van 19 die ze online heeft leren kennen."
+        },
+        {
+          "id": "S3",
+          "text": "Ze zegt dat hij aardig is, dat er niets is gebeurd wat ze niet wilde, en vraagt de professional nadrukkelijk dit niet aan haar moeder te vertellen: \"Als je het zegt, vertel ik je niks meer.\""
+        },
+        {
+          "id": "S4",
+          "text": "De volgende ochtend belt de moeder."
+        },
+        {
+          "id": "S5",
+          "text": "Ze vertelt dat haar dochter de laatste tijd moe en prikkelbaar is en vraagt of de professional iets weet wat zij als moeder zou moeten weten."
+        },
+        {
+          "id": "S6",
+          "text": "De professional twijfelt wat hij de moeder nu antwoordt, wat hij met het verhaal van het meisje doet en of hij eerst zelf meer moet weten voordat hij een keuze maakt."
+        }
+      ],
+      "epistemicFlags": [],
+      "selectedDirectionId": "vertrouwelijkheid-jongere"
+    },
+    "blueprint": {
+      "revisionId": "8afcadfb-0380-443f-832f-3bf03001561b",
+      "revisionNo": 1,
+      "payload": {
+        "title": "Een toevertrouwd geheim van een 15-jarige: wat doe je ermee?",
+        "version": "blueprint-contract/v2",
+        "ambiguity": "multiple_defensible_actions",
+        "sourceRefs": [
+          "S2",
+          "S3",
+          "S6"
+        ],
+        "assumptions": [
+          {
+            "reason": "Een vast startmoment is nodig zodat de vraag van de moeder deel uitmaakt van de situatie, terwijl de focus ligt op de omgang met het verzoek van het meisje.",
+            "assumption": "Het keuzemoment ligt na het telefoontje van de moeder, voordat de professional verdere stappen heeft gezet richting het meisje of de moeder."
+          }
+        ],
+        "learningArc": {
+          "bron": {
+            "learningIntent": "Na handelen, reflectie en feedback legt de deelnemer zijn eigen keuze naast gevalideerde kaders over vertrouwelijkheid bij minderjarigen, inzichten over het inschatten van zorgen en eventuele organisatieafspraken, zodat hij ziet waar zijn afweging steun vindt en waar zijn handelingsruimte anders ligt dan hij aannam.",
+            "sourceNeedRefs": [
+              "SN1",
+              "SN2",
+              "SN3"
+            ]
+          },
+          "actie": {
+            "routePolicy": "open_choice",
+            "participantMust": "Een eigen keuze maken over wat hij met de toevertrouwde informatie en het geheimhoudingsverzoek doet, inclusief het moment waarop hij handelt, en die keuze onderbouwen alsof hij haar aan het meisje en aan zichzelf moet uitleggen.",
+            "performanceType": "keuze_maken_en_onderbouwen"
+          },
+          "toets": {
+            "demonstrate": "Opnieuw een navolgbare afweging maken over het omgaan met informatie die onder voorwaarde van geheimhouding is toevertrouwd, met expliciete weging van relatie, zorg en verantwoordelijkheid en een passende toelichting aan de jongere.",
+            "evaluationBasis": [
+              "afweging",
+              "aansluiting_op_situatie",
+              "onderbouwing",
+              "proportionaliteit"
+            ],
+            "newDecisionPoint": "Een vergelijkbaar moment waarin een jongere in een later gesprek nieuwe informatie toevertrouwt onder voorwaarde van geheimhouding, waarbij de mate van zorg of de beschikbare informatie anders is dan in de oorspronkelijke situatie.",
+            "transferEvidence": "De deelnemer past de afweging aan op gewijzigde omstandigheden en laat zien welke elementen zijn keuze verschuiven en waarom."
+          },
+          "context": {
+            "tensionArises": "Het verzoek van het meisje en het risico het contact te verliezen staan tegenover de zorgen die haar verhaal oproept, de directe vraag van de moeder en de eigen professionele verantwoordelijkheid, terwijl de informatie onvolledig is.",
+            "participantKnows": "Wat het meisje in het individuele gesprek vertelde over de afspraken met de 19-jarige jongen, haar eigen duiding daarvan, haar geheimhoudingsverzoek met de dreiging niets meer te vertellen, en de vraag van de moeder na het telefoontje.",
+            "deliberatelyUnknown": "Meer over de jongen, de aard van de afspraken en wat er precies is gebeurd, en of er binnen de organisatie een vastgelegde werkwijze voor deze situatie geldt."
+          },
+          "feedback": {
+            "dimensions": [
+              "Zorgvuldigheid van de afweging tussen vertrouwensrelatie, zorg en verantwoordelijkheid",
+              "Aansluiting van de keuze en de toelichting op het meisje en de situatie",
+              "Omgang met ontbrekende informatie en het moment van handelen"
+            ],
+            "respondsTo": "De gekozen omgang met informatie en verzoek én de kwaliteit van de onderbouwing, waaronder hoe de deelnemer omgaat met onzekerheid en de vraag van de moeder in de achtergrond.",
+            "evaluationBasis": [
+              "afweging",
+              "aansluiting_op_situatie",
+              "onderbouwing",
+              "consequenties"
+            ],
+            "multipleDefensibleHandling": "Verschillende routes kunnen verdedigbaar zijn; feedback beoordeelt niet welke route gekozen is, maar of de belangen expliciet en evenwichtig zijn gewogen, of de consequenties voor het meisje en de relatie zijn doordacht en of de keuze navolgbaar tegenover het meisje kan worden verantwoord."
+          },
+          "reflectie": {
+            "looksBackOn": "De eigen gekozen omgang met het verzoek van het meisje en het gekozen moment van handelen.",
+            "explicitTradeOff": "Welk gewicht de deelnemer gaf aan de vertrouwensrelatie met het meisje tegenover de zorgen die haar verhaal oproept en zijn professionele verantwoordelijkheid, en wat hij met zijn keuze riskeert of mogelijk maakt."
+          }
+        },
+        "sourceNeeds": [
+          {
+            "id": "SN1",
+            "question": "Welke professionele en wettelijke kaders gelden voor vertrouwelijkheid en het delen van informatie die een 15-jarige toevertrouwt, ook richting ouders, en welke ruimte en grenzen bieden die voor de professional?",
+            "whyNeeded": "De deelnemer moet zijn keuze na het handelen kunnen toetsen aan wat geheimhouding tegenover een minderjarige wel en niet kan inhouden.",
+            "sourceType": "wet_regelgeving"
+          },
+          {
+            "id": "SN2",
+            "question": "Welke inzichten bestaan er over het inschatten van zorgen bij een minderjarige die 's avonds afspreekt met een aanzienlijk oudere persoon die zij online heeft leren kennen, en over het verkrijgen van meer informatie zonder het contact te schaden?",
+            "whyNeeded": "De deelnemer moet zijn inschatting van de zorg en zijn keuze om nu te handelen of eerst meer te weten kunnen verdiepen.",
+            "sourceType": "richtlijn_protocol"
+          },
+          {
+            "id": "SN3",
+            "question": "Bestaat er binnen de organisatie een vastgelegde werkwijze of afspraak voor situaties waarin een minderjarige contact heeft met een aanzienlijk oudere online kennis, en wat houdt die in?",
+            "whyNeeded": "Dit is een open vraag uit de analyse die bepaalt binnen welke handelingsruimte de deelnemer zijn afweging maakt.",
+            "sourceType": "organisatiebeleid"
+          }
+        ],
+        "learningGoal": "De deelnemer kan afwegen hoe hij omgaat met informatie die een jongere hem onder voorwaarde van geheimhouding toevertrouwt, waarbij hij de vertrouwensrelatie, de zorgen die de informatie oproept en zijn professionele verantwoordelijkheid meeweegt, en kan zijn keuze tegenover de jongere en zichzelf onderbouwen.",
+        "decisionPoint": {
+          "task": "Bepaal, na het telefoontje van de moeder, wat je doet met wat het meisje je heeft toevertrouwd en met haar uitdrukkelijke verzoek om geheimhouding, inclusief of je nu een keuze maakt of eerst meer informatie verzamelt, en onderbouw hoe je dit tegenover het meisje en jezelf verantwoordt.",
+          "routePolicy": "open_choice"
+        },
+        "targetAudience": "Jeugdprofessionals in wijkteams die gezinnen met jongeren begeleiden.",
+        "participantRole": "Jeugdprofessional in een wijkteam die sinds twee maanden een gezin met een 15-jarig meisje begeleidt.",
+        "scenarioPremise": "In een individueel gesprek heeft het 15-jarige meisje verteld dat ze de afgelopen weken een paar keer 's avonds laat de deur uit is gegaan om af te spreken met een 19-jarige jongen die ze online heeft leren kennen. Volgens haar is hij aardig en is er niets gebeurd wat ze niet wilde. Ze vroeg nadrukkelijk dit niet aan haar moeder te vertellen, anders vertelt ze niets meer. De volgende ochtend belde de moeder: haar dochter is moe en prikkelbaar en zij vraagt of de professional iets weet wat zij moet weten. De professional twijfelt wat hij met het verhaal en het verzoek van het meisje doet, en of hij eerst meer moet weten.",
+        "successCriteria": [
+          "De deelnemer bepaalt hoe hij omgaat met de toevertrouwde informatie en het geheimhoudingsverzoek, en onderbouwt die keuze met een expliciete weging van de vertrouwensrelatie, de zorgen die de informatie oproept en zijn professionele verantwoordelijkheid.",
+          "De deelnemer verwoordt hoe hij zijn keuze tegenover het meisje zou toelichten, op een manier die aansluit bij haar verzoek en haar positie als 15-jarige.",
+          "De deelnemer benoemt welke informatie hij mist en maakt zichtbaar of en waarom hij nu een keuze maakt of eerst meer informatie verzamelt."
+        ],
+        "professionalDilemma": "De professional moet bepalen hoe hij omgaat met het uitdrukkelijke verzoek van het meisje om vertrouwelijkheid, waarbij zij dreigt het contact te verbreken, terwijl de moeder hem direct vraagt of er iets is wat zij moet weten. Daarbij weegt hij zijn vertrouwensrelatie met het meisje, de vraag van de moeder en zijn eigen inschatting van de situatie tegen elkaar af. Ook moet hij beslissen of hij nu al een keuze maakt of eerst meer informatie verzamelt.",
+        "selectedDirectionId": "vertrouwelijkheid-jongere"
+      },
+      "approved": true
+    },
+    "blockPlan": {
+      "revisionId": "1b8c6b10-cb2c-4b25-8dab-4eebd9952b75",
+      "revisionNo": 1,
+      "payload": {
+        "version": "bc-online-block-plan/v1",
+        "endIntent": {
+          "closingIntent": "De afsluiting benadrukt dat omgaan met een toevertrouwd geheim van een jongere een afweging blijft tussen relatie, zorg en verantwoordelijkheid. De kwaliteit zit in een navolgbare en tegenover de jongere te verantwoorden keuze.",
+          "summaryIntent": "Vat de kern samen: de elementen die de afweging bepalen, het belang van het moment van handelen en van ontbrekende informatie, en hoe gewijzigde omstandigheden de keuze kunnen verschuiven.",
+          "followUpRecommendation": null
+        },
+        "courseShell": {
+          "title": "Een toevertrouwd geheim van een 15-jarige: wat doe je ermee?",
+          "status": "concept",
+          "skjPoints": null,
+          "description": "Praktijksimulatie voor jeugdprofessionals in wijkteams. De deelnemer bepaalt wat hij doet met een geheim dat een 15-jarige hem toevertrouwt, nadat haar moeder belt met een directe vraag. Hij onderbouwt zijn keuze, reflecteert op zijn afweging, ontvangt feedback, legt zijn keuze naast gevalideerde kaders en past de afweging toe in een gewijzigde situatie.",
+          "estimatedDurationMinutes": null
+        },
+        "startIntent": {
+          "learningGoals": [
+            "De deelnemer kan afwegen hoe hij omgaat met informatie die een jongere hem onder voorwaarde van geheimhouding toevertrouwt, waarbij hij de vertrouwensrelatie, de zorgen die de informatie oproept en zijn professionele verantwoordelijkheid meeweegt, en kan zijn keuze tegenover de jongere en zichzelf onderbouwen."
+          ],
+          "explanationIntent": "De start introduceert de rol van de deelnemer als jeugdprofessional die sinds twee maanden een gezin begeleidt. De uitleg maakt duidelijk dat er meerdere verdedigbare routes zijn en dat het gaat om een navolgbare afweging, niet om één juist antwoord. Ook licht de start de opbouw toe: eerst handelen, dan reflectie, feedback, bronnen en een nieuwe situatie.",
+          "estimatedDurationMinutes": null
+        },
+        "plannedBlocks": [
+          {
+            "id": "blok-1",
+            "purpose": "De deelnemer leert de situatie kennen. Het gaat om het gesprek met het meisje, haar eigen duiding, haar geheimhoudingsverzoek met de dreiging het contact te verbreken en het telefoontje van de moeder met haar directe vraag. De spanning ontstaat zonder dat de bewust onbekende informatie wordt prijsgegeven.",
+            "sequence": 1,
+            "certumPhase": "context",
+            "whyThisBlock": "Een situatieschets in tekst is het eenvoudigste middel om alle bekende elementen helder neer te zetten, inclusief wat de professional niet weet.",
+            "catalogBlockId": "certum.bco.tekst",
+            "configurationIntent": [
+              {
+                "intent": "Beschrijf de inhoud van het individuele gesprek, het verzoek van het meisje en het telefoontje van de moeder, conform scenarioPremise en learningArc.context.",
+                "setting": "inhoud situatieschets"
+              },
+              {
+                "intent": "Laat meer informatie over de jongen, de aard van de afspraken en een eventuele organisatieafspraak bewust open.",
+                "setting": "bewust onbekend"
+              },
+              {
+                "intent": "Sluit af op het moment direct na het telefoontje, voordat de professional verdere stappen heeft gezet.",
+                "setting": "keuzemoment"
+              }
+            ]
+          },
+          {
+            "id": "blok-2",
+            "purpose": "De deelnemer maakt een eigen keuze over wat hij met de toevertrouwde informatie en het geheimhoudingsverzoek doet. Daarbij hoort of hij nu handelt of eerst meer informatie verzamelt, welke informatie hij mist en een onderbouwing met een expliciete weging van relatie, zorg en verantwoordelijkheid.",
+            "sequence": 2,
+            "certumPhase": "actie",
+            "whyThisBlock": "Bij meerdere verdedigbare routes en een open keuze maakt een open antwoord de keuze en de afweging zichtbaar zonder een juist antwoord op te leggen.",
+            "catalogBlockId": "certum.bco.open-vraag",
+            "configurationIntent": [
+              {
+                "intent": "Vraag om een eigen keuze inclusief het moment van handelen, de ontbrekende informatie en een onderbouwing die verwijst naar concrete elementen uit de situatie.",
+                "setting": "opdracht"
+              },
+              {
+                "intent": "Geen voorbeeldantwoord tonen dat één route als juist neerzet. Hooguit later intern gebruiken als illustratie van een navolgbare afweging.",
+                "setting": "voorbeeldantwoord"
+              }
+            ]
+          },
+          {
+            "id": "blok-3",
+            "purpose": "De deelnemer verwoordt hoe hij zijn keuze tegenover het meisje zou toelichten, aansluitend bij haar verzoek en haar positie als 15-jarige.",
+            "sequence": 3,
+            "certumPhase": "actie",
+            "whyThisBlock": "Een afzonderlijke open vraag levert apart bewijs voor het tweede succescriterium en blijft eenvoudiger dan een gespreksimulatie met sleutelwoorden.",
+            "catalogBlockId": "certum.bco.open-vraag",
+            "configurationIntent": [
+              {
+                "intent": "Laat de deelnemer in eigen woorden opschrijven wat hij het meisje over zijn keuze zou zeggen en waarom op die manier.",
+                "setting": "opdracht"
+              }
+            ]
+          },
+          {
+            "id": "blok-4",
+            "purpose": "De deelnemer kijkt terug op zijn gekozen omgang met het verzoek en het gekozen moment van handelen. Hij maakt expliciet welk gewicht hij gaf aan de vertrouwensrelatie, de zorg en zijn verantwoordelijkheid, en wat hij met zijn keuze riskeert of mogelijk maakt.",
+            "sequence": 4,
+            "certumPhase": "reflectie",
+            "whyThisBlock": "Een open reflectievraag laat de deelnemer de expliciete trade-off uit de Blueprint zelf verwoorden. Het antwoord dient ook als input voor AI Feedback.",
+            "catalogBlockId": "certum.bco.open-vraag",
+            "configurationIntent": [
+              {
+                "intent": "Richt de reflectie op de weging tussen relatie, zorg en verantwoordelijkheid en op de risico's en mogelijkheden van de eigen keuze voor het meisje en de relatie.",
+                "setting": "reflectieopdracht"
+              }
+            ]
+          },
+          {
+            "id": "blok-5",
+            "purpose": "De deelnemer krijgt feedback op zijn gekozen omgang met informatie en verzoek en op de kwaliteit van zijn onderbouwing, toelichting en reflectie. Daarbij komen ook zijn omgang met onzekerheid en de vraag van de moeder aan bod.",
+            "sequence": 5,
+            "certumPhase": "feedback",
+            "whyThisBlock": "AI Feedback ontvangt de antwoorden op de eerdere vraagblokken. Zo kan de feedback ingaan op de individuele afweging in plaats van op een gekozen optie.",
+            "catalogBlockId": "certum.bco.ai-feedback",
+            "configurationIntent": [
+              {
+                "intent": "Gebruik de antwoorden op beide Actie-vragen en op de Reflectie-vraag.",
+                "setting": "input"
+              },
+              {
+                "intent": "Geef feedback op zorgvuldigheid van de afweging, aansluiting op het meisje en de situatie, en omgang met ontbrekende informatie en het moment van handelen, op basis van afweging, aansluiting, onderbouwing en consequenties.",
+                "setting": "beoordelingsdimensies"
+              },
+              {
+                "intent": "Beoordeel niet welke route gekozen is, maar of de belangen expliciet en evenwichtig zijn gewogen en of de keuze navolgbaar tegenover het meisje te verantwoorden is.",
+                "setting": "route-neutraliteit"
+              }
+            ]
+          },
+          {
+            "id": "blok-6",
+            "purpose": "De deelnemer legt na handelen, reflectie en feedback zijn keuze naast gevalideerde kennis. Zo ziet hij waar zijn afweging steun vindt en waar zijn handelingsruimte anders ligt dan hij aannam.",
+            "sequence": 6,
+            "certumPhase": "bron",
+            "whyThisBlock": "Een tekstblok kan later gevalideerde broninhoud tonen bij SN1, SN2 en SN3, zonder dat er nu bronnen worden vastgelegd.",
+            "catalogBlockId": "certum.bco.tekst",
+            "configurationIntent": [
+              {
+                "intent": "Toon later gevalideerde inhoud bij SN1 over kaders voor vertrouwelijkheid bij minderjarigen, SN2 over het inschatten van zorgen en het verkrijgen van informatie, en SN3 over een eventuele organisatieafspraak.",
+                "setting": "broninhoud"
+              },
+              {
+                "intent": "Nodig de deelnemer uit de eigen keuze naast de kaders te leggen, zonder één route als juist aan te wijzen.",
+                "setting": "koppeling aan keuze"
+              },
+              {
+                "intent": "Maak zichtbaar als een organisatieafspraak niet gevalideerd beschikbaar is, in plaats van die in te vullen.",
+                "setting": "open vraag SN3"
+              }
+            ]
+          },
+          {
+            "id": "blok-7",
+            "purpose": "De deelnemer krijgt een nieuw, vergelijkbaar keuzemoment: in een later gesprek vertrouwt een jongere nieuwe informatie toe onder voorwaarde van geheimhouding, maar de mate van zorg of de beschikbare informatie is anders.",
+            "sequence": 7,
+            "certumPhase": "toets",
+            "whyThisBlock": "Een korte tekstschets is voldoende om een gewijzigde situatie voor transfer neer te zetten.",
+            "catalogBlockId": "certum.bco.tekst",
+            "configurationIntent": [
+              {
+                "intent": "Beschrijf een vergelijkbaar moment conform newDecisionPoint, waarin minstens één element van zorg of beschikbare informatie duidelijk verschilt van de oorspronkelijke situatie.",
+                "setting": "nieuwe situatie"
+              }
+            ]
+          },
+          {
+            "id": "blok-8",
+            "purpose": "De deelnemer maakt opnieuw een navolgbare afweging met expliciete weging van relatie, zorg en verantwoordelijkheid. Hij geeft een passende toelichting aan de jongere en laat zien welke elementen zijn keuze verschuiven en waarom.",
+            "sequence": 8,
+            "certumPhase": "toets",
+            "whyThisBlock": "Een open antwoord maakt de transfer en de proportionaliteit van de aangepaste afweging zichtbaar. Een toets met een juist antwoord past niet bij meerdere verdedigbare routes.",
+            "catalogBlockId": "certum.bco.open-vraag",
+            "configurationIntent": [
+              {
+                "intent": "Vraag om een keuze, een onderbouwing, een toelichting aan de jongere en een expliciete vergelijking met de eerdere afweging.",
+                "setting": "transferopdracht"
+              }
+            ]
+          },
+          {
+            "id": "blok-9",
+            "purpose": "De deelnemer krijgt terugkoppeling op zijn transferafweging, gericht op afweging, aansluiting op de situatie, onderbouwing en proportionaliteit.",
+            "sequence": 9,
+            "certumPhase": "toets",
+            "whyThisBlock": "AI Feedback kan het transferantwoord als context gebruiken en route-neutraal terugkoppelen.",
+            "catalogBlockId": "certum.bco.ai-feedback",
+            "configurationIntent": [
+              {
+                "intent": "Gebruik het antwoord op de transfervraag en waar zinvol de eerdere antwoorden in Actie.",
+                "setting": "input"
+              },
+              {
+                "intent": "Koppel terug op afweging, aansluiting op situatie, onderbouwing en proportionaliteit van de verschuiving, zonder een route als juist aan te merken.",
+                "setting": "beoordelingsbasis"
+              }
+            ]
+          }
+        ],
+        "capabilityGaps": [
+          {
+            "need": "AI Feedback die aantoonbaar de volledige scenariocontext kent, zoals de situatieschets, het geheimhoudingsverzoek en de vraag van de moeder, naast de antwoorden van de deelnemer.",
+            "whyNeeded": "De feedback moet beoordelen of de keuze en de toelichting aansluiten op het meisje en de situatie. Dat vraagt kennis van de situatie zelf en niet alleen van de antwoorden.",
+            "workaround": {
+              "type": "partial",
+              "limitation": "AI Feedback ontvangt aantoonbaar alleen antwoorden op eerdere vraagblokken. Situatie-elementen die de deelnemer niet noemt, kan de feedback niet meewegen. Het oordeel over aansluiting op de situatie blijft daardoor onvolledig.",
+              "description": "De open vragen in Actie en Reflectie vragen de deelnemer zijn afweging expliciet te koppelen aan concrete elementen uit de situatie. Daardoor komt een deel van de context via de eerdere vraagblokken bij AI Feedback terecht."
+            },
+            "certumPhase": "feedback"
+          }
+        ],
+        "blueprintVersion": "blueprint-contract/v2"
+      },
+      "approved": true
+    },
+    "sources": {
+      "needs": [
+        {
+          "id": "SN1",
+          "question": "Welke professionele en wettelijke kaders gelden voor vertrouwelijkheid en het delen van informatie die een 15-jarige toevertrouwt, ook richting ouders, en welke ruimte en grenzen bieden die voor de professional?",
+          "whyNeeded": "De deelnemer moet zijn keuze na het handelen kunnen toetsen aan wat geheimhouding tegenover een minderjarige wel en niet kan inhouden.",
+          "covered": true,
+          "sourceIds": [
+            "src-1",
+            "src-2"
+          ]
+        },
+        {
+          "id": "SN2",
+          "question": "Welke inzichten bestaan er over het inschatten van zorgen bij een minderjarige die 's avonds afspreekt met een aanzienlijk oudere persoon die zij online heeft leren kennen, en over het verkrijgen van meer informatie zonder het contact te schaden?",
+          "whyNeeded": "De deelnemer moet zijn inschatting van de zorg en zijn keuze om nu te handelen of eerst meer te weten kunnen verdiepen.",
+          "covered": true,
+          "sourceIds": [
+            "src-3",
+            "src-4"
+          ]
+        },
+        {
+          "id": "SN3",
+          "question": "Bestaat er binnen de organisatie een vastgelegde werkwijze of afspraak voor situaties waarin een minderjarige contact heeft met een aanzienlijk oudere online kennis, en wat houdt die in?",
+          "whyNeeded": "Dit is een open vraag uit de analyse die bepaalt binnen welke handelingsruimte de deelnemer zijn afweging maakt.",
+          "covered": false,
+          "sourceIds": []
+        }
+      ],
+      "items": [
+        {
+          "sourceId": "src-1",
+          "revisionId": "9cba2caa-a4b3-44d2-95f6-577c379382b9",
+          "revisionNo": 4,
+          "previousRevisions": 3,
+          "validated": true,
+          "validatedAt": "2026-10-05T08:06:56.031Z",
+          "payload": {
+            "url": "https://www.bpsw.nl/app/data/uploads/2021/10/BPSW-Beroepscode-2021.pdf",
+            "title": "Beroepscode voor professionals in sociaal werk",
+            "author": null,
+            "version": "certum-source/v1",
+            "publisher": "Beroepsvereniging van Professionals in Sociaal Werk (BPSW)",
+            "sourceType": "guideline",
+            "sourceNeedRefs": [
+              "SN1"
+            ],
+            "publicationDate": "2021-10",
+            "relevantContent": "Artikel 10 - Vertrouwelijkheid\nDe professional behandelt informatie over mensen en hun omstandigheden vertrouwelijk.\nToelichting: De professional dient een betrouwbare partner te zijn. Mensen moeten erop kunnen rekenen dat alle vertrouwelijke informatie geheim blijft. De plicht tot geheimhouding dient niet alleen het belang van de mensen op wie het handelen gericht is, maar ook het algemeen belang en dat van het beroep. Iedere persoon moet zich zonder angst voor schending van diens privacy tot een professional kunnen wenden.\n\nArtikel 11 - Uitwisselen van informatie\nDe professional vraagt toestemming voordat hij aan derden informatie over cliënten vraagt of verschaft, of met hen overlegt om op te treden voor of namens de cliënt.\nToelichting […]: Geen toestemming is vereist wanneer gevaar dreigt of wettelijke verplichtingen gelden die hiervan afwijken. Zie hiervoor artikel 13. Maar ook bij deze uitzondering geldt dat de professional streeft naar toestemming, tenzij met het vragen van toestemming ernstig nadeel voor cliënten of derden ontstaat. […] Wettelijk vastgelegde leeftijdsgrenzen bepalen of de professional aan de jeugdige zelf, en/of aan diens wettelijke vertegenwoordiger(s), of aan jeugdige én wettelijke vertegenwoordigers toestemming vraagt voor het uitwisselen van informatie. Als de jeugdige ook toestemming moet geven, dan is het van belang om de wilsbekwaamheid vast te stellen. Het niet verkrijgen van toestemming om informatie uit te wisselen, betekent overigens niet automatisch dat de professionele relatie moet worden beëindigd. Het is wel aanleiding om met de betrokkene te bespreken op welke manier dat de hulpverlening of ondersteuning kan belemmeren.\n\nArtikel 13 - Het verstrekken van informatie buiten toestemming\nHet is de professional toegestaan om onder bepaalde omstandigheden zijn plicht tot geheimhouding te doorbreken, dit mag:\n- als het delen van informatie het laatste redmiddel is om gevaar voor personen te voorkomen en toestemming vragen niet mogelijk of wenselijk is;\n- als toestemming vanwege wettelijke bepalingen niet nodig is;\n- als de cliënt (gedeeltelijk) wilsonbekwaam is en er in een noodsituatie geen wettelijke vertegenwoordiger geraadpleegd kan worden.\nToelichting […]: In geval van handelen bij (een vermoeden van) ernstig nadeel voor personen (conflict van plichten) overlegt de professional met beroepsgenoten en/of andere deskundigen. Om te bepalen op welke wijze, naar wie en hoe verstrekkend informatie gedeeld mag worden, worden criteria van schade, doeltreffendheid, subsidiariteit en proportionaliteit gehanteerd. Met (een vermoeden van) ernstig nadeel voor personen wordt niet alleen fysiek gevaar bedoeld, maar ook andere bedreigingen, zoals bedreiging van psychisch of seksueel geweld. […] Handelen buiten toestemming betekent niet automatisch dat het uitwisselen van informatie tevens buiten medeweten geschiedt. Alleen wanneer het op de hoogte brengen van het voornemen om buiten toestemming te handelen een ernstig nadeel oplevert voor betrokkenen, kan de professional na zorgvuldige afweging besluiten om ook buiten medeweten te handelen.\n\nBegrippenlijst - Conflict van plichten\nBij een conflict van plichten staan de plicht tot geheimhouding en de plicht om te spreken om gevaar of ernstig nadeel af te wenden tegenover elkaar. Bij een conflict van plichten is het van belang om een aantal vragen te beantwoorden.\n- Toestemmingsvereiste: Is alles in het werk gesteld om toestemming van de persoon tot doorbreking van het geheim te verkrijgen?\n- Schadevereiste: Levert het niet doorbreken van je geheimhoudingsplicht naar alle waarschijnlijkheid ernstige schade op?\n- Gewetensnood: Leidt het handhaven van de geheimhouding tot een ernstig conflict met het eigen geweten?\n- Subsidiariteit: Is er geen andere weg dan het doorbreken van het beroepsgeheim om het probleem op te lossen?\n- Doelmatigheid: Is het (vrijwel) zeker dat door de geheimdoorbreking de schade aan de ander (of de cliënt zelf) kan worden voorkomen?\n- Proportionaliteit: Hoeveel informatie moet je delen (mate van schending) om de schade af te wenden?"
+          }
+        },
+        {
+          "sourceId": "src-2",
+          "revisionId": "5db63582-24dd-4b08-949f-1bf9e91f27c9",
+          "revisionNo": 3,
+          "previousRevisions": 2,
+          "validated": true,
+          "validatedAt": "2026-10-05T08:07:41.225Z",
+          "payload": {
+            "url": "https://www.nji.nl/wijkteams/met-wie-mag-het-wijkteam-informatie-delen",
+            "title": "Met wie mag het wijkteam informatie delen?",
+            "author": null,
+            "version": "certum-source/v1",
+            "publisher": "Nederlands Jeugdinstituut (NJi)",
+            "sourceType": "webpage",
+            "sourceNeedRefs": [
+              "SN1"
+            ],
+            "publicationDate": null,
+            "relevantContent": "Wanneer mag het wijkteam informatie delen?\nDe wijkteamprofessional moet bijna altijd toestemming vragen om jouw informatie met anderen te delen. Alleen als de wijkteamprofessional zich veel zorgen maakt, mag die dat zonder jouw toestemming doen. Bijvoorbeeld als je kinderen thuis niet meer veilig zijn en het delen van informatie vervelende gevolgen voorkomt. Dat heet conflict van plichten.\n\nAfspreken wie informatie krijgt\nIn het beste geval praat het wijkteam niet óver jou of het gezin met anderen, maar samen mét jou. Jullie spreken dan samen af aan wie jullie informatie geven en hoe. Daarna is het goed als jullie allebei bij het gesprek zijn. Zo weet je altijd wat er besproken is.\n\nInformatie over de hulp aan je kind\nKrijgt je kind hulp van het wijkteam? De hulpverlener mag niet altijd informatie over je kind delen met jou. Dat hangt af van hoe oud je kind is en of je het gezag hebt.\n- Is je kind 12, 13, 14 of 15 jaar en heb je gezag? De hulpverlener mag je op de hoogte houden. Het wijkteam moet wel eerst met je kind praten over wat het gaat vertellen en hoe.\n- Is je kind 16 of 17 jaar en heb je gezag? Je kind beslist zelf of de hulpverlener informatie met jou mag delen. Maakt het wijkteam zich grote zorgen om de veiligheid van je kind? De hulpverlener kan dan beslissen je toch informatie te geven, ook als je kind dat niet wil."
+          }
+        },
+        {
+          "sourceId": "src-3",
+          "revisionId": "7a9632d0-13f9-4dff-8564-04ba01e84adc",
+          "revisionNo": 4,
+          "previousRevisions": 3,
+          "validated": true,
+          "validatedAt": "2026-10-05T08:08:23.142Z",
+          "payload": {
+            "url": "https://www.nji.nl/kindermishandeling/online-seksueel-misbruik",
+            "title": "Online seksueel misbruik",
+            "author": null,
+            "version": "certum-source/v1",
+            "publisher": "Nederlands Jeugdinstituut (NJi)",
+            "sourceType": "webpage",
+            "sourceNeedRefs": [
+              "SN2"
+            ],
+            "publicationDate": null,
+            "relevantContent": "Hoe weet je of een kind online seksueel misbruikt wordt?\nHet is belangrijk om gevoelig te zijn voor signalen van online seksueel misbruik. Gevoelens van schaamte en angst voor reacties van anderen bij het kind of de jongere zorgen vaak dat het moeilijk is om te signaleren. Maar een kind of jongere kan wel ander gedrag gaan vertonen door de angst, stress of schaamte die gepaard gaan met online seksueel misbruik. De volgende signalen kunnen wijzen op online seksueel misbruik.\n- Het belangrijkste signaal is wanneer een kind vertelt wat er is gebeurd. Of in meer voorzichtige woorden aangeeft online contact te hebben met een vreemde.\n- Slachtoffers hebben vaak last van angst, stress en schaamte. Vermijdt iemand het afspreken met vrienden bijvoorbeeld? Dan kan dat een signaal zijn.\n- Bij slachtoffers is er ook vaak sprake van fysieke of mentale afwezigheid op school.\n- Kinderen die offline risico lopen op seksueel misbruik, lopen hier online ook meer kans op."
+          }
+        },
+        {
+          "sourceId": "src-4",
+          "revisionId": "09b39bd6-ad9a-4b2f-9216-a23681765098",
+          "revisionNo": 3,
+          "previousRevisions": 2,
+          "validated": true,
+          "validatedAt": "2026-10-05T08:08:24.662Z",
+          "payload": {
+            "url": "https://www.nji.nl/seksuele-uitbuiting/signalering",
+            "title": "Signalering van seksuele uitbuiting",
+            "author": null,
+            "version": "certum-source/v1",
+            "publisher": "Nederlands Jeugdinstituut (NJi)",
+            "sourceType": "webpage",
+            "sourceNeedRefs": [
+              "SN2"
+            ],
+            "publicationDate": null,
+            "relevantContent": "Signaleren van seksuele uitbuiting is lastig\nSignaleren of er sprake is van seksuele uitbuiting is niet eenvoudig. Dit heeft een aantal redenen:\n- De uitbuiters zijn vaak online actief. Hierdoor is het probleem vaak niet zichtbaar.\n- Kinderen die slachtoffer zijn van seksuele uitbuiting ontkennen vaak dat er sprake is van gedwongen seks of uitbuiting. Ook komt het vaak voor dat zij het niet op die manier beleefd hebben.\n\nDe volgende punten dragen bij aan een betere signalering:\n- Een jongere doet een onthulling over seksuele uitbuiting eerder spontaan dan tijdens een gepland gesprek. Bijvoorbeeld tijdens de afwas. Praat dus met elke jongere over seks en eventuele nare ervaringen op dit gebied. Weet wat je kunt doen waardoor een jongere je in vertrouwen neemt. Wees beschikbaar voor de jongere, oordeel niet en bied waar nodig veiligheid.\n- Slachtoffers zien de problematiek vaak anders dan professionals. Zo voelen meisjes zich niet altijd het slachtoffer van seksuele uitbuiting. Ze zien de uitbuiters als hun vriend of ex-vriend, voelen zich sterk loyaal aan hem en ervaren rouw wanneer zij van hem loskomen.\n\n[…] Signalen kunnen ook op andere problematiek wijzen. Wanneer een onderbuikgevoel of signalen aanwezig zijn, is het in ieder geval belangrijk om uit te zoeken wat er aan de hand is."
+          }
+        }
+      ],
+      "allCovered": false
+    },
+    "content": {
+      "package": {
+        "version": "training-content-package/v1",
+        "contentContractVersion": "block-content/v1",
+        "blueprintVersion": "blueprint-contract/v2",
+        "blockPlanVersion": "bc-online-block-plan/v1",
+        "title": "Een toevertrouwd geheim van een 15-jarige: wat doe je ermee?",
+        "learningGoal": "De deelnemer kan afwegen hoe hij omgaat met informatie die een jongere hem onder voorwaarde van geheimhouding toevertrouwt, waarbij hij de vertrouwensrelatie, de zorgen die de informatie oproept en zijn professionele verantwoordelijkheid meeweegt, en kan zijn keuze tegenover de jongere en zichzelf onderbouwen.",
+        "start": {
+          "title": "Een toevertrouwd geheim van een 15-jarige: wat doe je ermee?",
+          "introduction": "Welkom bij deze praktijksimulatie. Je bent jeugdprofessional in een wijkteam en begeleidt sinds twee maanden een gezin met een 15-jarig meisje. In een individueel gesprek vertrouwt zij je iets toe, met het uitdrukkelijke verzoek het niet aan haar moeder te vertellen. Kort daarna belt haar moeder met een directe vraag. Jij staat voor de keuze wat je doet met wat het meisje je heeft verteld en met haar verzoek. In deze situatie zijn meerdere routes professioneel verdedigbaar. Het gaat dus niet om het ene juiste antwoord, maar om een zorgvuldige en navolgbare afweging. Je weegt de vertrouwensrelatie met het meisje, de zorgen die haar verhaal oproept en je eigen professionele verantwoordelijkheid tegen elkaar af. Je bepaalt ook of je nu een keuze maakt of eerst meer wilt weten, en hoe je je keuze aan het meisje zou uitleggen. De simulatie is als volgt opgebouwd. Eerst lees je de situatie en maak je je eigen keuze, die je onderbouwt. Daarna verwoord je hoe je die keuze tegenover het meisje toelicht. Vervolgens kijk je terug op je afweging en krijg je feedback. Daarna leg je je keuze naast kaders en inzichten over vertrouwelijkheid en het inschatten van zorgen. Tot slot pas je je afweging toe in een nieuwe, vergelijkbare situatie waarin de omstandigheden anders zijn. Neem de tijd om je keuze echt te maken voordat je verder gaat, en verwijs in je antwoorden zo concreet mogelijk naar wat er in de situatie speelt.",
+          "learningGoals": [
+            "De deelnemer kan afwegen hoe hij omgaat met informatie die een jongere hem onder voorwaarde van geheimhouding toevertrouwt, waarbij hij de vertrouwensrelatie, de zorgen die de informatie oproept en zijn professionele verantwoordelijkheid meeweegt, en kan zijn keuze tegenover de jongere en zichzelf onderbouwen."
+          ],
+          "estimatedDurationMinutes": null
+        },
+        "blocks": [
+          {
+            "body": {
+              "status": "generated",
+              "content": {
+                "text": "Je werkt als jeugdprofessional in een wijkteam. Sinds twee maanden begeleid je een gezin met een meisje van 15 en haar moeder. Je ziet het meisje af en toe apart, zodat zij ruimte heeft om haar eigen verhaal te doen.\n\nGisteren had je zo'n individueel gesprek met haar. Halverwege het gesprek vertelde ze dat ze de afgelopen weken een paar keer 's avonds laat de deur uit is gegaan. Ze spreekt af met een jongen van 19 die ze online heeft leren kennen. Volgens haar is hij aardig en is er niets gebeurd wat ze zelf niet wilde.\n\nAan het eind van het gesprek keek ze je aan en zei nadrukkelijk: 'Dit mag je echt niet aan mijn moeder vertellen. Als je dat doet, vertel ik je niks meer.' Je hebt het gesprek afgesloten zonder daar al iets over toe te zeggen.\n\nVanochtend belde haar moeder je op. Ze klonk bezorgd. Haar dochter is de laatste tijd moe en prikkelbaar, vertelde ze, en ze weet niet goed wat er met haar aan de hand is. Toen vroeg ze je rechtstreeks: 'Weet jij iets wat ik moet weten?' Je hebt het gesprek beëindigd zonder inhoudelijk op haar vraag in te gaan.\n\nVeel weet je nog niet. Je weet niet wie de jongen precies is en wat er tijdens die afspraken gebeurt, behalve wat het meisje zelf vertelde. Je weet ook niet of er binnen je organisatie een vastgelegde werkwijze of afspraak bestaat voor een situatie als deze.\n\nJe hebt de telefoon net neergelegd. Je hebt nog geen verdere stappen gezet, niet richting het meisje en niet richting haar moeder. Je hebt haar verhaal, haar uitdrukkelijke verzoek om geheimhouding en de vraag van haar moeder in je hoofd, en je twijfelt: wat doe je met wat zij je heeft toevertrouwd, en moet je eerst meer weten voordat je een keuze maakt?",
+                "title": "De situatie: een geheim en een telefoontje",
+                "catalogBlockId": "certum.bco.tekst"
+              }
+            },
+            "version": "block-content/v1",
+            "sequence": 1,
+            "certumPhase": "context",
+            "routePolicy": "open_choice",
+            "reviewStatus": "draft",
+            "accreditation": {
+              "workform": "Tekst",
+              "assessmentRole": "none",
+              "sourceNeedRefs": [],
+              "estimatedMinutes": 4,
+              "learningGoalContribution": "Dit blok zet de situatie neer waarin de deelnemer later zijn afweging maakt: het toevertrouwde verhaal, het geheimhoudingsverzoek met de dreiging het contact te verbreken, de directe vraag van de moeder en wat hij nog niet weet. Zo ontstaat de spanning tussen vertrouwensrelatie, zorg en professionele verantwoordelijkheid waarop het leerdoel is gericht."
+            },
+            "catalogBlockId": "certum.bco.tekst",
+            "plannedBlockId": "blok-1"
+          },
+          {
+            "body": {
+              "status": "generated",
+              "content": {
+                "title": "Jouw keuze na het telefoontje",
+                "feedback": "Meerdere routes zijn hier verdedigbaar. Lees je antwoord nog eens terug. Wordt duidelijk welke keuze je maakt en op welk moment je handelt? Benoem je welke informatie je mist en wat die betekent voor je keuze? Maak je zichtbaar hoe je de vertrouwensrelatie, de zorgen en je verantwoordelijkheid tegen elkaar hebt afgewogen? Verbind je je keuze met concrete elementen uit de situatie, zoals haar verzoek, haar dreiging niets meer te vertellen, het leeftijdsverschil met de jongen, de late afspraken en de vraag van de moeder?",
+                "question": "De moeder heeft net opgehangen en je hebt nog geen stappen gezet. Wat doe je met wat het meisje je toevertrouwde en met haar verzoek om het niet aan haar moeder te vertellen?\n\nBeschrijf:\n1. je keuze, en of je nu handelt of eerst meer informatie verzamelt;\n2. welke informatie je mist;\n3. hoe je de vertrouwensrelatie, de zorgen die haar verhaal oproept en je professionele verantwoordelijkheid tegen elkaar afweegt.\n\nVerwijs daarbij naar concrete elementen uit de situatie.",
+                "exampleAnswer": null,
+                "catalogBlockId": "certum.bco.open-vraag"
+              }
+            },
+            "version": "block-content/v1",
+            "sequence": 2,
+            "certumPhase": "actie",
+            "routePolicy": "open_choice",
+            "reviewStatus": "draft",
+            "accreditation": {
+              "workform": "Open vraag",
+              "assessmentRole": "formative",
+              "sourceNeedRefs": [],
+              "estimatedMinutes": 15,
+              "learningGoalContribution": "De deelnemer maakt een eigen keuze over de toevertrouwde informatie en het geheimhoudingsverzoek. Hij onderbouwt die met een expliciete weging van vertrouwensrelatie, zorg en professionele verantwoordelijkheid, inclusief het moment van handelen en de informatie die hij mist."
+            },
+            "catalogBlockId": "certum.bco.open-vraag",
+            "plannedBlockId": "blok-2"
+          },
+          {
+            "body": {
+              "status": "generated",
+              "content": {
+                "title": "Wat zeg je tegen het meisje?",
+                "feedback": "Er is niet één juiste manier om dit gesprek te voeren. Welke keuze je ook hebt gemaakt, kijk bij het teruglezen van je antwoord naar deze punten. Ga je zichtbaar in op haar verzoek en op haar zorg dat ze het contact kwijtraakt? Ben je eerlijk over wat je wel en niet doet, ook als dat niet is wat zij hoopt? Past je toon en woordkeuze bij een 15-jarige en laat je ruimte voor haar reactie en haar inbreng? Maak je duidelijk waarom je deze keuze maakt, zonder je zorg te verzwijgen of groter te maken dan je kunt onderbouwen? Kun je achter je eigen uitleg staan als zij er kritisch op reageert?",
+                "question": "Neem de keuze die je in de vorige vraag hebt gemaakt als uitgangspunt. Stel je voor dat je het meisje binnenkort weer spreekt. Schrijf in je eigen woorden op wat je haar over je keuze zou zeggen. Ga daarbij in op haar verzoek om het niet aan haar moeder te vertellen en op haar dreiging om anders niets meer te vertellen. Licht daarna toe waarom je het op deze manier zou zeggen, gezien haar positie als 15-jarige en jullie vertrouwensrelatie.",
+                "exampleAnswer": null,
+                "catalogBlockId": "certum.bco.open-vraag"
+              }
+            },
+            "version": "block-content/v1",
+            "sequence": 3,
+            "certumPhase": "actie",
+            "routePolicy": "open_choice",
+            "reviewStatus": "draft",
+            "accreditation": {
+              "workform": "Open vraag",
+              "assessmentRole": "formative",
+              "sourceNeedRefs": [],
+              "estimatedMinutes": 10,
+              "learningGoalContribution": "De deelnemer verwoordt hoe hij zijn eigen keuze tegenover het meisje zou toelichten. Zo oefent hij het onderbouwen van zijn keuze tegenover de jongere, aansluitend bij haar verzoek en haar positie als 15-jarige."
+            },
+            "catalogBlockId": "certum.bco.open-vraag",
+            "plannedBlockId": "blok-3"
+          },
+          {
+            "body": {
+              "status": "generated",
+              "content": {
+                "title": "Terugkijken op je afweging",
+                "feedback": "Er is niet één juiste weging. Een sterke reflectie maakt zichtbaar welke belangen je tegen elkaar hebt afgezet, welk belang de doorslag gaf en waarom. Ze benoemt ook eerlijk wat je met je keuze op het spel zet, bijvoorbeeld voor het vertrouwen van het meisje, voor haar veiligheid of voor je eigen verantwoordelijkheid. Daarnaast laat ze zien wat je keuze juist mogelijk maakt. Vraag jezelf af of je deze afweging ook hardop aan het meisje zou kunnen uitleggen, en of je keuze zou veranderen als je meer wist over de jongen en de afspraken.",
+                "question": "Kijk terug op je keuze en op wat je het meisje zou zeggen. Welk element woog uiteindelijk het zwaarst in je afweging, en waarom juist dat? Wat riskeer je met je keuze voor het meisje en voor jullie relatie, en wat maak je er juist mee mogelijk? Past wat je haar zou zeggen bij die afweging?",
+                "exampleAnswer": null,
+                "catalogBlockId": "certum.bco.open-vraag"
+              }
+            },
+            "version": "block-content/v1",
+            "sequence": 4,
+            "certumPhase": "reflectie",
+            "routePolicy": "open_choice",
+            "reviewStatus": "draft",
+            "accreditation": {
+              "workform": "Open vraag",
+              "assessmentRole": "formative",
+              "sourceNeedRefs": [],
+              "estimatedMinutes": 8,
+              "learningGoalContribution": "De deelnemer maakt de weging tussen vertrouwensrelatie, zorg en professionele verantwoordelijkheid achter zijn eigen keuze expliciet. Hij doordenkt wat die keuze riskeert en mogelijk maakt voor het meisje en de relatie."
+            },
+            "catalogBlockId": "certum.bco.open-vraag",
+            "plannedBlockId": "blok-4"
+          },
+          {
+            "body": {
+              "status": "generated",
+              "content": {
+                "title": "Feedback op je afweging",
+                "instructions": "Je geeft formatieve feedback aan een jeugdprofessional in een wijkteam. Je ontvangt zijn antwoorden op drie eerdere vragen: zijn keuze en onderbouwing over wat hij doet met wat een 15-jarig meisje hem toevertrouwde, hoe hij die keuze aan het meisje zou toelichten, en zijn reflectie op de weging die hij maakte. Achtergrond: het meisje vertelde dat ze een paar keer 's avonds laat afsprak met een 19-jarige jongen die ze online leerde kennen, zei dat er niets gebeurde wat ze niet wilde en vroeg nadrukkelijk het niet aan haar moeder te vertellen, anders vertelt ze niets meer. De volgende ochtend belde de moeder met de vraag of de professional iets weet wat zij moet weten. Over de jongen, de aard van de afspraken en een eventuele organisatieafspraak is niets bekend. Baseer je feedback op wat de deelnemer zelf schrijft. Noemt hij een element uit de situatie niet, stel dan een vraag of nodig hem uit het mee te wegen, zonder te doen alsof hij het bewust negeerde. Meerdere routes zijn professioneel verdedigbaar. Beoordeel nooit welke route hij kiest en suggereer geen route als de juiste of betere. Beoordeel de kwaliteit van de afweging. Geef feedback op drie dimensies. Eén: zorgvuldigheid van de afweging. Weegt hij de vertrouwensrelatie, de zorgen die het verhaal oproept en zijn professionele verantwoordelijkheid expliciet en evenwichtig, en is zijn onderbouwing navolgbaar? Twee: aansluiting op het meisje en de situatie. Past zijn toelichting bij haar verzoek en haar positie als 15-jarige, en houdt hij rekening met de vraag van de moeder? Drie: omgang met ontbrekende informatie en het moment van handelen. Benoemt hij wat hij mist, en maakt hij zichtbaar of en waarom hij nu kiest of eerst meer informatie verzamelt? Betrek bij elke dimensie ook de consequenties die hij voorziet voor het meisje en de relatie, en wat zijn keuze riskeert of mogelijk maakt. Gebruik zijn reflectie om te laten zien waar zijn weging consistent is met zijn keuze en toelichting, en waar niet. Noem per dimensie concreet wat sterk is en wat hij kan aanscherpen, met verwijzing naar zijn eigen formuleringen. Sluit af met een of twee vragen die hem uitnodigen zijn afweging verder te doordenken. Noem geen wetten, richtlijnen, protocollen, organisatieafspraken of onderzoek en presenteer geen kaders als feit; die komen later in de training aan bod. Geef geen cijfer of eindoordeel. Schrijf in helder, zakelijk en respectvol Nederlands, direct gericht aan de deelnemer, zonder opmaak.",
+                "catalogBlockId": "certum.bco.ai-feedback",
+                "availableContext": [
+                  "blok-2",
+                  "blok-3",
+                  "blok-4"
+                ],
+                "unavailableContext": []
+              }
+            },
+            "version": "block-content/v1",
+            "sequence": 5,
+            "certumPhase": "feedback",
+            "routePolicy": "open_choice",
+            "reviewStatus": "draft",
+            "accreditation": {
+              "workform": "AI Feedback",
+              "assessmentRole": "formative",
+              "sourceNeedRefs": [],
+              "estimatedMinutes": 5,
+              "learningGoalContribution": "Dit blok geeft de deelnemer route-neutrale feedback op de zorgvuldigheid van zijn afweging tussen vertrouwensrelatie, zorg en verantwoordelijkheid, op de aansluiting van zijn toelichting op het meisje en op zijn omgang met ontbrekende informatie. Zo kan hij zijn afweging aanscherpen voordat hij die naast gevalideerde kennis legt."
+            },
+            "catalogBlockId": "certum.bco.ai-feedback",
+            "plannedBlockId": "blok-5"
+          },
+          {
+            "body": {
+              "status": "needs_source",
+              "whatToValidate": "SN1: Welke professionele en wettelijke kaders gelden voor vertrouwelijkheid en het delen van informatie die een 15-jarige toevertrouwt, ook richting ouders, en welke ruimte en grenzen bieden die voor de professional? SN2: Welke inzichten bestaan er over het inschatten van zorgen bij een minderjarige die 's avonds afspreekt met een aanzienlijk oudere persoon die zij online heeft leren kennen, en over het verkrijgen van meer informatie zonder het contact te schaden? SN3: Bestaat er binnen de organisatie een vastgelegde werkwijze of afspraak voor situaties waarin een minderjarige contact heeft met een aanzienlijk oudere online kennis, en wat houdt die in?",
+              "generatableAfterValidation": "Na validatie: De deelnemer legt na handelen, reflectie en feedback zijn keuze naast gevalideerde kennis. Zo ziet hij waar zijn afweging steun vindt en waar zijn handelingsruimte anders ligt dan hij aannam."
+            },
+            "version": "block-content/v1",
+            "sequence": 6,
+            "certumPhase": "bron",
+            "routePolicy": "open_choice",
+            "reviewStatus": "draft",
+            "accreditation": {
+              "workform": "Tekst",
+              "assessmentRole": "none",
+              "sourceNeedRefs": [
+                "SN1",
+                "SN2",
+                "SN3"
+              ],
+              "estimatedMinutes": null,
+              "learningGoalContribution": "De deelnemer legt na handelen, reflectie en feedback zijn keuze naast gevalideerde kennis. Zo ziet hij waar zijn afweging steun vindt en waar zijn handelingsruimte anders ligt dan hij aannam."
+            },
+            "catalogBlockId": "certum.bco.tekst",
+            "plannedBlockId": "blok-6"
+          },
+          {
+            "body": {
+              "status": "generated",
+              "content": {
+                "text": "Een paar weken later heb je opnieuw een individueel gesprek met het 15-jarige meisje. Hoe je eerder ook hebt gehandeld, het contact met haar is blijven bestaan en ze praat open met je.\n\nHalverwege het gesprek vertelt ze dat ze niet meer afspreekt met de 19-jarige jongen. Ze heeft het zelf uitgemaakt, zegt ze, omdat hij steeds vaker aandrong om bij hem thuis af te spreken in plaats van buiten. Dat wilde ze niet. Sindsdien stuurt hij haar af en toe nog berichten. Ze reageert daar niet op en zegt dat ze het onder controle heeft. Ze klinkt opgelucht, maar ook wat onzeker als ze over zijn berichten praat.\n\nAan het eind van het gesprek vraagt ze je opnieuw nadrukkelijk dit niet aan haar moeder te vertellen. Ze is bang dat haar moeder dan haar telefoon afpakt en haar niet meer vertrouwt, nu het juist beter gaat thuis. Haar moeder heeft je de afgelopen weken niets meer gevraagd.\n\nWat je nu weet: het meisje heeft het contact zelf verbroken en vertelt uit zichzelf over het aandringen van de jongen. Wat je niet weet: wat hij precies in zijn berichten schrijft, hoe vaak hij nog contact zoekt, wat er tijdens de eerdere afspraken verder is gebeurd en of hij zich bij haar uitblijvende reactie neerlegt.\n\nHet gesprek is net afgelopen. Je hebt nog niets gedaan met wat ze je vertelde en nog met niemand anders gesproken. Je staat opnieuw voor de vraag wat je doet met wat zij je heeft toevertrouwd en met haar verzoek om geheimhouding, en of je nu een keuze maakt of eerst meer wilt weten. In het volgende blok maak je die afweging.",
+                "title": "Een nieuw gesprek, een nieuw geheim",
+                "catalogBlockId": "certum.bco.tekst"
+              }
+            },
+            "version": "block-content/v1",
+            "sequence": 7,
+            "certumPhase": "toets",
+            "routePolicy": "open_choice",
+            "reviewStatus": "draft",
+            "accreditation": {
+              "workform": "Tekst",
+              "assessmentRole": "transfer",
+              "sourceNeedRefs": [],
+              "estimatedMinutes": 3,
+              "learningGoalContribution": "Dit blok zet een nieuw, vergelijkbaar keuzemoment neer waarin de mate van zorg en de beschikbare informatie verschillen van de oorspronkelijke situatie. Zo kan de deelnemer zijn afweging tussen vertrouwensrelatie, zorg en professionele verantwoordelijkheid toepassen op gewijzigde omstandigheden."
+            },
+            "catalogBlockId": "certum.bco.tekst",
+            "plannedBlockId": "blok-7"
+          },
+          {
+            "body": {
+              "status": "generated",
+              "content": {
+                "title": "Een nieuw geheim: jouw afweging",
+                "feedback": "Er is niet één juiste keuze in deze situatie. Kijk bij het teruglezen van je antwoord vooral naar de kwaliteit van je afweging. Heb je de vertrouwensrelatie, de zorgen en je professionele verantwoordelijkheid alle drie expliciet gewogen? Sluit je toelichting aan bij de jongere, bij het verzoek om geheimhouding en bij wat je wel en niet weet? Maak je duidelijk welke verschillen met de eerdere situatie je keuze beïnvloeden, en past de mate waarin je keuze verschuift bij hoe groot die verschillen zijn? Als je keuze hetzelfde blijft, is het net zo belangrijk dat je uitlegt waarom de verschillen daar geen aanleiding toe geven.",
+                "question": "Bekijk de nieuwe situatie nog eens. Wat doe je nu met wat de jongere je heeft toevertrouwd en met het verzoek om geheimhouding? Beschrijf je keuze en onderbouw die met een expliciete weging van de vertrouwensrelatie, de zorgen die de informatie oproept en je professionele verantwoordelijkheid. Schrijf ook op wat je de jongere over je keuze zou zeggen. Vergelijk tot slot met je eerdere afweging: welke elementen in deze situatie verschuiven je keuze, of juist niet, en waarom?",
+                "exampleAnswer": null,
+                "catalogBlockId": "certum.bco.open-vraag"
+              }
+            },
+            "version": "block-content/v1",
+            "sequence": 8,
+            "certumPhase": "toets",
+            "routePolicy": "open_choice",
+            "reviewStatus": "draft",
+            "accreditation": {
+              "workform": "Open vraag",
+              "assessmentRole": "transfer",
+              "sourceNeedRefs": [],
+              "estimatedMinutes": 15,
+              "learningGoalContribution": "Dit blok laat de deelnemer de afweging tussen vertrouwensrelatie, zorg en professionele verantwoordelijkheid opnieuw maken in een gewijzigde situatie. Zo wordt zichtbaar of hij zijn keuze proportioneel aanpast en tegenover de jongere kan verantwoorden."
+            },
+            "catalogBlockId": "certum.bco.open-vraag",
+            "plannedBlockId": "blok-8"
+          },
+          {
+            "body": {
+              "status": "generated",
+              "content": {
+                "title": "Feedback op je afweging in de nieuwe situatie",
+                "instructions": "Je geeft feedback aan een jeugdprofessional uit een wijkteam die een praktijksimulatie volgt. In de oorspronkelijke situatie vertrouwde een 15-jarig meisje hem toe dat ze 's avonds laat afspreekt met een 19-jarige jongen die ze online leerde kennen. Ze vroeg dit geheim te houden voor haar moeder en dreigde anders niets meer te vertellen. Daarna belde haar moeder met de vraag of de professional iets weet wat zij moet weten. In de transfervraag kreeg de deelnemer een vergelijkbaar moment: een jongere vertrouwt in een later gesprek nieuwe informatie toe onder voorwaarde van geheimhouding, terwijl de mate van zorg of de beschikbare informatie anders is.\n\nJe beschikt over de antwoorden van de deelnemer op de eerdere vragen: zijn keuze en onderbouwing in de oorspronkelijke situatie, zijn toelichting aan het meisje, zijn reflectie en zijn antwoord op de transfervraag. Richt je feedback vooral op het antwoord op de transfervraag. Gebruik de eerdere antwoorden alleen waar dat helpt om de verschuiving in zijn afweging te bespreken. De precieze beschrijving van de nieuwe situatie ken je niet. Ga uit van wat de deelnemer zelf over die situatie en de gewijzigde elementen schrijft. Vul niets aan en verzin geen details. Noemt de deelnemer niet duidelijk wat er anders is, zeg dat dan en vraag hem dat expliciet te maken.\n\nGeef feedback op vier punten:\n1. Afweging: weegt hij de vertrouwensrelatie met de jongere, de zorgen die de informatie oproept en zijn professionele verantwoordelijkheid expliciet en evenwichtig tegen elkaar af?\n2. Aansluiting op de situatie: sluiten de keuze en de toelichting aan de jongere aan bij diens verzoek, positie en leeftijd en bij de gewijzigde omstandigheden zoals hij die beschrijft?\n3. Onderbouwing: is de keuze navolgbaar, verwijst hij naar concrete elementen uit de situatie en maakt hij zichtbaar welke informatie hij mist en of hij nu handelt of eerst meer wil weten?\n4. Proportionaliteit van de verschuiving: laat hij zien welke elementen zijn keuze ten opzichte van zijn eerdere afweging verschuiven en waarom? Past de mate van verschuiving bij de mate waarin zorg of informatie is veranderd? Een keuze die gelijk blijft kan ook proportioneel zijn, als hij dat beargumenteert.\n\nMeerdere routes zijn professioneel verdedigbaar. Beoordeel niet welke route hij kiest en stel geen route voor als de juiste. Beoordeel alleen de kwaliteit van de afweging. Noem geen wetten, richtlijnen, protocollen, organisatieafspraken of onderzoek als feit. Als iets daarvan relevant lijkt, nodig hem uit zijn keuze te toetsen aan de kaders die in de training zijn aangereikt, zonder die zelf in te vullen.\n\nSchrijf in helder, zakelijk Nederlands en spreek de deelnemer aan met je. Begin met wat sterk is in zijn afweging, benoem daarna concreet wat beter onderbouwd of explicieter kan, en sluit af met een vraag die hem helpt zijn afweging verder aan te scherpen. Gebruik geen opmaak zoals kopjes of opsommingstekens.",
+                "catalogBlockId": "certum.bco.ai-feedback",
+                "availableContext": [
+                  "blok-2",
+                  "blok-3",
+                  "blok-4",
+                  "blok-8"
+                ],
+                "unavailableContext": []
+              }
+            },
+            "version": "block-content/v1",
+            "sequence": 9,
+            "certumPhase": "toets",
+            "routePolicy": "open_choice",
+            "reviewStatus": "draft",
+            "accreditation": {
+              "workform": "AI Feedback",
+              "assessmentRole": "transfer",
+              "sourceNeedRefs": [],
+              "estimatedMinutes": 5,
+              "learningGoalContribution": "Dit blok geeft route-neutrale terugkoppeling op de transferafweging. Zo ziet de deelnemer of hij relatie, zorg en verantwoordelijkheid ook in een gewijzigde situatie navolgbaar en proportioneel weegt en tegenover de jongere kan verantwoorden."
+            },
+            "catalogBlockId": "certum.bco.ai-feedback",
+            "plannedBlockId": "blok-9"
+          }
+        ],
+        "end": {
+          "summary": "Bij informatie die een jongere onder voorwaarde van geheimhouding toevertrouwt, bepalen drie elementen je afweging: de vertrouwensrelatie met de jongere, de zorgen die de informatie oproept en je eigen professionele verantwoordelijkheid. Daarnaast spelen het moment van handelen en de informatie die je mist een rol: kies je nu, of verzamel je eerst meer informatie, en waarom? Een goede afweging maakt deze elementen expliciet, doordenkt de gevolgen voor de jongere en de relatie, en is uit te leggen aan de jongere zelf. Als de omstandigheden veranderen, bijvoorbeeld de mate van zorg of de beschikbare informatie, kan je keuze verschuiven. Het gaat erom dat je kunt laten zien welke elementen die verschuiving veroorzaken en waarom.",
+          "closingText": "Je bent aan het einde van deze praktijksimulatie gekomen. Je hebt een keuze gemaakt over wat je doet met een geheim dat een 15-jarige je toevertrouwde, terwijl haar moeder je een directe vraag stelde. Je hebt die keuze onderbouwd, verwoord hoe je haar aan het meisje zou uitleggen, teruggekeken op je afweging en je afweging opnieuw gemaakt in een gewijzigde situatie. Omgaan met een toevertrouwd geheim van een jongere blijft een afweging tussen de vertrouwensrelatie, de zorgen die de informatie oproept en je professionele verantwoordelijkheid. Er is niet altijd één juiste route. De kwaliteit van je handelen zit in een keuze die je navolgbaar kunt maken en die je tegenover de jongere en tegenover jezelf kunt verantwoorden. Neem mee wat je in deze simulatie hebt ontdekt over je eigen afwegingen, en over de momenten waarop jouw handelingsruimte anders bleek te liggen dan je aannam.",
+          "followUpRecommendation": null
+        },
+        "unresolvedRequirements": [
+          {
+            "plannedBlockId": "blok-6",
+            "kind": "source",
+            "refs": [
+              "SN1",
+              "SN2",
+              "SN3"
+            ]
+          }
+        ],
+        "readiness": "incomplete"
+      },
+      "blockRevisions": {
+        "blok-1": {
+          "basedOnSources": [],
+          "staleSources": false,
+          "revisionId": "920d4891-2ad8-4731-8314-b1407d83a17e",
+          "revisionNo": 2,
+          "previousRevisions": 1,
+          "source": "manual"
+        },
+        "blok-2": {
+          "basedOnSources": [],
+          "staleSources": false,
+          "revisionId": "1b9d2802-dda6-48b8-a429-54a35f57a9c6",
+          "revisionNo": 2,
+          "previousRevisions": 1,
+          "source": "manual"
+        },
+        "blok-3": {
+          "basedOnSources": [],
+          "staleSources": false,
+          "revisionId": "729cc78c-74c6-4b04-ba54-e8f3e77d1e05",
+          "revisionNo": 1,
+          "previousRevisions": 0,
+          "source": "generated"
+        },
+        "blok-4": {
+          "basedOnSources": [],
+          "staleSources": false,
+          "revisionId": "82b62bf6-53f5-4727-a3e4-13436892b42e",
+          "revisionNo": 2,
+          "previousRevisions": 1,
+          "source": "manual"
+        },
+        "blok-5": {
+          "basedOnSources": [],
+          "staleSources": false,
+          "revisionId": "b3936866-fbdf-4135-a9a5-f02a9c092c7f",
+          "revisionNo": 1,
+          "previousRevisions": 0,
+          "source": "generated"
+        },
+        "blok-6": {
+          "basedOnSources": [],
+          "staleSources": false,
+          "revisionId": "2faf2245-d1e0-4189-81e6-540d37ad69a7",
+          "revisionNo": 1,
+          "previousRevisions": 0,
+          "source": "generated"
+        },
+        "blok-7": {
+          "basedOnSources": [],
+          "staleSources": false,
+          "revisionId": "2df69e30-f808-40f9-bbe8-fdf4ca3e18de",
+          "revisionNo": 1,
+          "previousRevisions": 0,
+          "source": "generated"
+        },
+        "blok-8": {
+          "basedOnSources": [],
+          "staleSources": false,
+          "revisionId": "cb3abfad-6211-4a96-9f52-6e6c4a54f2d7",
+          "revisionNo": 2,
+          "previousRevisions": 1,
+          "source": "manual"
+        },
+        "blok-9": {
+          "basedOnSources": [],
+          "staleSources": false,
+          "revisionId": "d8eca235-e18d-4eb6-ba72-39f9ce872788",
+          "revisionNo": 1,
+          "previousRevisions": 0,
+          "source": "generated"
+        }
+      },
+      "frame": {
+        "start": {
+          "basedOnSources": [],
+          "staleSources": false,
+          "revisionId": "322316b3-4ac2-4245-add2-bc24232bbab7",
+          "revisionNo": 1,
+          "previousRevisions": 0,
+          "source": "generated",
+          "approved": false
+        },
+        "end": {
+          "basedOnSources": [],
+          "staleSources": false,
+          "revisionId": "d7666172-66ea-4578-b956-36aaa7a90f10",
+          "revisionNo": 1,
+          "previousRevisions": 0,
+          "source": "generated",
+          "approved": false
+        }
+      },
+      "review": {
+        "readiness": "incomplete",
+        "totalBlocks": 9,
+        "approved": 0,
+        "draft": 8,
+        "needsRevision": 0,
+        "notGenerated": 0,
+        "source": 1,
+        "asset": 0,
+        "capability": 0,
+        "frameToReview": 2,
+        "toReview": 10,
+        "sourceNeedsOpen": 1,
+        "staleBlocks": 0
+      }
+    },
+    "progress": {
+      "stage": "content_review",
+      "label": "Content ter beoordeling",
+      "totalBlocks": 9,
+      "storedBlocks": 9,
+      "generatedBlocks": 8,
+      "approvedBlocks": 0,
+      "unresolved": {
+        "source": 1,
+        "asset": 0,
+        "capability": 0
+      }
+    }
+  }
+}
