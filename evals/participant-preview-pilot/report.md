@@ -461,3 +461,102 @@ mislukking mag de deelnemer nooit dwingen tot een andere beurt.
   5. De retry slaagt; een dubbele klik gaf precies 1 nieuwe call.
   6. Het gesprek bevat één deelnemersbeurt en één AI-antwoord.
   7. Er volgde geen automatische tweede call.
+
+## Step 17F: laatste volledige live sessie, van Start tot Einde
+
+Een nieuwe sessie op codebasis `ffac2c5`. Datum: 2026-10-05. Mohamed was de deelnemer; Claude Code voerde niets in en
+las alleen metadata.
+- **Opzet:** alleen `CERTUM_PREVIEW_PROVIDER=claude`; de generatieproviders stonden op mock (vooraf gecontroleerd).
+  De usage probe stond op 0 (`usage-17f.jsonl`).
+- **Instellingen:** chat `claude-opus-5-5` / `low` / `max_tokens` 1200 / `participant-chat/v1`; feedback
+  `claude-opus-5-5` / `medium` / `max_tokens` 4000 / `participant-feedback/v1.1`; `maxRetries: 0`, geen fallback.
+- **Uitkomst:** de sessie is afgerond van Start tot Einde, zonder harde stopconditie.
+
+### Metadata (geen inhoud)
+
+| # | Soort | Blok | Input | Output | stop_reason | Zichtbaar (woorden / tekens) | Thinking-blok | Duur |
+| --- | --- | --- | ---: | ---: | --- | --- | --- | ---: |
+| 1 | chat | blok-2 (Actie) | 2.540 | 257 | end_turn | 84 / 444 | ja | 5,9 s |
+| 2 | feedback | blok-4 | 2.454 | 1.607 | end_turn | 475 / 2.791 | ja | 18,0 s |
+| 3 | chat | blok-6 (Transfer) | 2.291 | 183 | end_turn | 50 / 239 | ja | 4,5 s |
+| 4 | chat | blok-6 | 2.635 | 249 | end_turn | 66 / 328 | ja | 12,1 s |
+| 5 | chat | blok-6 | 3.040 | 165 | end_turn | 44 / 229 | ja | 3,6 s |
+| 6 | feedback | blok-8 | 3.175 | 1.592 | end_turn | 462 / 2.719 | ja | 18,3 s |
+
+- **Calls:** 6 live calls (4 chat, 2 feedback), allemaal HTTP 200.
+- **Tokens:** 16.135 input, 4.053 output. Geschatte kosten: ongeveer $0,15.
+- **Retries en fouten:** 0 technische retries, 0 `output_truncated` en 0 fouten. De serverlog toont precies 6 server
+  actions.
+- **Privacy:** 6 besluiten, allemaal toegestaan.
+  - Actie: 0 bevindingen.
+  - Transfer: 6 bevindingen `possible_person_name`, alle 6 vrijgesteld via de goedgekeurde zichtbare context.
+  - 0 blokkades.
+- **Tokenbudget bevestigd:**
+  - beide feedbackcalls gebruikten in totaal meer dan het oude plafond van 1500 tokens (1607 en 1592) en eindigden op
+    `end_turn`;
+  - de zichtbare feedback bleef binnen het v1.1-budget (475 en 462 woorden);
+  - iedere respons had een thinking-blok. Het aantal thinking-tokens geeft de API niet apart; dat is niet afgeleid.
+
+### Productvragen (antwoorden van Mohamed, letterlijk)
+
+1. **Voelde je daadwerkelijk druk in het eerste gesprek?** Ja. Niet overdreven of toneelmatig, maar wel voldoende. De
+   zorgcoördinator nam geen genoegen met alleen “ik mag dit niet delen” en vroeg concreet door: hoe moet school dan
+   handelen, hangt het verzuim met thuis samen, wat kan ik wél doen? Daardoor moest ik mijn positie echt verder
+   uitwerken.
+2. **Reageerde de zorgcoördinator op wat jij zei, of vooral generiek?** Duidelijk op wat ik zei. Mijn eerste reactie
+   verschoof het gesprek naar doel, noodzaak en wat school zelf ziet. Haar vervolgvraag sloot daar direct op aan. Het
+   voelde niet als een vooraf geschreven standaardreactie.
+3. **Moest je je antwoord onderweg aanpassen?** Ja. Eerst ging mijn antwoord vooral over de grens van
+   informatiedeling. Daarna moest ik preciezer worden: niet alleen geen details delen, maar ook geen causaal verband
+   bevestigen én tegelijk school handelingsperspectief bieden. Dat is leren tijdens het gesprek.
+4. **Had je het gevoel dat meerdere professionele routes mogelijk waren?** Ja. Ik voelde nergens dat ik één magische
+   formulering moest vinden. Ik had bijvoorbeeld meer kunnen delen, strakker kunnen begrenzen, eerst meer vragen kunnen
+   stellen of de jongere sterker kunnen betrekken. De simulatie corrigeerde mij niet naar één “juiste” route.
+5. **Voelde de tweede simulatie wezenlijk anders?** Ja, en dit vond ik sterk. Het eerste gesprek had institutionele
+   druk: samenwerking, informatiebehoefte, school moet handelen. De tweede was relationeler: een bezorgde mentor, “het
+   blijft tussen ons”, persoonlijk vertrouwen, machteloosheid. Daardoor moest mijn communicatie ook anders worden.
+6. **Was de reflectie nuttig of voelde die als extra schrijfwerk?** Overwegend nuttig, maar dit blijft een
+   aandachtspunt. Na het gesprek had ik daadwerkelijk iets om op terug te kijken. De vraag hielp mij benoemen wat ik
+   had gedaan en wat ik een volgende keer anders zou doen. Tegelijk blijft het een behoorlijk tekstueel onderdeel; dit
+   moet niet verder uitdijen.
+7. **Had de feedback waarde ondanks dat hij het chatgesprek zelf niet zag?** Ja, met een duidelijke beperking. De
+   feedback was inhoudelijk bruikbaar en bleef eerlijk: hij zei expliciet dat hij alleen mijn eigen beschrijving
+   kende. Dat vind ik veel beter dan doen alsof hij mijn gespreksvaardigheden rechtstreeks heeft gezien. Maar echte
+   feedback op formulering, toon en timing kan pas als chatcontext later aantoonbaar beschikbaar wordt.
+8. **Voegde de Bron op het juiste moment iets toe?** Ja. Dit werkte voor mij juist omdat de theorie pas ná handelen,
+   reflectie en feedback kwam. Ik had al keuzes gemaakt en kon de beroepscode/NJi-inzichten naast mijn eigen handelen
+   leggen. Daardoor voelde het niet als “eerst een hoofdstuk lezen”.
+9. **Voelde de hele training als één leerervaring?** Ja. Dit is een van de sterkste uitkomsten. Context → gesprek →
+   reflectie → feedback → bronnen → nieuw gesprek → reflectie → feedback voelde als één boog. De tweede simulatie
+   maakte duidelijk waarom de Bron ertussen zat.
+10. **Zou jij hier als professional ongeveer een uur voor vrijmaken?** Ja. Vooral omdat een aanzienlijk deel niet
+    bestaat uit lezen maar uit reageren, afwegen en opnieuw toepassen. 66 minuten voelt voor deze casus verdedigbaar.
+11. **Zou jij hiervoor betalen?** In de rol van de professional: ja, mits dit de kwaliteitsstandaard blijft. Zeker
+    wanneer er een duidelijke professionele opbrengst, certificaat en later accreditatie aan gekoppeld is. Voor een
+    verzameling open vragen zou mijn antwoord nee zijn geweest. Voor deze ervaring niet.
+12. **Zou jij dit aan een collega aanraden?** Ja. Vooral met de omschrijving: “Je krijgt niet alleen theorie over
+    privacy en samenwerken; je moet het gesprek daadwerkelijk voeren en daarna opnieuw toepassen in een andere
+    situatie.” Dat is onderscheidend genoeg om door te vertellen.
+
+### Eindoordeel (Mohamed)
+
+| Onderdeel | Oordeel | Toelichting |
+| --- | --- | --- |
+| Runtime conversation | **YES** | De persona reageerde inhoudelijk, hield druk en dwong tot precisering. |
+| Transfer | **YES** | De tweede situatie was geen kopie met andere namen; de aard van de druk veranderde en daardoor ook de benodigde communicatie. |
+| Feedback experience | **YES_WITH_NOTES** | Inhoudelijk waardevol en technisch eerlijk, maar feedback op werkelijk chatgedrag ontbreekt nog. |
+| Whole training experience | **YES_AFTER_EDIT** | De kern staat. Voor commerciële publicatie nog letten op formulering, compactheid en kleine repetities, maar geen fundamentele herbouw meer. |
+| **Flight-simulator promise** | **PROVEN_FOR_PILOT** | Bewust *for pilot*: niet bewezen dat iedere door Certum gemaakte simulatie goed is, wel één volledige keten aantoonbaar werkend. |
+
+Die keten: praktijkdilemma → AI-ontwerp → interactieve simulatie → echte runtime-tegendruk → reflectie → eerlijke
+feedback → gevalideerde kennis → andere simulatie → transfer.
+
+**Aandachtspunten uit de evaluatie (WATCH, niet opgelost):**
+- `reflection_textual_load`: de reflectie is nuttig maar tekstueel; niet laten uitdijen.
+- `feedback_without_chat_context`: feedback op formulering, toon en timing vraagt chatcontext die de catalogus nu niet
+  aantoont.
+- Voor publicatie: formulering, compactheid en kleine repetities.
+
+**Besluit van Mohamed:** stoppen met fundamentele Studio-architectuur. De volgende fase is productiseren: TR-0018 als
+verkoopbaar Bureau Certum-product en het commerciële systeem eromheen, daarna SKJ/accreditatie, prijs, certificering
+en website/propositie.

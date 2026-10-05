@@ -702,7 +702,9 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 11C, persistence cut-over V1: de Studio onthoudt en hervat trainingen (bewezen tegen Supabase).
 - Stap 11D, persistence performance V1: Training Record Snapshot; alle V1-doelen gehaald.
 - Stap 12A, Training Review & Editor V1: handmatig bewerken als nieuwe revision, review per blok, Start/Einde, readiness.
-- Stap 17A, Participant Preview V1: een gereede training als deelnemer doorlopen (ephemeral, mock bewezen op TR-0018).
+- Stap 17A–17F, Participant Preview V1 en runtime-hardening: TR-0018 live van Start tot Einde doorlopen door Mohamed;
+  **Flight-simulator promise = PROVEN_FOR_PILOT** (runtime YES, transfer YES, feedback YES_WITH_NOTES, training
+  YES_AFTER_EDIT). Fundamentele Studio-architectuur is hiermee afgerond; de volgende fase is productiseren.
 - Stap 16, Full Training Pilot 2 (TR-0018): interactieve praktijksimulatie geproduceerd en Training gereed;
   runtime nog niet bewezen (volgende stap: Participant Preview).
 - Stap 15B, SourceNeed Scope Review: de opleider classificeert iedere kennisbehoefte vóór goedkeuring (mock bewezen).
@@ -742,7 +744,8 @@ Er zijn negen evalsets, elk met een eigen README:
   simulatieproductie YES, runtime NOT_YET_PROVEN; Training gereed (zie `report.md`).
 - `evals/participant-preview-pilot/` (TR-0018, Step 17B): eerste live Participant Preview; gestopt op RUNTIME_BLOCKER
   `preview_privacy_context_false_positive` (diagnose en ontwerpopties in `report.md`). Opgelost met A+C en
-  `participant-feedback/v1.1` plus de afhandeling van `max_tokens` (Step 17C); een nieuwe volledige live sessie volgt.
+  `participant-feedback/v1.1` plus de afhandeling van `max_tokens` (17C) en het tokenbudget (17E). Step 17F: volledige
+  live sessie zonder stopconditie, Flight-simulator promise = PROVEN_FOR_PILOT (zie `report.md`).
 
 Kwaliteitsbasis voor Certum Analyse staat in `evals/training-analysis/`. Er staat alleen
 synthetische data in en het is geen productiecode. Elke run wordt vastgelegd met promptVersion, model en effort.
