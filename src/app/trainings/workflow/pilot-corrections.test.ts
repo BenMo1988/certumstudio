@@ -2,7 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 import { checkBlockContentInvariants, deriveUnresolvedRequirements, type BlockContentResult } from "@/modules/block-content";
 import { hashPreflightText } from "@/modules/privacy";
 import { relevantContentIssue } from "@/modules/sources";
-import { sourceNeedScope } from "@/modules/training-blueprint/v2";
+import { sourceNeedScope, type SourceNeedScope } from "@/modules/training-blueprint/v2";
 import { createTrainingAnalysisServiceV21 } from "@/services/analysis/factory";
 import { createBlockContentService } from "@/services/block-content/factory";
 import { ORGANISATION_SPECIFIC_NOTE } from "@/services/block-content/mock/mock-block-content-service";
@@ -27,6 +27,7 @@ import {
   type WorkflowResult,
 } from "./persisted-workflow";
 import { addSource, editSource, validateSource } from "./sources";
+import { approveBlueprint } from "../../../../test/workflow-helpers";
 
 /*
  * Step 15A: productcorrecties uit de Full Training Pilot (TR-0014), tegen PGlite met mock-providers. 0 AI-aanroepen.
@@ -67,7 +68,7 @@ const ws = (r: WorkflowResult): TrainingWorkspaceView => {
 };
 
 /** Tot en met een gegenereerd (nog niet goedgekeurd) Block Plan. */
-async function trainingWithPlan(text: string, d: WorkflowDeps = deps(), directionIndex = 0) {
+async function trainingWithPlan(text: string, d: WorkflowDeps = deps(), directionIndex = 0, scopes: Record<string, SourceNeedScope> = {}) {
   const started = await startTraining(d, {
     kind: "praktijkvraag",
     text,
@@ -78,8 +79,8 @@ async function trainingWithPlan(text: string, d: WorkflowDeps = deps(), directio
   const analysis = ws(started.analysis).analysis!;
   const direction = analysis.outcome.outcome === "ready" ? analysis.outcome.trainingDirections[directionIndex].id : "";
   ws(await selectDirection(d, id, analysis.revisionId, direction));
-  const bp = ws(await generateBlueprint(d, id));
-  ws(await decideRevision(d, id, bp.blueprint!.revisionId, "approved"));
+  ws(await generateBlueprint(d, id));
+  ws(await approveBlueprint(d, id, scopes));
   return { d, id, view: ws(await generateBlockPlan(d, id)) };
 }
 
@@ -175,9 +176,9 @@ describe("A. Human Block Plan Override", () => {
   });
 });
 
-/** Training met een organisatiegebonden SN2 (mock-marker), tot en met gegenereerde inhoud. */
+/** Training met drie kennisbehoeften (mock-marker); de opleider classificeert SN3 als organisatiespecifiek. */
 async function trainingWithOrganisationNeed() {
-  const { d, id, view } = await trainingWithPlan(`${GESPREK} ${MOCK_ORGANISATION_SPECIFIC}`);
+  const { d, id, view } = await trainingWithPlan(`${GESPREK} ${MOCK_ORGANISATION_SPECIFIC}`, deps(), 0, { SN3: "organisation_specific" });
   ws(await decideRevision(d, id, view.blockPlan!.revisionId, "approved"));
   const content = ws(await generateContent(d, id));
   const bronId = content.content!.package.blocks.find((b) => b.certumPhase === "bron")!.plannedBlockId;
@@ -215,36 +216,38 @@ describe("B. organisatiegebonden sourceNeeds", () => {
     const { view, bronId } = await trainingWithOrganisationNeed();
     expect(view.sources!.needs.map((n) => [n.id, n.scope, n.covered])).toEqual([
       ["SN1", "professional", false],
-      ["SN2", "organisation_specific", false],
+      ["SN2", "professional", false],
+      ["SN3", "organisation_specific", false],
     ]);
-    expect(view.content!.review).toMatchObject({ readiness: "incomplete", sourceNeedsOpen: 1, organisationSpecificOpen: 1, source: 1 });
+    expect(view.content!.review).toMatchObject({ readiness: "incomplete", sourceNeedsOpen: 2, organisationSpecificOpen: 1, source: 1 });
     expect(view.content!.package.unresolvedRequirements.filter((u) => u.plannedBlockId === bronId)).toEqual([
-      { plannedBlockId: bronId, kind: "source", refs: ["SN1"] },
-      { plannedBlockId: bronId, kind: "organisation_source", refs: ["SN2"] },
+      { plannedBlockId: bronId, kind: "source", refs: ["SN1", "SN2"] },
+      { plannedBlockId: bronId, kind: "organisation_source", refs: ["SN3"] },
     ]);
   });
 
   it("met alleen de professionele bron gedekt ontstaat Bron-inhoud zonder organisatiekennis, en kan de training gereed worden", async () => {
     const { d, id, bronId, view } = await trainingWithOrganisationNeed();
-    const covered = await addValidated(d, id, ["SN1"]);
+    expect((await addValidated(d, id, ["SN1"])).sources!.allCovered).toBe(false);
+    const covered = await addValidated(d, id, ["SN2"]);
     expect(covered.sources!.allCovered).toBe(true);
     expect(covered.content!.review).toMatchObject({ sourceNeedsOpen: 0, organisationSpecificOpen: 1 });
     // E: de actuele unresolved refs volgen de dekking (SN1 niet meer "ontbrekend"); historische revisions blijven gelijk.
     expect(covered.content!.package.unresolvedRequirements.filter((u) => u.plannedBlockId === bronId)).toEqual([
       { plannedBlockId: bronId, kind: "source", refs: [] },
-      { plannedBlockId: bronId, kind: "organisation_source", refs: ["SN2"] },
+      { plannedBlockId: bronId, kind: "organisation_source", refs: ["SN3"] },
     ]);
     const stored = await getArtifactRevision(db, view.content!.blockRevisions[bronId].revisionId);
-    expect((stored!.payload as BlockContentResult).accreditation.sourceNeedRefs).toEqual(["SN1", "SN2"]);
+    expect((stored!.payload as BlockContentResult).accreditation.sourceNeedRefs).toEqual(["SN1", "SN2", "SN3"]);
 
     const generated = ws(await regenerateBlock(d, id, bronId, covered.content!.blockRevisions[bronId].revisionId));
     const bron = generated.content!.package.blocks.find((b) => b.plannedBlockId === bronId)!;
     expect(bron.body.status).toBe("generated");
-    expect(bron.accreditation.sourceNeedRefs).toEqual(["SN1"]);
+    expect(bron.accreditation.sourceNeedRefs).toEqual(["SN1", "SN2"]);
     const text = bron.body.status === "generated" && bron.body.content.catalogBlockId === "certum.bco.tekst" ? bron.body.content.text : "";
     expect(text).toContain(ORGANISATION_SPECIFIC_NOTE);
     expect(text).not.toContain("interne werkwijze of afspraak geldt binnen de eigen organisatie");
-    expect(generated.content!.package.unresolvedRequirements).toContainEqual({ plannedBlockId: bronId, kind: "organisation_source", refs: ["SN2"] });
+    expect(generated.content!.package.unresolvedRequirements).toContainEqual({ plannedBlockId: bronId, kind: "organisation_source", refs: ["SN3"] });
 
     // Alles goedkeuren: de organisatiegebonden behoefte houdt de generieke training niet op incomplete.
     let current = generated;
@@ -261,7 +264,7 @@ describe("B. organisatiegebonden sourceNeeds", () => {
 
   it("gegenereerde Bron-inhoud mag nooit verwijzen naar een sourceNeed zonder gevalideerde bron", async () => {
     const { d, id, bronId } = await trainingWithOrganisationNeed();
-    await addValidated(d, id, ["SN1"]);
+    await addValidated(d, id, ["SN1", "SN2"]);
     const view = (await loadTrainingWorkspace(db, id))!;
     const generated = ws(await regenerateBlock(d, id, bronId, view.content!.blockRevisions[bronId].revisionId));
     const bron = generated.content!.package.blocks.find((b) => b.plannedBlockId === bronId)!;
@@ -269,7 +272,7 @@ describe("B. organisatiegebonden sourceNeeds", () => {
     const blockPlan = generated.blockPlan!.payload;
     const sources = generated.sources!.items.filter((i) => i.validated).map((i) => ({ sourceId: i.sourceId, revisionId: i.revisionId, ...i.payload }));
     expect(checkBlockContentInvariants(bron, { blueprint, blockPlan, validatedSources: sources })).toEqual([]);
-    const claimsOrganisation = { ...bron, accreditation: { ...bron.accreditation, sourceNeedRefs: ["SN1", "SN2"] } };
+    const claimsOrganisation = { ...bron, accreditation: { ...bron.accreditation, sourceNeedRefs: ["SN1", "SN2", "SN3"] } };
     expect(checkBlockContentInvariants(claimsOrganisation, { blueprint, blockPlan, validatedSources: sources })).toContain("bronverwijzing-zonder-bron");
   });
 });
@@ -313,7 +316,7 @@ describe("D. trainingstitel", () => {
     ws(await selectDirection(d, id, analysis.revisionId, analysis.outcome.outcome === "ready" ? analysis.outcome.trainingDirections[0].id : ""));
     const bp = ws(await generateBlueprint(d, id));
     expect((await getTraining(db, id))!.title).toBe(intakeTitle);
-    ws(await decideRevision(d, id, bp.blueprint!.revisionId, "approved"));
+    ws(await approveBlueprint(d, id));
     expect((await getTraining(db, id))!.title).toBe(bp.blueprint!.payload.title);
     const plan = ws(await generateBlockPlan(d, id));
     ws(await decideRevision(d, id, plan.blockPlan!.revisionId, "approved"));

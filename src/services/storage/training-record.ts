@@ -19,7 +19,7 @@ import {
 import { MAX_INPUT_LENGTH, type AgentInputKind } from "@/modules/training-agent";
 import { segmentInput } from "@/modules/training-agent/v2";
 import { ANALYSIS_CONTRACT_V21_VERSION, AnalysisOutcomeV21Schema, checkOutcomeInvariantsV21 } from "@/modules/training-agent/v2-1";
-import { TrainingBlueprintV2Schema, routePolicyFor, type TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
+import { TRAINING_BLUEPRINT_V2_VERSION, TrainingBlueprintV2Schema, routePolicyFor, type TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
 import { CERTUM_SOURCE_VERSION, CertumSourceSchema, relevantContentIssue, type CertumSource } from "@/modules/sources/schema";
 import { canonicalJson, contentHash } from "./canonical-json";
 import type { Db } from "./db";
@@ -97,7 +97,8 @@ export type StorageErrorCode =
   | "hash_mismatch"
   | "duplicate_revision"
   | "stale_revision"
-  | "source_content_invalid";
+  | "source_content_invalid"
+  | "scope_review_required";
 
 /** Fout van de storage-laag. De melding bevat nooit inhoud, invoer of hashes. */
 export class StorageError extends Error {
@@ -597,6 +598,13 @@ export async function listArtifactRevisions(
  * - `approved`: alleen als alle based_on-revisions current en geaccepteerd zijn; blokinhoud alleen als `generated`;
  * - `needs_revision`, `revoked`: op ieder niet-analyse-artifact.
  */
+/** Of iedere sourceNeed van een Blueprint V2 een expliciete scope heeft (de opleider heeft geclassificeerd). */
+function sourceNeedsClassified(payload: unknown): boolean {
+  const blueprint = payload as { version?: string; sourceNeeds?: { scope?: unknown }[] };
+  if (blueprint.version !== TRAINING_BLUEPRINT_V2_VERSION) return true;
+  return (blueprint.sourceNeeds ?? []).every((n) => n.scope !== undefined);
+}
+
 export async function appendWorkflowEvent(
   db: Db,
   input: {
@@ -634,6 +642,12 @@ export async function appendWorkflowEvent(
         }
         if (revision.artifactType === "block_content" && getBlockApprovalBlocker(revision.payload as BlockContentResult) !== null) {
           throw new StorageError("not_generated", "Alleen gegenereerde blokinhoud kan worden goedgekeurd.");
+        }
+        // SourceNeed Scope Review (15B): de opleider bepaalt per kennisbehoefte de scope; geen stille default bij een
+        // nieuwe goedkeuring. Legacy Blueprints zonder scope blijven leesbaar (als professional), maar worden niet
+        // opnieuw goedgekeurd zonder classificatie.
+        if (revision.artifactType === "blueprint" && !sourceNeedsClassified(revision.payload)) {
+          throw new StorageError("scope_review_required", "Classificeer eerst alle kennisbehoeften van de Blueprint.");
         }
         if (revision.artifactType === "source" && input.sourceValidation !== true) {
           throw new StorageError("invalid_event", "Een bron wordt alleen via de bronvalidatie goedgekeurd.");

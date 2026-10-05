@@ -12,6 +12,7 @@ const MESSAGES: Record<WorkflowRejection, string> = {
   provider_error: "Deze stap kon nu niet worden uitgevoerd. Probeer het later opnieuw.",
   invalid_output: "Het resultaat voldeed niet aan de regels en is niet opgeslagen. Probeer het opnieuw.",
   persistence_error: "Opslaan is niet gelukt; er is niets gewijzigd. Probeer het opnieuw.",
+  scope_review_required: "Classificeer eerst alle kennisbehoeften en sla de keuzes op voordat je de Blueprint goedkeurt.",
 };
 
 export function workflowMessage(reason: WorkflowRejection): string {

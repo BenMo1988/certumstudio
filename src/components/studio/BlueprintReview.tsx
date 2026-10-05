@@ -1,8 +1,11 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useState, type ReactNode } from "react";
 import { METHODOLOGY_STEPS } from "@/knowledge";
-import type { EvaluationBasis, RoutePolicy, TrainingBlueprintV2 as TrainingBlueprint } from "@/modules/training-blueprint/v2";
+import type { EvaluationBasis, RoutePolicy, SourceNeedScope, TrainingBlueprintV2 as TrainingBlueprint } from "@/modules/training-blueprint/v2";
 import { Button } from "./Button";
 import { Icon } from "./Icon";
+import type { ActResult } from "./review/ReviewWorkspace";
 
 const AMBIGUITY_LABEL: Record<TrainingBlueprint["ambiguity"], string> = {
   single_best_action: "Eén beste handelwijze",
@@ -40,10 +43,17 @@ interface BlueprintReviewProps {
   approved?: boolean;
   onApprove: () => void;
   onBack: () => void;
+  /** SourceNeed Scope Review: de classificatie opslaan (nieuwe Blueprint-versie). */
+  onSaveScopes: (scopes: Record<string, SourceNeedScope>) => Promise<ActResult>;
 }
 
-/** Review van de Training Blueprint (Blueprint Contract V2): het didactisch ontwerp. Geen edit-interface. */
-export function BlueprintReview({ blueprint, pending, approved = false, onApprove, onBack }: BlueprintReviewProps) {
+/**
+ * Review van de Training Blueprint (Blueprint Contract V2): het didactisch ontwerp. Alleen de scope van de
+ * kennisbehoeften is bewerkbaar (SourceNeed Scope Review); de Blueprint kan pas worden goedgekeurd als iedere
+ * kennisbehoefte geclassificeerd en opgeslagen is.
+ */
+export function BlueprintReview({ blueprint, pending, approved = false, onApprove, onBack, onSaveScopes }: BlueprintReviewProps) {
+  const unclassified = blueprint.sourceNeeds.some((n) => n.scope === undefined);
   const arc = blueprint.learningArc;
   const phaseContent: Record<string, ReactNode> = {
     context: (
@@ -124,14 +134,9 @@ export function BlueprintReview({ blueprint, pending, approved = false, onApprov
             "Geen"
           )}
         </Fact>
-        <Fact label="Te valideren kennis (source needs)">
-          {blueprint.sourceNeeds.length > 0 ? (
-            <List items={blueprint.sourceNeeds.map((n) => `${n.id} · ${n.question}`)} />
-          ) : (
-            "Geen"
-          )}
-        </Fact>
       </dl>
+
+      {blueprint.sourceNeeds.length > 0 && <ScopeReview blueprint={blueprint} pending={pending} onSaveScopes={onSaveScopes} />}
 
       <section className="mt-14" aria-labelledby="arc-heading">
         <h2 id="arc-heading" className="text-lg font-semibold tracking-tight text-ink">
@@ -158,11 +163,134 @@ export function BlueprintReview({ blueprint, pending, approved = false, onApprov
           <Icon name="arrowLeft" className="size-4" />
           Terug naar analyse
         </Button>
-        <Button onClick={onApprove} disabled={pending}>
-          {pending ? "Block Plan wordt gemaakt…" : approved ? "Goedgekeurd · verder naar Block Plan" : "Blueprint goedkeuren"}
-        </Button>
+        <div className="flex flex-col items-end gap-2">
+          {!approved && unclassified && (
+            <p className="text-sm text-attention-700" data-testid="approve-blocked">
+              Classificeer eerst alle kennisbehoeften.
+            </p>
+          )}
+          <Button onClick={onApprove} disabled={pending || (!approved && unclassified)}>
+            {pending ? "Block Plan wordt gemaakt…" : approved ? "Goedgekeurd · verder naar Block Plan" : "Blueprint goedkeuren"}
+          </Button>
+        </div>
       </div>
     </div>
+  );
+}
+
+const SCOPE_LABEL: Record<SourceNeedScope, string> = {
+  professional: "Professionele / algemene kennis",
+  organisation_specific: "Organisatiespecifieke kennis",
+};
+
+const SCOPE_EXPLANATION: Record<SourceNeedScope, string> = {
+  professional: "Kan worden onderbouwd met algemene vakinhoud, beroepscodes, wetgeving, richtlijnen of andere gevalideerde professionele bronnen.",
+  organisation_specific: "Hangt af van het beleid, protocol, de werkwijze of afspraken van de betreffende organisatie.",
+};
+
+const SCOPE_CONSEQUENCE: Record<SourceNeedScope, string> = {
+  professional: "Professioneel: vereist een gevalideerde bron; zonder bron blijft de Bron-fase open.",
+  organisation_specific:
+    "Organisatiespecifiek: blijft zichtbaar als aandachtspunt, maar blokkeert een generieke training niet wanneer geen organisatiebron beschikbaar is. Certum vult dit nooit zelf in.",
+};
+
+/**
+ * SourceNeed Scope Review (15B): de opleider classificeert iedere kennisbehoefte. Geen voorselectie: zonder
+ * classificatie geen goedkeuring. Opslaan maakt een nieuwe Blueprint-versie; alleen de scope verandert.
+ */
+function ScopeReview({
+  blueprint,
+  pending,
+  onSaveScopes,
+}: {
+  blueprint: TrainingBlueprint;
+  pending: boolean;
+  onSaveScopes: (scopes: Record<string, SourceNeedScope>) => Promise<ActResult>;
+}) {
+  const saved = Object.fromEntries(blueprint.sourceNeeds.filter((n) => n.scope).map((n) => [n.id, n.scope!])) as Record<string, SourceNeedScope>;
+  const [choice, setChoice] = useState<Record<string, SourceNeedScope>>(saved);
+  const [error, setError] = useState<{ message: string; issues?: string[] } | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const complete = blueprint.sourceNeeds.every((n) => choice[n.id]);
+  const changed = blueprint.sourceNeeds.some((n) => choice[n.id] !== n.scope);
+
+  return (
+    <section className="mt-10 rounded-lg border border-line p-5" aria-labelledby="scope-heading" data-testid="scope-review">
+      <h2 id="scope-heading" className="text-lg font-semibold tracking-tight text-ink">
+        Kennisbehoeften
+      </h2>
+      <p className="mt-1 max-w-2xl text-sm text-muted">
+        Certum formuleert de kennisbehoefte; jij bepaalt per kennisbehoefte welk soort kennis het is.
+      </p>
+      <dl className="mt-3 grid gap-x-4 gap-y-1 text-sm sm:grid-cols-[16rem_1fr]">
+        {(Object.keys(SCOPE_LABEL) as SourceNeedScope[]).map((s) => (
+          <div key={s} className="contents">
+            <dt className="font-medium text-ink">{SCOPE_LABEL[s]}</dt>
+            <dd className="text-muted">{SCOPE_EXPLANATION[s]}</dd>
+          </div>
+        ))}
+      </dl>
+      <ul className="mt-5 divide-y divide-line border-y border-line">
+        {blueprint.sourceNeeds.map((n) => (
+          <li key={n.id} className="py-4" data-testid={`scope-${n.id}`} data-scope={n.scope ?? "unclassified"}>
+            <p className="text-[15px] text-ink">
+              <span className="font-semibold">{n.id}</span> · {n.question}
+            </p>
+            <fieldset className="mt-2 flex flex-wrap gap-x-6 gap-y-2">
+              <legend className="sr-only">Soort kennis voor {n.id}</legend>
+              {(Object.keys(SCOPE_LABEL) as SourceNeedScope[]).map((s) => (
+                <label key={s} className="flex items-center gap-2 text-sm text-ink">
+                  <input
+                    type="radio"
+                    name={`scope-${n.id}`}
+                    value={s}
+                    checked={choice[n.id] === s}
+                    onChange={() => {
+                      setNotice(null);
+                      setChoice((prev) => ({ ...prev, [n.id]: s }));
+                    }}
+                  />
+                  {SCOPE_LABEL[s]}
+                </label>
+              ))}
+            </fieldset>
+            {choice[n.id] && (
+              <p className="mt-2 text-xs text-muted" data-testid={`scope-consequence-${n.id}`}>
+                {SCOPE_CONSEQUENCE[choice[n.id]]}
+              </p>
+            )}
+          </li>
+        ))}
+      </ul>
+      {notice && (
+        <p role="status" className="mt-4 flex items-center gap-2 text-sm text-petrol-800" data-testid="scope-notice">
+          <Icon name="check" className="size-4" />
+          {notice}
+        </p>
+      )}
+      {error && (
+        <div role="alert" className="mt-4 rounded-md border border-danger/30 bg-danger-50 px-4 py-3 text-sm text-danger">
+          <p>{error.message}</p>
+          {error.issues && error.issues.length > 0 && <p className="mt-1 text-xs">Controleer: {error.issues.join(", ")}</p>}
+        </div>
+      )}
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <Button
+          variant="secondary"
+          disabled={pending || !complete || !changed}
+          onClick={async () => {
+            setError(null);
+            const result = await onSaveScopes(choice);
+            if (result.ok) setNotice("Classificatie opgeslagen als nieuwe Blueprint-versie. Keur de Blueprint nu goed.");
+            else setError(result);
+          }}
+        >
+          Classificatie opslaan
+        </Button>
+        {!complete && <p className="text-sm text-attention-700">Classificeer eerst alle kennisbehoeften.</p>}
+        {complete && changed && <p className="text-sm text-attention-700">Sla de classificatie op voordat je goedkeurt.</p>}
+      </div>
+    </section>
   );
 }
 

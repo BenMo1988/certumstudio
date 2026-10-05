@@ -16,6 +16,7 @@ import {
   type WorkflowDeps,
   type WorkflowResult,
 } from "./persisted-workflow";
+import { approveBlueprint } from "../../../../test/workflow-helpers";
 
 /*
  * Opt-in Supabase resume-proof (Step 11C): de persisted workflow met MOCK-providers tegen de echte database in
@@ -74,8 +75,8 @@ it("Supabase resume-proof: keten → client sluiten → nieuwe verbinding → tr
     const analysis = ws(started.analysis).analysis!;
     const direction = analysis.outcome.outcome === "ready" ? analysis.outcome.trainingDirections[0].id : "";
     ws(await timed("richting", () => selectDirection(d, id, analysis.revisionId, direction)));
-    const bp = ws(await timed("blueprint", () => generateBlueprint(d, id))).blueprint!;
-    ws(await timed("blueprint_goedkeuren", () => decideRevision(d, id, bp.revisionId, "approved")));
+    ws(await timed("blueprint", () => generateBlueprint(d, id)));
+    ws(await timed("blueprint_goedkeuren", () => approveBlueprint(d, id)));
     const plan = ws(await timed("block_plan", () => generateBlockPlan(d, id))).blockPlan!;
     ws(await timed("block_plan_goedkeuren", () => decideRevision(d, id, plan.revisionId, "approved")));
     const content = ws(await timed("content", () => generateContent(d, id))).content!;

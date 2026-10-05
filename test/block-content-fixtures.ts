@@ -8,6 +8,14 @@ export type PlanCaseId = "BLP-001" | "BLP-002" | "BLP-003" | "BLP-001-MEDIA" | "
 
 type PlanCase = { blueprint: string; plan: BcOnlineBlockPlan };
 
+/**
+ * Alleen voor tests: dezelfde Blueprint met een expliciete scope per sourceNeed, zoals na de SourceNeed Scope Review
+ * (15B). Zonder opgegeven scope: professionele kennis.
+ */
+export function classified(blueprint: TrainingBlueprintV2, scopes: Record<string, "professional" | "organisation_specific"> = {}): TrainingBlueprintV2 {
+  return { ...blueprint, sourceNeeds: blueprint.sourceNeeds.map((n) => ({ ...n, scope: scopes[n.id] ?? "professional" })) };
+}
+
 export function fixtureCase(id: PlanCaseId): { blueprint: TrainingBlueprintV2; blockPlan: BcOnlineBlockPlan } {
   const planCase = (plans.cases as unknown as Record<PlanCaseId, PlanCase>)[id];
   const blueprint = (blueprints.cases as unknown as Record<string, { blueprint: TrainingBlueprintV2 }>)[planCase.blueprint].blueprint;

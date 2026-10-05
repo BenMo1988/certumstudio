@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { hashPreflightText, runPrivacyPreflight } from "@/modules/privacy";
 import { ANALYSIS_CONTRACT_V21_VERSION } from "@/modules/training-agent/v2-1";
-import { fixtureCase } from "../../../test/block-content-fixtures";
+import { classified, fixtureCase } from "../../../test/block-content-fixtures";
 import analyses from "../../../test/fixtures/v21-ready-analyses.json";
 import { canonicalJson, contentHash } from "./canonical-json";
 import { createPostgresDb } from "./postgres-db";
@@ -30,7 +30,7 @@ import {
 if (!process.env.DATABASE_URL) process.loadEnvFile(".env.local");
 const URL_ = process.env.DATABASE_URL?.trim();
 const CA006 = (analyses.cases as unknown as Record<string, { input: string; analysis: unknown }>)["CA-006"];
-const { blueprint: BLUEPRINT } = fixtureCase("BLP-001");
+const BLUEPRINT = classified(fixtureCase("BLP-001").blueprint);
 
 it("Supabase persistence proof: keten → sluiten → nieuwe verbinding → herladen; append-only; revisies; approval", async () => {
   if (!URL_) throw new Error("DATABASE_URL ontbreekt in .env.local.");

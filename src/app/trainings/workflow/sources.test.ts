@@ -23,6 +23,7 @@ import {
   type WorkflowResult,
 } from "./persisted-workflow";
 import { addSource, editSource, validateSource } from "./sources";
+import { approveBlueprint } from "../../../../test/workflow-helpers";
 
 /*
  * Source Workspace V1 tegen PGlite met mock-providers: candidate vs gevalideerd, dekking per sourceNeed, Bron-inhoud
@@ -74,7 +75,8 @@ async function trainingWithContent(d: WorkflowDeps = deps()) {
   const analysis = ws(started.analysis).analysis!;
   const direction = analysis.outcome.outcome === "ready" ? analysis.outcome.trainingDirections[0].id : "";
   ws(await selectDirection(d, id, analysis.revisionId, direction));
-  ws(await decideRevision(d, id, ws(await generateBlueprint(d, id)).blueprint!.revisionId, "approved"));
+  ws(await generateBlueprint(d, id));
+  ws(await approveBlueprint(d, id));
   ws(await decideRevision(d, id, ws(await generateBlockPlan(d, id)).blockPlan!.revisionId, "approved"));
   const view = ws(await generateContent(d, id));
   const bron = view.content!.package.blocks.find((b) => b.body.status === "needs_source")!;

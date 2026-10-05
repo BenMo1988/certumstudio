@@ -20,6 +20,7 @@ import { instrumentDb } from "./instrumented-db";
 import { approvalState, composeContentFromSnapshot, currentRevision } from "./snapshot";
 import { appendWorkflowEvent, composeStoredContentPackage, getApprovalState, loadTrainingRecordSnapshot } from "./training-record";
 import { deriveWorkspace, listTrainingSummaries, loadTrainingWorkspace } from "./workspace";
+import { approveBlueprint } from "../../../test/workflow-helpers";
 
 /*
  * Step 11D: de snapshot-implementatie levert exact dezelfde uitkomsten als de approvalregels, met een klein en vast
@@ -70,7 +71,8 @@ async function trainingAtContent(deps: WorkflowDeps) {
   const analysis = ws(started.analysis).analysis!;
   const direction = analysis.outcome.outcome === "ready" ? analysis.outcome.trainingDirections[0].id : "";
   ws(await selectDirection(deps, id, analysis.revisionId, direction));
-  ws(await decideRevision(deps, id, ws(await generateBlueprint(deps, id)).blueprint!.revisionId, "approved"));
+  ws(await generateBlueprint(deps, id));
+  ws(await approveBlueprint(deps, id));
   ws(await decideRevision(deps, id, ws(await generateBlockPlan(deps, id)).blockPlan!.revisionId, "approved"));
   return id;
 }

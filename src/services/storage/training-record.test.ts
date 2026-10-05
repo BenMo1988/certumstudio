@@ -9,7 +9,7 @@ import { ANALYSIS_CONTRACT_V21_VERSION } from "@/modules/training-agent/v2-1";
 import type { TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
 import { MockBlockContentService } from "@/services/block-content/mock/mock-block-content-service";
 import { generateBlockContent } from "@/services/block-content/orchestrator";
-import { fixtureCase } from "../../../test/block-content-fixtures";
+import { classified, fixtureCase } from "../../../test/block-content-fixtures";
 import analyses from "../../../test/fixtures/v21-ready-analyses.json";
 import { createTestDb, migrationFiles, type TestDb } from "../../../test/pglite-db";
 import { canonicalJson, contentHash } from "./canonical-json";
@@ -40,7 +40,9 @@ import {
 
 const CA006 = (analyses.cases as unknown as Record<string, { kind: "casus"; input: string; analysis: unknown }>)["CA-006"];
 const DIRECTION = "grens-en-verantwoordelijkheid";
-const { blueprint: BLUEPRINT, blockPlan: PLAN } = fixtureCase("BLP-001");
+const fixture = fixtureCase("BLP-001");
+const BLUEPRINT = classified(fixture.blueprint);
+const PLAN = fixture.blockPlan;
 const mock = new MockBlockContentService();
 
 let db: TestDb;

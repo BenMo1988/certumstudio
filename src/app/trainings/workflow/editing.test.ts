@@ -24,6 +24,7 @@ import {
   type WorkflowDeps,
   type WorkflowResult,
 } from "./persisted-workflow";
+import { approveBlueprint } from "../../../../test/workflow-helpers";
 
 /*
  * Training Review & Editor V1 tegen PGlite met mock-providers. Een bewerking is altijd een nieuwe, immutable revision;
@@ -74,7 +75,8 @@ async function trainingWithContent() {
   const analysis = ws(started.analysis).analysis!;
   const direction = analysis.outcome.outcome === "ready" ? analysis.outcome.trainingDirections[0].id : "";
   ws(await selectDirection(d, id, analysis.revisionId, direction));
-  ws(await decideRevision(d, id, ws(await generateBlueprint(d, id)).blueprint!.revisionId, "approved"));
+  ws(await generateBlueprint(d, id));
+  ws(await approveBlueprint(d, id));
   ws(await decideRevision(d, id, ws(await generateBlockPlan(d, id)).blockPlan!.revisionId, "approved"));
   return { d, id, view: ws(await generateContent(d, id)) };
 }

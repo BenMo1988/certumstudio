@@ -9,6 +9,7 @@ import { instrumentDb, summarize } from "./instrumented-db";
 import { createPostgresDb } from "./postgres-db";
 import { createTraining, saveTrainingInput } from "./training-record";
 import { listTrainingSummaries, loadTrainingWorkspace } from "./workspace";
+import { approveBlueprint } from "../../../test/workflow-helpers";
 
 /*
  * Opt-in performance-proof tegen de echte database (Step 11D). Per run één herkenbare development-training
@@ -62,7 +63,8 @@ it("Supabase performance: heropenen, blokgoedkeuring, mock-contentgeneratie, lij
       const analysis = ws(await runAnalysis(deps, training.id)).analysis!;
       const direction = analysis.outcome.outcome === "ready" ? analysis.outcome.trainingDirections[0].id : "";
       ws(await selectDirection(deps, training.id, analysis.revisionId, direction));
-      ws(await decideRevision(deps, training.id, ws(await generateBlueprint(deps, training.id)).blueprint!.revisionId, "approved"));
+      ws(await generateBlueprint(deps, training.id));
+      ws(await approveBlueprint(deps, training.id));
       ws(await decideRevision(deps, training.id, ws(await generateBlockPlan(deps, training.id)).blockPlan!.revisionId, "approved"));
 
       const content = await measure(() => generateContent(deps, training.id));

@@ -26,6 +26,7 @@ import {
   type WorkflowDeps,
   type WorkflowResult,
 } from "./persisted-workflow";
+import { approveBlueprint } from "../../../../test/workflow-helpers";
 
 /*
  * De persisted workflow tegen PGlite (dezelfde migratie als Supabase) met de mock-providers. Bewijst dat iedere stap
@@ -103,8 +104,8 @@ async function approvedPlan(deps: WorkflowDeps) {
   const analysis = workspace.analysis!;
   const direction = analysis.outcome.outcome === "ready" ? analysis.outcome.trainingDirections[0].id : "";
   workspaceOf(await selectDirection(deps, trainingId, analysis.revisionId, direction));
-  const withBlueprint = workspaceOf(await generateBlueprint(deps, trainingId));
-  workspaceOf(await decideRevision(deps, trainingId, withBlueprint.blueprint!.revisionId, "approved"));
+  workspaceOf(await generateBlueprint(deps, trainingId));
+  workspaceOf(await approveBlueprint(deps, trainingId));
   const withPlan = workspaceOf(await generateBlockPlan(deps, trainingId));
   return { trainingId, direction, workspace: workspaceOf(await decideRevision(deps, trainingId, withPlan.blockPlan!.revisionId, "approved")) };
 }
@@ -191,8 +192,9 @@ describe("richting en Blueprint", () => {
     const analysis = workspace.analysis!;
     const direction = analysis.outcome.outcome === "ready" ? analysis.outcome.trainingDirections[0].id : "";
     await selectDirection(deps, trainingId, analysis.revisionId, direction);
-    const bp = workspaceOf(await generateBlueprint(deps, trainingId)).blueprint!;
-    await decideRevision(deps, trainingId, bp.revisionId, "approved");
+    workspaceOf(await generateBlueprint(deps, trainingId));
+    workspaceOf(await approveBlueprint(deps, trainingId));
+    const bp = (await reload(trainingId)).blueprint!;
     await db.exec("alter table artifact_revision disable trigger artifact_revision_immutable");
     await db.query(`update artifact_revision set payload = jsonb_set(payload, '{learningGoal}', '"Gemanipuleerd"') where id = $1`, [bp.revisionId]);
     await db.exec("alter table artifact_revision enable trigger artifact_revision_immutable");
@@ -208,9 +210,9 @@ describe("Block Plan", () => {
     const analysis = workspace.analysis!;
     const direction = analysis.outcome.outcome === "ready" ? analysis.outcome.trainingDirections[0].id : "";
     await selectDirection(deps, trainingId, analysis.revisionId, direction);
-    const bp = workspaceOf(await generateBlueprint(deps, trainingId)).blueprint!;
+    workspaceOf(await generateBlueprint(deps, trainingId));
     expect(await generateBlockPlan(deps, trainingId)).toMatchObject({ reason: "invalid_state" });
-    await decideRevision(deps, trainingId, bp.revisionId, "approved");
+    workspaceOf(await approveBlueprint(deps, trainingId));
     const after = workspaceOf(await generateBlockPlan(deps, trainingId));
     expect(spies.blockPlan.mock.calls[0][0].blueprint).toEqual((await getCurrentArtifactRevision(db, trainingId, "blueprint"))!.payload);
     workspaceOf(await generateBlockPlan(deps, trainingId));

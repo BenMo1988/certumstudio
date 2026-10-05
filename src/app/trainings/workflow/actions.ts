@@ -28,7 +28,7 @@ import {
   type WorkflowDeps,
   type WorkflowResult,
 } from "./persisted-workflow";
-import { revisionHistory, saveBlockEdit, saveBlockPlanBlockEdit, saveFrameEdit, type RevisionHistoryEntry } from "./editing";
+import { revisionHistory, saveBlockEdit, saveBlockPlanBlockEdit, saveFrameEdit, saveSourceNeedScopes, type RevisionHistoryEntry } from "./editing";
 import { addSource, editSource, validateSource } from "./sources";
 
 /*
@@ -135,6 +135,12 @@ export async function saveBlockEditAction(trainingId: unknown, plannedBlockId: u
 export async function saveFrameEditAction(trainingId: unknown, part: unknown, expectedRevisionId: unknown, fields: unknown) {
   if (!isId(trainingId) || (part !== "start" && part !== "end") || !isId(expectedRevisionId)) return invalid;
   return guarded(() => saveFrameEdit(deps(), trainingId, part, expectedRevisionId, fields));
+}
+
+/** SourceNeed Scope Review: de opleider classificeert iedere kennisbehoefte (nieuwe Blueprint-revision, opnieuw goedkeuren). */
+export async function saveSourceNeedScopesAction(trainingId: unknown, expectedRevisionId: unknown, scopes: unknown) {
+  if (!isId(trainingId) || !isId(expectedRevisionId)) return invalid;
+  return guarded(() => saveSourceNeedScopes(deps(), trainingId, expectedRevisionId, scopes));
 }
 
 /** Human Block Plan Override: één gepland blok handmatig corrigeren (nieuwe Block Plan-revision, opnieuw goedkeuren). */

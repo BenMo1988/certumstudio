@@ -9,7 +9,7 @@ import {
 } from "@/modules/block-content/schema";
 import { checkBlockContentInvariants, composeBlockContent, resolveBlockTarget, type BlockPayloadDesign } from "@/modules/block-content";
 import { BcOnlineBlockPlanSchema, PlannedBlockEditSchema, applyPlannedBlockEdit, checkBlockPlanInvariants, type BcOnlineBlockPlan } from "@/modules/block-plan";
-import type { TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
+import { SOURCE_NEED_ID, SOURCE_NEED_SCOPES, TrainingBlueprintV2Schema, type TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
 import { editableContentSchema } from "@/services/block-content/design";
 import { zodIssueCodes } from "@/services/block-content/diagnostics";
 import { contentHash } from "@/services/storage/canonical-json";
@@ -244,3 +244,52 @@ export async function saveBlockPlanBlockEdit(
   }
   return ok(deps, trainingId, action);
 }
+
+/**
+ * SourceNeed Scope Review (15B): de opleider bepaalt per bestaande kennisbehoefte of die professionele/algemene kennis
+ * of organisatiespecifieke kennis vraagt. AI formuleert de kennisbehoefte; de opleider bepaalt de scope.
+ * - Alleen de scope is bewerkbaar: vraag, ids, aantal sourceNeeds en al het andere komen ongewijzigd uit de current
+ *   Blueprint-revision (de server reconstrueert het Blueprint). Iedere sourceNeed moet een keuze krijgen.
+ * - Altijd een nieuwe Blueprint-revision (`manual-edit`, n → n+1); een eerdere goedkeuring gaat niet mee en een Block
+ *   Plan op de oude revision volgt de bestaande staleness-regels. Ongewijzigd opslaan maakt geen revision.
+ * 0 AI-aanroepen.
+ */
+export async function saveSourceNeedScopes(deps: WorkflowDeps, trainingId: string, expectedRevisionId: string, raw: unknown): Promise<WorkflowResult> {
+  const action = "save_source_need_scopes";
+  const snap = await loadTrainingRecordSnapshot(deps.db, trainingId);
+  if (!snap) return reject(deps, action, "not_found");
+  const analysis = currentRevision(snap, "analysis");
+  const current = currentRevision(snap, "blueprint");
+  if (!analysis || !builtOn(current, [analysis.id])) return reject(deps, action, "invalid_state");
+  if (current.id !== expectedRevisionId) return reject(deps, action, "stale_revision");
+
+  const blueprint = current.payload as TrainingBlueprintV2;
+  const ids = blueprint.sourceNeeds.map((n) => n.id);
+  const parsed = SCOPE_REVIEW.safeParse(raw);
+  if (!parsed.success) return invalidInput(deps, action, zodIssueCodes(parsed.error));
+  const keys = Object.keys(parsed.data);
+  if (keys.length !== ids.length || !ids.every((id) => keys.includes(id))) return invalidInput(deps, action, ["scope_keys_mismatch@scopes"]);
+
+  const payload = TrainingBlueprintV2Schema.safeParse({ ...blueprint, sourceNeeds: blueprint.sourceNeeds.map((n) => ({ ...n, scope: parsed.data[n.id] })) });
+  if (!payload.success) return invalidInput(deps, action, zodIssueCodes(payload.error));
+  if (contentHash(payload.data) === current.contentHash) return ok(deps, trainingId, action);
+
+  try {
+    await createArtifactRevision(deps.db, {
+      trainingId,
+      artifactType: "blueprint",
+      contractVersion: current.contractVersion,
+      promptVersion: null,
+      modelVersion: MANUAL_EDIT,
+      payload: payload.data,
+      basedOnRevisionIds: [analysis.id],
+      expectedCurrentRevisionId: expectedRevisionId,
+    });
+  } catch (error) {
+    return rejectError(deps, action, error);
+  }
+  return ok(deps, trainingId, action);
+}
+
+/** Per sourceNeed-id precies één scope; onbekende scopes of ids met een ander formaat worden geweigerd. */
+const SCOPE_REVIEW = z.record(z.string().regex(SOURCE_NEED_ID), z.enum(SOURCE_NEED_SCOPES));

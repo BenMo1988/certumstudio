@@ -85,11 +85,11 @@ function designFor(target: BlockTarget, blueprint: TrainingBlueprintV2): BlockCo
  * organisatiebron alleen een neutrale verwijzing naar de eigen werkwijze, zonder te suggereren wat die inhoudt.
  */
 export const ORGANISATION_SPECIFIC_NOTE = "Controleer welke interne werkwijze of procedure binnen jouw organisatie geldt.";
-const fromSources = (target: BlockTarget) =>
-  [
-    ...target.sources.map((s) => `${s.title}: ${s.relevantContent}`),
-    ...(target.uncoveredOrganisationSpecificNeedIds.length > 0 ? [ORGANISATION_SPECIFIC_NOTE] : []),
-  ].join("\n\n");
+const fromSources = (target: BlockTarget) => {
+  const note = target.uncoveredOrganisationSpecificNeedIds.length > 0 ? `\n\n${ORGANISATION_SPECIFIC_NOTE}` : "";
+  // De verwijzing blijft altijd staan; alleen de broninhoud wordt zo nodig ingekort tot het tekstveld vol is.
+  return fit(target.sources.map((s) => `${s.title}: ${s.relevantContent}`).join("\n\n"), 4000 - note.length) + note;
+};
 
 function contentFor(target: BlockTarget, blueprint: TrainingBlueprintV2): BlockPayloadDesign {
   const { block } = target;

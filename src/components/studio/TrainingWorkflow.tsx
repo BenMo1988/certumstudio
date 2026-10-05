@@ -9,6 +9,7 @@ import {
   generateBlueprintAction,
   generateContentAction,
   saveBlockPlanBlockEditAction,
+  saveSourceNeedScopesAction,
   runAnalysisAction,
   selectDirectionAction,
 } from "@/app/trainings/workflow/actions";
@@ -153,7 +154,8 @@ export function TrainingWorkflow({ initial }: { initial: TrainingWorkspaceView }
           <BlueprintReview
             blueprint={ws.blueprint.payload}
             approved={ws.blueprint.approved}
-            pending={pending}
+            pending={pending || busy}
+            onSaveScopes={(scopes) => act(() => saveSourceNeedScopesAction(id, ws.blueprint!.revisionId, scopes))}
             onApprove={() => {
               const revisionId = ws.blueprint!.revisionId;
               run(

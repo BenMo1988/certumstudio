@@ -13,7 +13,7 @@ import { createTrainingBlueprintServiceV21 } from "@/services/blueprint/factory"
 import { currentRevision } from "@/services/storage/snapshot";
 import { createArtifactRevision, loadTrainingRecordSnapshot } from "@/services/storage/training-record";
 import { TRAINING_BLOCK_CONTENT_V1_2_PROMPT_VERSION } from "@/knowledge/prompts/training-block-content-v1-2";
-import { fixtureCase } from "../../../test/block-content-fixtures";
+import { classified, fixtureCase } from "../../../test/block-content-fixtures";
 import { createTestDb } from "../../../test/pglite-db";
 
 /*
@@ -108,7 +108,10 @@ it(`source grounding ${CASE} (${PROVIDER})`, async () => {
 
     // Goedgekeurde BLP-001 Blueprint en Block Plan (fixtures uit eerdere Claude-baselines). Alleen de gekozen
     // richting-id volgt de mock-analyse; de provider-input bevat die id niet.
-    const { blueprint, blockPlan } = fixtureCase("BLP-001");
+    // Sinds 15B classificeert de opleider iedere sourceNeed vóór goedkeuring; SN1 en SN2 zijn professionele kennis.
+    const fixture = fixtureCase("BLP-001");
+    const blueprint = classified(fixture.blueprint);
+    const blockPlan = fixture.blockPlan;
     const bp = await createArtifactRevision(db, {
       trainingId, artifactType: "blueprint", contractVersion: blueprint.version, promptVersion: "fixture", modelVersion: "fixture BLP-001",
       payload: { ...blueprint, selectedDirectionId: directionId }, basedOnRevisionIds: [analysis.revisionId], expectedCurrentRevisionId: null,

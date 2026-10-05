@@ -30,9 +30,9 @@ export class MockTrainingBlueprintServiceV2 implements TrainingBlueprintServiceV
 }
 
 /**
- * Mock-scenario: staat deze marker in de (synthetische) invoer, dan voegt de mock een expliciet organisatiegebonden
- * kennisbehoefte toe (SN2, scope `organisation_specific`). Alleen voor tests en browserbewijs; de Claude-provider
- * classificeert de scope (nog) niet.
+ * Mock-scenario: staat deze marker in de (synthetische) invoer, dan formuleert de mock drie kennisbehoeften, waarvan
+ * SN3 inhoudelijk over de werkwijze van de eigen organisatie gaat (zoals in TR-0014). De mock classificeert de scope
+ * niet: dat doet de opleider in de SourceNeed Scope Review. Alleen voor tests en browserbewijs.
  */
 export const MOCK_ORGANISATION_SPECIFIC = "#organisatie";
 
@@ -76,10 +76,15 @@ export function buildMockBlueprintV2Design(
         ? [
             {
               id: "SN2",
+              question: "Welke gesprekstechnieken helpen om een oplopend gesprek te de-escaleren zonder de relatie te verliezen?",
+              sourceType: "methodiek" as const,
+              whyNeeded: "De deelnemer moet de uitvoering van het gesprek kunnen toetsen aan beproefde principes.",
+            },
+            {
+              id: "SN3",
               question: "Welke interne werkwijze of afspraak geldt binnen de eigen organisatie voor deze situatie?",
               sourceType: "organisatiebeleid" as const,
               whyNeeded: "De handelingsruimte hangt mede af van de afspraken van de organisatie van de deelnemer.",
-              scope: "organisation_specific" as const,
             },
           ]
         : []),
@@ -110,7 +115,7 @@ export function buildMockBlueprintV2Design(
       },
       bron: {
         learningIntent: "Gevalideerde kennis na het handelen koppelen aan de eigen gemaakte afweging.",
-        sourceNeedRefs: organisationSpecific ? ["SN1", "SN2"] : ["SN1"],
+        sourceNeedRefs: organisationSpecific ? ["SN1", "SN2", "SN3"] : ["SN1"],
       },
       toets: {
         demonstrate: "Dezelfde professionele afweging maken en onderbouwen.",

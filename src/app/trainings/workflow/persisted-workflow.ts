@@ -72,7 +72,8 @@ export type WorkflowRejection =
   | "direction_locked"
   | "provider_error"
   | "invalid_output"
-  | "persistence_error";
+  | "persistence_error"
+  | "scope_review_required";
 
 export type WorkflowResult =
   | { status: "ok"; workspace: TrainingWorkspaceView; failedBlockId?: string | null }
@@ -121,6 +122,7 @@ export function rejectError(deps: WorkflowDeps, action: string, error: unknown):
     if (error.code === "stale_revision" || error.code === "not_current" || error.code === "stale_based_on") return reject(deps, action, "stale_revision", error.code);
     if (error.code === "not_found") return reject(deps, action, "not_found", error.code);
     if (error.code === "not_generated" || error.code === "invalid_event") return reject(deps, action, "invalid_state", error.code);
+    if (error.code === "scope_review_required") return reject(deps, action, "scope_review_required", error.code);
     return reject(deps, action, "persistence_error", error.code);
   }
   if (error instanceof AnalysisError) return reject(deps, action, error.kind === "invalid-output" ? "invalid_output" : "provider_error", error.kind);
