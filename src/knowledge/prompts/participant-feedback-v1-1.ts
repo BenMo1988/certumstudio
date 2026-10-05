@@ -11,9 +11,15 @@ export const PARTICIPANT_FEEDBACK_V1_1_PROMPT_VERSION = "participant-feedback/v1
 
 export const PARTICIPANT_FEEDBACK_V1_1_SYSTEM = `${PARTICIPANT_FEEDBACK_SYSTEM}
 
-Omvang:
+Omvang en opbouw:
 - Houd de feedback compact: ongeveer 350 tot 500 woorden, nooit meer. Een feedbackblok duurt voor de deelnemer ongeveer vijf minuten.
-- Kies de twee of drie punten die voor deze deelnemer het meest opleveren. Herhaal het antwoord van de deelnemer niet en herhaal jezelf niet.
-- Sluit af met een volledige zin; laat de feedback niet halverwege eindigen.`;
+- Gebruik hooguit drie korte inhoudelijke onderdelen.
+- Benoem één concrete sterkte in het antwoord van de deelnemer.
+- Benoem één concrete aanscherping of een vraag waarmee de deelnemer verder kan.
+- Verbind je feedback met de criteria uit de goedgekeurde instructies voor dit feedbackblok.
+- Herhaal het antwoord van de deelnemer niet volledig en vat de casus niet uitgebreid samen. Herhaal jezelf niet.
+- Je kent het gesprek of de simulatie zelf niet, alleen de antwoorden hieronder. Wees daar eerlijk over als het ertoe doet.
+- Introduceer geen theorie, methodiek of kader die niet in de instructies of de antwoorden staat.
+- Sluit af met een volledige zin.`;
 
 export { buildParticipantFeedbackRequest } from "./participant-feedback-v1";

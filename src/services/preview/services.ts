@@ -45,9 +45,13 @@ export interface PreviewFeedbackRequest {
   context: PreviewFeedbackContextItem[];
 }
 
-/** Een runtime-antwoord: de tekst voor de deelnemer en, bij een echte provider, alleen tokenaantallen (metadata). */
+/**
+ * Een runtime-antwoord: de tekst voor de deelnemer, de stop reason en, bij een echte provider, tokenaantallen. De
+ * runtimelaag beslist: `max_tokens` is nooit een compleet antwoord (Step 17C); de tekst wordt dan niet getoond.
+ */
 export interface PreviewRuntimeResult {
   text: string;
+  stopReason: string | null;
   usage: { inputTokens: number; outputTokens: number } | null;
 }
 

@@ -257,14 +257,39 @@ Mohamed koos A+C, strakker dan voorgesteld, en liet `preview_feedback_max_tokens
     matcht niet met "Noor", en één andere bevinding blokkeert het hele bericht.
   - Restrisico, geaccepteerd voor Trainer Preview V1: een echte "Noor" is niet te onderscheiden van de synthetische
     "Noor". Voor een publiek deelnemersproduct opnieuw beoordelen.
-  - Code: `modules/preview/privacy.ts`. Logging: `certum.preview_privacy`, alleen aantallen.
+  - Code: `modules/preview/privacy.ts`. Logging: `certum.preview_privacy` met alleen `findings`, `trustedExempted`,
+    `remainingCategories` en `outcome`.
 - **Feedback:**
   - De limiet is niet verhoogd. `participant-feedback/v1.1` vraagt om compacte feedback van ongeveer 350–500 woorden.
   - De technische limiet van 1500 tokens blijft als headroom.
-  - `max_tokens` wordt nooit meer als compleet antwoord behandeld, in chat noch feedback (`incomplete_output`).
+  - `max_tokens` wordt nooit meer als compleet antwoord behandeld, in chat noch feedback. De runtimelaag beslist op
+    de stop reason: `output_truncated`, geen gedeeltelijke tekst, geen automatische retry. Gelogd worden alleen
+    `stopReason`, tokens, promptversie en uitkomst.
 - **Tests:**
   - TR-0018-fixture (`test/fixtures/tr-0018-package.json`): "Noor" is vertrouwd in blok-6, maar nog niet in blok-2.
   - Exactheid en blokkades: "Noor Bakker", "Noor + Sanne", e-mail en datum blijven geblokkeerd. Verborgen
     persona-instructies leveren geen vertrouwde namen.
   - Vervalsing: een vervalste persona-beurt of een allowlist-parameter van de client heeft geen effect.
-  - Afgekapte output: `max_tokens` wordt `incomplete_output`.
+  - Afgekapte output: `max_tokens` wordt `output_truncated`.
+  - DB-integratie (PGlite, mocks) met door de opleider bewerkte en goedgekeurde blokken:
+    - de naam in een zichtbaar scenario mag door, ook in de feedback van een latere stap;
+    - een naam uit een latere stap of alleen uit verborgen persona-instructies mag niet door;
+    - niet-goedgekeurde inhoud geeft `not_ready` zonder call.
+
+## Step 17C: hardening en browserbewijs (mocks, TR-0018)
+
+Code: `6e486c4` plus de 17C-aanscherping (zie git log). 0 Claude-calls (usage probe leeg).
+Bewijs: `hardening-proof-17c.json`, met alleen structuur en `certum.preview_*`-metadata.
+
+| # | Bewijs | Resultaat |
+| --- | --- | --- |
+| 1 | De Transfer-chat (blok-6) toont Noor | ja |
+| 2–3 | Deelnemer gebruikt exact "Noor" | toegestaan: `findings: 1`, `trustedExempted: 1`, `outcome: allowed`; mock-persona antwoordt |
+| 4 | "Noor" plus een onbekende naam | geblokkeerd: `trustedExempted: 1`, `remainingCategories: [possible_person_name]`; geen call |
+| 5 | Feedback 1 (blok-4), normale mockrespons | getoond: `stopReason: end_turn`, `participant-feedback/v1.1` |
+| 6 | Feedback 2 (blok-8), mockrespons met `max_tokens` | niet getoond; melding "Het antwoord kon niet volledig worden gegenereerd…"; `errorKind: output_truncated`; "Verder" blijft dicht (de trainer kan zelf opnieuw proberen) |
+| 7 | Serverlog | contentvrij: geen namen, antwoorden of markers |
+
+- **Prestatie:** een runtime-call blijft 4 queries (test). De vertrouwde set wordt in het geheugen afgeleid uit
+  dezelfde snapshot (`buildPreview` + detector), zonder extra query.
+- **Duur in de dev-server (mock):** server actions van ongeveer 0,2–0,25 s inclusief de Supabase-roundtrip.

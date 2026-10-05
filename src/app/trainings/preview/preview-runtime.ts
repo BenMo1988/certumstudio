@@ -38,9 +38,13 @@ export interface PreviewPrivacyLogEntry {
   plannedBlockId: string;
   preflightVersion: string;
   status: PreflightStatus;
-  categories: Partial<Record<PreflightCategory, number>>;
-  approvedEntityMatches: number;
-  decision: "allowed" | "blocked";
+  /** Aantal preflightbevindingen vóór vrijstelling. */
+  findings: number;
+  /** Aantal `possible_person_name`-bevindingen vrijgesteld via de goedgekeurde zichtbare context. */
+  trustedExempted: number;
+  /** De categorieën die overbleven en de call tegenhielden (leeg bij `allowed`). */
+  remainingCategories: PreflightCategory[];
+  outcome: "allowed" | "blocked";
 }
 
 export interface PreviewRuntimeLogEntry {
@@ -55,7 +59,10 @@ export interface PreviewRuntimeLogEntry {
   effort: string | null;
   durationMs: number;
   outcome: "success" | "error";
+  /** Bij een fout: het fouttype, bijv. `output_truncated` of een providerfout. */
   errorKind?: string;
+  /** De stop reason van de provider (metadata, geen inhoud). */
+  stopReason?: string | null;
   inputTokens?: number;
   outputTokens?: number;
   participantTurns?: number;
@@ -76,8 +83,8 @@ export type PreviewRejection =
   | "attestation_required"
   | "privacy_blocked"
   | "turn_limit"
-  /** De provider leverde een afgekapt antwoord (tokenlimiet); dat wordt nooit als compleet getoond. */
-  | "incomplete_output"
+  /** De provider leverde een afgekapt antwoord (`max_tokens`); dat wordt nooit als compleet getoond. */
+  | "output_truncated"
   | "provider_error";
 
 export type PreviewLoadResult =
@@ -129,14 +136,13 @@ function privacyGate(deps: PreviewDeps, pkg: TrainingContentPackage, kind: "chat
     plannedBlockId,
     preflightVersion: PRIVACY_PREFLIGHT_VERSION,
     status: result.preflightStatus,
-    categories: result.categories,
-    approvedEntityMatches: result.approvedEntityMatches,
-    decision: result.decision,
+    findings: Object.values(result.categories).reduce((sum, n) => sum + (n ?? 0), 0),
+    trustedExempted: result.approvedEntityMatches,
+    remainingCategories: result.blockingCategories,
+    outcome: result.decision,
   });
   return result.decision === "allowed" ? null : { status: "rejected" as const, reason: "privacy_blocked" as const, categories: result.blockingCategories };
 }
-
-const failureReason = (error: unknown): PreviewRejection => (error instanceof AnalysisError && error.kind === "incomplete" ? "incomplete_output" : "provider_error");
 
 const isTurns = (value: unknown): value is PreviewChatTurn[] =>
   Array.isArray(value) &&
@@ -154,6 +160,14 @@ function logRuntime(deps: PreviewDeps, entry: PreviewRuntimeLogEntry) {
 
 function usageOf(result: PreviewRuntimeResult | null) {
   return result?.usage ? { inputTokens: result.usage.inputTokens, outputTokens: result.usage.outputTokens } : {};
+}
+
+/**
+ * Een afgekapt antwoord (`stop_reason: max_tokens`) is nooit een compleet antwoord (Step 17C): gelogd als fout
+ * `output_truncated`, zonder tekst terug naar de client en zonder automatische retry.
+ */
+function isTruncated(result: PreviewRuntimeResult): boolean {
+  return result.stopReason === "max_tokens";
 }
 
 /**
@@ -219,9 +233,13 @@ export async function previewChatTurn(
     result = await runtime.chatReply({ config, history: fullHistory, goalReached });
   } catch (error) {
     logRuntime(deps, { ...meta, durationMs: (deps.now ?? Date.now)() - started, outcome: "error", errorKind: error instanceof AnalysisError ? error.kind : "unknown" });
-    return { status: "rejected", reason: failureReason(error) };
+    return { status: "rejected", reason: "provider_error" };
   }
-  logRuntime(deps, { ...meta, durationMs: (deps.now ?? Date.now)() - started, outcome: "success", ...usageOf(result) });
+  if (isTruncated(result)) {
+    logRuntime(deps, { ...meta, durationMs: (deps.now ?? Date.now)() - started, outcome: "error", errorKind: "output_truncated", stopReason: result.stopReason, ...usageOf(result) });
+    return { status: "rejected", reason: "output_truncated" };
+  }
+  logRuntime(deps, { ...meta, durationMs: (deps.now ?? Date.now)() - started, outcome: "success", stopReason: result.stopReason, ...usageOf(result) });
   return { status: "ok", reply: result.text, goalReached, goalMessage: newlyReached ? config.goal!.messageOnGoal : null };
 }
 
@@ -276,8 +294,12 @@ export async function previewFeedback(
     result = await runtime.feedback({ instructions: c.instructions, context });
   } catch (error) {
     logRuntime(deps, { ...meta, durationMs: (deps.now ?? Date.now)() - started, outcome: "error", errorKind: error instanceof AnalysisError ? error.kind : "unknown" });
-    return { status: "rejected", reason: failureReason(error) };
+    return { status: "rejected", reason: "provider_error" };
   }
-  logRuntime(deps, { ...meta, durationMs: (deps.now ?? Date.now)() - started, outcome: "success", ...usageOf(result) });
+  if (isTruncated(result)) {
+    logRuntime(deps, { ...meta, durationMs: (deps.now ?? Date.now)() - started, outcome: "error", errorKind: "output_truncated", stopReason: result.stopReason, ...usageOf(result) });
+    return { status: "rejected", reason: "output_truncated" };
+  }
+  logRuntime(deps, { ...meta, durationMs: (deps.now ?? Date.now)() - started, outcome: "success", stopReason: result.stopReason, ...usageOf(result) });
   return { status: "ok", feedback: result.text, usedContext: context.map((x) => x.plannedBlockId) };
 }

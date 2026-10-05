@@ -51,11 +51,10 @@ export class ClaudePreviewRuntimeService implements PreviewRuntimeService {
       usage?: { input_tokens?: number; output_tokens?: number };
     };
     if (message.stop_reason === "refusal") throw new AnalysisError("refusal", "Claude weigerde dit antwoord.");
-    // Afgekapt is nooit een geldig, compleet antwoord (Step 17B): geen gedeeltelijke tekst doorgeven.
-    if (message.stop_reason === "max_tokens") throw new AnalysisError("incomplete", "Antwoord afgekapt op de tokenlimiet.");
     const text = message.content.filter((b) => b.type === "text").map((b) => b.text ?? "").join("").trim();
-    if (!text) throw new AnalysisError("empty", "Geen antwoord ontvangen.");
+    if (!text && message.stop_reason !== "max_tokens") throw new AnalysisError("empty", "Geen antwoord ontvangen.");
     const usage = message.usage ? { inputTokens: message.usage.input_tokens ?? 0, outputTokens: message.usage.output_tokens ?? 0 } : null;
-    return { text, usage };
+    // De stop reason gaat mee; de runtimelaag behandelt `max_tokens` als afgekapt (nooit als compleet antwoord).
+    return { text, stopReason: message.stop_reason, usage };
   }
 }

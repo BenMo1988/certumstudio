@@ -574,15 +574,19 @@ als een professioneel gesprek onder druk. Het is geen LMS en geen deelnemersomge
     vraag-blokken met een ingevuld antwoord tellen mee.
   - Door de client verzonnen ids en chattranscripten worden genegeerd.
   - Prompt `participant-feedback/v1.1` (`participant-feedback-v1-1.ts`): de v1-tekst plus een compact didactisch
-    budget van ongeveer 350–500 woorden. De technische limiet van 1500 tokens blijft als headroom. v1 blijft ongewijzigd.
-- **Afgekapte output:** `stop_reason: max_tokens` is nooit een geldig, compleet antwoord, in chat noch feedback. De
-  provider geeft dan `incomplete`, de runtime `incomplete_output`, en er wordt geen gedeeltelijke tekst getoond.
+    outputbudget. Dat budget is: ongeveer 350–500 woorden, hooguit drie korte onderdelen, een concrete sterkte, een
+    concrete aanscherping of vraag, aansluiting op de goedgekeurde criteria, eerlijkheid over de ontbrekende chatcontext
+    en geen theorie buiten de context. De technische limiet van 1500 tokens blijft als headroom. v1 blijft ongewijzigd.
+- **Afgekapte output (Step 17C):** de provider geeft `stopReason` door en de runtimelaag beslist.
+  `stop_reason: max_tokens` is nooit een compleet antwoord, in chat noch feedback. De runtime geeft dan
+  `output_truncated`, toont geen gedeeltelijke tekst en doet geen automatische retry. De mock-marker `#afkappen`
+  simuleert dit.
 - **Provider:** `CERTUM_PREVIEW_PROVIDER` (standaard `mock`, los van de andere providers, geen terugval).
   - `CLAUDE_PREVIEW_DEFAULTS`: `claude-opus-5-5`, chat `low`, feedback `medium`, `maxRetries: 0`.
   - Bij `claude` is iedere chatbeurt en iedere feedback een betaalde call.
   - De mock reageert op de deelnemer en stelt een vervolgvraag; mockfeedback noemt alleen de gebruikte context.
-- **Logging:** `certum.preview_privacy` bevat per call de preflightversie en -status, aantallen per categorie,
-  `approvedEntityMatches` en de beslissing. `certum.preview_runtime` bevat alleen training, blok, bloktype, promptversie, provider/model/effort,
+- **Logging:** `certum.preview_privacy` bevat per call de preflightversie en -status, `findings`, `trustedExempted`,
+  `remainingCategories` en `outcome`. `certum.preview_runtime` bevat ook `stopReason`, en verder alleen training, blok, bloktype, promptversie, provider/model/effort,
   duur, tokens, uitkomst/fouttype en aantallen (beurten, contextitems). Nooit berichten, antwoorden, replies, feedback,
   broninhoud of prompts (tests).
 
@@ -729,7 +733,7 @@ Er zijn negen evalsets, elk met een eigen README:
   simulatieproductie YES, runtime NOT_YET_PROVEN; Training gereed (zie `report.md`).
 - `evals/participant-preview-pilot/` (TR-0018, Step 17B): eerste live Participant Preview; gestopt op RUNTIME_BLOCKER
   `preview_privacy_context_false_positive` (diagnose en ontwerpopties in `report.md`). Opgelost met A+C en
-  `participant-feedback/v1.1` plus de afhandeling van `max_tokens`; live hervatting volgt.
+  `participant-feedback/v1.1` plus de afhandeling van `max_tokens` (Step 17C); een nieuwe volledige live sessie volgt.
 
 Kwaliteitsbasis voor Certum Analyse staat in `evals/training-analysis/`. Er staat alleen
 synthetische data in en het is geen productiecode. Elke run wordt vastgelegd met promptVersion, model en effort.

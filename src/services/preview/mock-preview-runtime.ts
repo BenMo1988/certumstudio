@@ -4,7 +4,12 @@ import type { PreviewChatRequest, PreviewFeedbackRequest, PreviewRuntimeResult, 
  * Mock-runtime voor Participant Preview: deterministisch, zonder netwerk of AI. Bewijst het gedrag dat de preview nodig
  * heeft: de persona reageert op wat de deelnemer zegt, stelt minstens één vervolgvraag voordat ze meebeweegt, en de
  * feedback benoemt alleen de context die de server heeft vrijgegeven.
+ *
+ * Mock-marker `#afkappen` (in een chatbericht of in een antwoord dat als feedbackcontext meegaat): de mock levert een
+ * afgekapt antwoord met `stopReason: "max_tokens"`, zoals de provider in Step 17B deed.
  */
+
+export const MOCK_TRUNCATE_MARKER = "#afkappen";
 
 const excerpt = (text: string) => {
   const clean = text.replace(/\s+/g, " ").trim();
@@ -28,7 +33,8 @@ export class MockPreviewRuntimeService implements PreviewRuntimeService {
     } else {
       text = `Goed. Laten we dan afspreken hoe we verder gaan. (mock-beurt ${participantTurns.length})`;
     }
-    return { text, usage: null };
+    if (last.includes(MOCK_TRUNCATE_MARKER)) return { text: "Ik vind het lastig, want", stopReason: "max_tokens", usage: null };
+    return { text, stopReason: "end_turn", usage: null };
   }
 
   async feedback(request: PreviewFeedbackRequest): Promise<PreviewRuntimeResult> {
@@ -36,6 +42,9 @@ export class MockPreviewRuntimeService implements PreviewRuntimeService {
     const text = request.context.length
       ? `Mock-feedback op basis van ${request.context.length} antwoord(en): ${used.join("; ")}. Je antwoord laat zien welke afweging je maakte; benoem nog explicieter wat voor jou de doorslag gaf.`
       : "Mock-feedback: er zijn geen antwoorden beschikbaar om op te reageren.";
-    return { text, usage: null };
+    if (request.context.some((c) => c.answer.includes(MOCK_TRUNCATE_MARKER))) {
+      return { text: "Mock-feedback die halverwege een zin", stopReason: "max_tokens", usage: null };
+    }
+    return { text, stopReason: "end_turn", usage: null };
   }
 }

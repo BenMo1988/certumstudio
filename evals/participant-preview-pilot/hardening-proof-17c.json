@@ -1,0 +1,151 @@
+{
+  "actionChat": {
+    "personaBubbles": 2,
+    "error": null
+  },
+  "feedbackNormal": {
+    "feedbackShown": true,
+    "error": null,
+    "verderEnabled": true
+  },
+  "transferShowsNoor": true,
+  "unknownExtraName": {
+    "personaBubbles": 1,
+    "error": "Je tekst bevat mogelijk persoonsgegevens. Er is niets verstuurd; pas je tekst aan. (possible_person_name)"
+  },
+  "exactNoor": {
+    "personaBubbles": 2,
+    "error": null
+  },
+  "feedbackTruncated": {
+    "feedbackShown": false,
+    "error": "Het antwoord kon niet volledig worden gegenereerd en wordt daarom niet getoond. Je kunt het opnieuw proberen.",
+    "verderEnabled": false
+  },
+  "events": [
+    {
+      "event": "certum.preview_privacy",
+      "kind": "chat",
+      "trainingId": "e4726c9f-03b1-4bf3-8350-d57efb3cd625",
+      "plannedBlockId": "blok-2",
+      "preflightVersion": "privacy-preflight/v1",
+      "status": "safe",
+      "findings": 0,
+      "trustedExempted": 0,
+      "remainingCategories": [],
+      "outcome": "allowed"
+    },
+    {
+      "event": "certum.preview_runtime",
+      "kind": "chat",
+      "trainingId": "e4726c9f-03b1-4bf3-8350-d57efb3cd625",
+      "plannedBlockId": "blok-2",
+      "catalogBlockId": "certum.bco.chat-simulatie",
+      "promptVersion": "participant-chat/v1",
+      "provider": "mock",
+      "model": null,
+      "effort": null,
+      "participantTurns": 1,
+      "durationMs": 0,
+      "outcome": "success",
+      "stopReason": "end_turn"
+    },
+    {
+      "event": "certum.preview_privacy",
+      "kind": "feedback",
+      "trainingId": "e4726c9f-03b1-4bf3-8350-d57efb3cd625",
+      "plannedBlockId": "blok-4",
+      "preflightVersion": "privacy-preflight/v1",
+      "status": "safe",
+      "findings": 0,
+      "trustedExempted": 0,
+      "remainingCategories": [],
+      "outcome": "allowed"
+    },
+    {
+      "event": "certum.preview_runtime",
+      "kind": "feedback",
+      "trainingId": "e4726c9f-03b1-4bf3-8350-d57efb3cd625",
+      "plannedBlockId": "blok-4",
+      "catalogBlockId": "certum.bco.ai-feedback",
+      "promptVersion": "participant-feedback/v1.1",
+      "provider": "mock",
+      "model": null,
+      "effort": null,
+      "contextItems": 1,
+      "durationMs": 0,
+      "outcome": "success",
+      "stopReason": "end_turn"
+    },
+    {
+      "event": "certum.preview_privacy",
+      "kind": "chat",
+      "trainingId": "e4726c9f-03b1-4bf3-8350-d57efb3cd625",
+      "plannedBlockId": "blok-6",
+      "preflightVersion": "privacy-preflight/v1",
+      "status": "review_required",
+      "findings": 2,
+      "trustedExempted": 1,
+      "remainingCategories": [
+        "possible_person_name"
+      ],
+      "outcome": "blocked"
+    },
+    {
+      "event": "certum.preview_privacy",
+      "kind": "chat",
+      "trainingId": "e4726c9f-03b1-4bf3-8350-d57efb3cd625",
+      "plannedBlockId": "blok-6",
+      "preflightVersion": "privacy-preflight/v1",
+      "status": "review_required",
+      "findings": 1,
+      "trustedExempted": 1,
+      "remainingCategories": [],
+      "outcome": "allowed"
+    },
+    {
+      "event": "certum.preview_runtime",
+      "kind": "chat",
+      "trainingId": "e4726c9f-03b1-4bf3-8350-d57efb3cd625",
+      "plannedBlockId": "blok-6",
+      "catalogBlockId": "certum.bco.chat-simulatie",
+      "promptVersion": "participant-chat/v1",
+      "provider": "mock",
+      "model": null,
+      "effort": null,
+      "participantTurns": 1,
+      "durationMs": 0,
+      "outcome": "success",
+      "stopReason": "end_turn"
+    },
+    {
+      "event": "certum.preview_privacy",
+      "kind": "feedback",
+      "trainingId": "e4726c9f-03b1-4bf3-8350-d57efb3cd625",
+      "plannedBlockId": "blok-8",
+      "preflightVersion": "privacy-preflight/v1",
+      "status": "review_required",
+      "findings": 1,
+      "trustedExempted": 1,
+      "remainingCategories": [],
+      "outcome": "allowed"
+    },
+    {
+      "event": "certum.preview_runtime",
+      "kind": "feedback",
+      "trainingId": "e4726c9f-03b1-4bf3-8350-d57efb3cd625",
+      "plannedBlockId": "blok-8",
+      "catalogBlockId": "certum.bco.ai-feedback",
+      "promptVersion": "participant-feedback/v1.1",
+      "provider": "mock",
+      "model": null,
+      "effort": null,
+      "contextItems": 2,
+      "durationMs": 1,
+      "outcome": "error",
+      "errorKind": "output_truncated",
+      "stopReason": "max_tokens"
+    }
+  ],
+  "logContentFree": true
+}
