@@ -18,7 +18,9 @@ oplevert in plaats van aangevulde AI-kennis.
 - **Vastgelegd per run** (`runs/*_result.json`): model, effort, promptVersion, resultaatstatus, duur, bronrevision-ids,
   sourceNeedRefs, `based_on` en of die exact klopt, de metadata-logregels, een lekcontrole (titels, passages, URL's)
   en de volledige `BlockContentResult`.
-- **Harness:** `harness/run-case.eval.ts`, nooit onderdeel van `npm test`.
+- **Harness:** `harness/run-case.eval.ts`, nooit onderdeel van `npm test`. Sinds 15B classificeert de harness SN1 en
+  SN2 van BLP-001 expliciet als professionele kennis vóór de goedkeuring (zoals een opleider dat doet); de
+  generation input bevat daardoor ook `scope`. De baseline-runs van 2026-10-05 zijn zonder scope gedaan.
 
 ```
 SG_CASE=SG-001 SG_PROVIDER=mock npx vitest run --config evals/source-grounding/harness/vitest.config.mts

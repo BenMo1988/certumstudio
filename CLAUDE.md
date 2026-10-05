@@ -438,6 +438,25 @@ Correcties uit de Full Training Pilot TR-0014 (`evals/full-training-pilot/`). 0 
 - **Diagnose open-vraag-fouten (geen wijziging):** zie `evals/full-training-pilot/diagnosis-open-question.md`
   (vermoedelijk `question` > 600 tekens, alleen client-side gecontroleerd).
 
+### SourceNeed Scope Review (stap 15B)
+
+AI formuleert de kennisbehoefte; de opleider bepaalt de scope. Geen AI-classificatie, geen wijziging van de
+Blueprint-prompt.
+
+- In de Blueprint-review kiest de opleider per sourceNeed "Professionele / algemene kennis" of "Organisatiespecifieke
+  kennis", zonder voorselectie, met een korte consequentie na de keuze. "Classificatie opslaan"
+  (`saveSourceNeedScopes` in `app/trainings/workflow/editing.ts`, Server Action `saveSourceNeedScopesAction`) maakt
+  een nieuwe Blueprint-revision (`manual-edit`, n → n+1) waarin alleen de scopes veranderen; de server reconstrueert
+  het Blueprint uit de current revision. Iedere sourceNeed moet een scope krijgen; vraag, ids, aantal, leerdoel en
+  ambiguïteit zijn niet bewerkbaar. Een eerdere goedkeuring gaat niet mee; een Block Plan op de oude revision wordt
+  volgens de bestaande regels stale.
+- **Geen stille default:** de opslaglaag weigert de goedkeuring van een Blueprint V2 zolang een sourceNeed geen scope
+  heeft (`scope_review_required`, melding "Classificeer eerst alle kennisbehoeften"). Legacy Blueprints zonder scope
+  blijven leesbaar en een bestaande goedkeuring blijft geldig (scope = professional).
+- Tests en de SG-harness classificeren expliciet (`approveBlueprint` in `test/workflow-helpers.ts`, `classified` in
+  `test/block-content-fixtures.ts`). De mock formuleert bij marker `#organisatie` drie kennisbehoeften zonder scope;
+  SN3 gaat inhoudelijk over de eigen organisatie. TR-0014-regressie: `test/fixtures/tr-0014.json`.
+
 ### Block Content en Training Content Package (stap 10A)
 
 - **Na beide menselijke goedkeuringen** (Blueprint én Block Plan) maakt Certum de inhoud per gepland blok. Server-side
@@ -606,6 +625,7 @@ Professioneel, rustig en premium: een **werktool**, geen typisch AI-dashboard.
 - Stap 11C, persistence cut-over V1: de Studio onthoudt en hervat trainingen (bewezen tegen Supabase).
 - Stap 11D, persistence performance V1: Training Record Snapshot; alle V1-doelen gehaald.
 - Stap 12A, Training Review & Editor V1: handmatig bewerken als nieuwe revision, review per blok, Start/Einde, readiness.
+- Stap 15B, SourceNeed Scope Review: de opleider classificeert iedere kennisbehoefte vóór goedkeuring (mock bewezen).
 - Stap 15A, Pilot-driven Product Corrections V1: Block Plan Override, organisatiegebonden sourceNeeds, zichtbare
   bronvalidatie, titelsynchronisatie en actuele unresolved refs (mock bewezen).
 - Stap 13A, Source Workspace V1: bronnen toevoegen en valideren, dekking per sourceNeed, Bron-inhoud alleen uit
