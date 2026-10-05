@@ -3,7 +3,14 @@
 import { useState, type ReactNode } from "react";
 import { addSourceAction, editSourceAction, validateSourceAction } from "@/app/trainings/workflow/actions";
 import type { WorkflowResult } from "@/app/trainings/workflow/persisted-workflow";
-import { SOURCE_KINDS, SOURCE_KIND_LABEL, SOURCE_VALIDATION_STATEMENT, type CertumSource, type SourceKind } from "@/modules/sources/schema";
+import {
+  SOURCE_KINDS,
+  SOURCE_KIND_LABEL,
+  SOURCE_VALIDATION_STATEMENT,
+  relevantContentIssue,
+  type CertumSource,
+  type SourceKind,
+} from "@/modules/sources/schema";
 import type { SourcesView, TrainingWorkspaceView } from "@/services/storage/workspace";
 import { Button } from "../Button";
 import { Icon } from "../Icon";
@@ -27,7 +34,7 @@ function Pill({ done, children }: { done: boolean; children: ReactNode }) {
 /** Compact overzicht in de trainingsweergave. */
 export function SourcesPanel({ sources, onOpen }: { sources: SourcesView; onOpen: () => void }) {
   if (sources.needs.length === 0) return null;
-  const open = sources.needs.filter((n) => !n.covered).length;
+  const open = sources.needs.filter((n) => n.scope === "professional" && !n.covered).length;
   return (
     <section className="mt-8 rounded-lg border border-line p-5" aria-labelledby="sources-heading" data-testid="sources-panel" data-all-covered={sources.allCovered}>
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -38,14 +45,22 @@ export function SourcesPanel({ sources, onOpen }: { sources: SourcesView; onOpen
       </div>
       <ul className="mt-3 space-y-1.5 text-sm">
         {sources.needs.map((n) => (
-          <li key={n.id} className="flex gap-2" data-testid={`need-${n.id}`} data-covered={n.covered}>
-            <span className={n.covered ? "text-petrol-700" : "text-attention-700"}>{n.covered ? "✓ gedekt" : "Bron ontbreekt"}</span>
+          <li key={n.id} className="flex gap-2" data-testid={`need-${n.id}`} data-covered={n.covered} data-scope={n.scope}>
+            <span className={n.covered ? "text-petrol-700" : n.scope === "organisation_specific" ? "text-muted" : "text-attention-700"}>
+              {needStatus(n)}
+            </span>
             <span className="text-muted">
               {n.id} · {n.question}
             </span>
           </li>
         ))}
       </ul>
+      {sources.organisationSpecificOpen > 0 && (
+        <p className="mt-3 text-xs text-muted" data-testid="organisation-specific-note">
+          Organisatiespecifiek: de deelnemer gaat na welke werkwijze binnen de eigen organisatie geldt. Dit blokkeert de
+          training niet en wordt niet door Certum ingevuld.
+        </p>
+      )}
       <div className="mt-4">
         <Button variant="secondary" onClick={onOpen}>
           Bronnen beheren
@@ -53,6 +68,12 @@ export function SourcesPanel({ sources, onOpen }: { sources: SourcesView; onOpen
       </div>
     </section>
   );
+}
+
+/** Status van een kennisbehoefte: gedekt, ontbrekend (blokkerend) of organisatiespecifiek (niet blokkerend). */
+function needStatus(n: SourcesView["needs"][number]): string {
+  if (n.covered) return "✓ gedekt";
+  return n.scope === "organisation_specific" ? "Organisatiespecifiek" : "Bron ontbreekt";
 }
 
 interface FormValue {
@@ -107,15 +128,21 @@ export function SourcesDetail({ ws, preselect, pending, run }: { ws: TrainingWor
         </h3>
         <ul className="mt-2 divide-y divide-line border-y border-line">
           {sources.needs.map((n) => (
-            <li key={n.id} className="grid gap-1 py-3 sm:grid-cols-[9rem_1fr] sm:gap-6" data-testid={`need-${n.id}`} data-covered={n.covered}>
+            <li key={n.id} className="grid gap-1 py-3 sm:grid-cols-[9rem_1fr] sm:gap-6" data-testid={`need-${n.id}`} data-covered={n.covered} data-scope={n.scope}>
               <div>
-                <Pill done={n.covered}>{n.covered ? "✓ gedekt" : "Bron ontbreekt"}</Pill>
+                <Pill done={n.covered || n.scope === "organisation_specific"}>{needStatus(n)}</Pill>
               </div>
               <div className="text-[15px] text-ink">
                 <p>
                   <span className="font-medium">{n.id}</span> · {n.question}
                 </p>
                 <p className="mt-0.5 text-sm text-muted">{n.whyNeeded}</p>
+                {n.scope === "organisation_specific" && !n.covered && (
+                  <p className="mt-0.5 text-xs text-muted">
+                    Organisatiegebonden: Certum vult dit niet in. Een gevalideerde bron van de eigen organisatie kan wel
+                    worden gekoppeld; zonder die bron blokkeert dit de training niet.
+                  </p>
+                )}
                 {n.sourceIds.length > 0 && (
                   <p className="mt-0.5 text-xs text-muted">
                     Gekoppeld: {n.sourceIds.map((s) => sources.items.find((i) => i.sourceId === s)?.payload.title ?? s).join(", ")}
@@ -166,6 +193,7 @@ function SourceItem({ ws, item, pending, run }: { ws: TrainingWorkspaceView; ite
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState<{ message: string; issues?: string[] } | null>(null);
   const meta = [SOURCE_KIND_LABEL[p.sourceType], p.author, p.publisher, p.publicationDate].filter(Boolean).join(" · ");
+  const issue = relevantContentIssue(p);
 
   async function save(value: FormValue) {
     setError(null);
@@ -211,10 +239,40 @@ function SourceItem({ ws, item, pending, run }: { ws: TrainingWorkspaceView; ite
           </a>
         </p>
       )}
-      <details className="mt-3 text-sm">
-        <summary className="cursor-pointer text-muted">Relevante inhoud</summary>
-        <p className="mt-2 whitespace-pre-wrap text-ink">{p.relevantContent}</p>
-      </details>
+      {item.validated ? (
+        <details className="mt-3 text-sm">
+          <summary className="cursor-pointer text-muted">Relevante inhoud</summary>
+          <p className="mt-2 whitespace-pre-wrap text-ink">{p.relevantContent}</p>
+        </details>
+      ) : (
+        <section className="mt-4 rounded-md border border-line bg-surface p-4" aria-label="Te valideren inhoud" data-testid="validation-panel">
+          <p className="text-xs font-medium tracking-wide text-muted uppercase">Je valideert deze relevante inhoud</p>
+          <dl className="mt-2 grid gap-x-4 gap-y-1 text-sm sm:grid-cols-[6rem_1fr]">
+            <dt className="text-muted">Titel</dt>
+            <dd className="text-ink">{p.title}</dd>
+            <dt className="text-muted">URL</dt>
+            <dd className="break-all text-ink">{p.url ?? <span className="text-muted italic">geen</span>}</dd>
+          </dl>
+          <blockquote
+            className="mt-3 max-h-96 overflow-y-auto border-l-2 border-petrol-600 bg-canvas px-4 py-3 text-[15px] leading-relaxed whitespace-pre-wrap text-ink"
+            data-testid="validation-content"
+          >
+            {p.relevantContent}
+          </blockquote>
+          {issue ? (
+            <p role="alert" className="mt-3 rounded-md bg-attention-50 px-3 py-2 text-sm text-attention-700" data-testid="validation-issue">
+              {issue === "relevant_content_is_title"
+                ? "De relevante inhoud is alleen de titel. Voeg via Corrigeren de passage of gecontroleerde notitie toe waarop Certum mag bouwen."
+                : "De relevante inhoud is alleen een URL. Certum haalt niets van internet: voeg via Corrigeren de passage of gecontroleerde notitie toe."}
+            </p>
+          ) : (
+            <label className="mt-3 flex items-start gap-2 text-sm text-ink">
+              <input type="checkbox" className="mt-1" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
+              {SOURCE_VALIDATION_STATEMENT}
+            </label>
+          )}
+        </section>
+      )}
 
       <ErrorView error={error} />
 
@@ -223,22 +281,16 @@ function SourceItem({ ws, item, pending, run }: { ws: TrainingWorkspaceView; ite
           Corrigeren
         </Button>
         {!item.validated && (
-          <>
-            <label className="flex items-start gap-2 text-sm text-ink">
-              <input type="checkbox" className="mt-1" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
-              {SOURCE_VALIDATION_STATEMENT}
-            </label>
-            <Button
-              disabled={pending || !confirmed}
-              onClick={async () => {
-                setError(null);
-                const result = await run(() => validateSourceAction(id, item.revisionId, confirmed), "Bron gevalideerd");
-                if (!result.ok) setError(result);
-              }}
-            >
-              Valideren
-            </Button>
-          </>
+          <Button
+            disabled={pending || !confirmed || issue !== null}
+            onClick={async () => {
+              setError(null);
+              const result = await run(() => validateSourceAction(id, item.revisionId, confirmed), "Bron gevalideerd");
+              if (!result.ok) setError(result);
+            }}
+          >
+            Valideren
+          </Button>
         )}
       </div>
     </div>

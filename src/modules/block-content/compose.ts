@@ -111,17 +111,35 @@ export function composeFrame(design: FrameDesign, blueprint: Pick<TrainingBluepr
   };
 }
 
-/** Openstaande behoeften, structureel afgeleid uit de blokstatussen en de AI Feedback-context. */
-export function deriveUnresolvedRequirements(plan: BcOnlineBlockPlan, blocks: BlockContentResult[]): UnresolvedRequirement[] {
+/**
+ * De actuele brondekking van een training: welke sourceNeeds een current gevalideerde bron dekt en welke
+ * organisatiegebonden zijn. Afgeleid uit de Source Workspace, niet opgeslagen.
+ */
+export interface SourceCoverage {
+  covered: string[];
+  organisationSpecific: string[];
+}
+
+/**
+ * Openstaande behoeften, structureel afgeleid uit de blokstatussen en de AI Feedback-context. Met de actuele
+ * brondekking (`coverage`) noemt een `source`-behoefte alleen de nog niet gedekte professionele sourceNeeds (niet de
+ * refs van toen het blok werd gemaakt), en krijgt het Bron-blok een niet-blokkerende `organisation_source`-behoefte
+ * voor organisatiegebonden sourceNeeds zonder organisatiebron.
+ */
+export function deriveUnresolvedRequirements(plan: BcOnlineBlockPlan, blocks: BlockContentResult[], coverage?: SourceCoverage): UnresolvedRequirement[] {
   const byId = new Map(blocks.map((b) => [b.plannedBlockId, b]));
   const ordered = [...plan.plannedBlocks].sort((a, b) => a.sequence - b.sequence);
+  const open = (refs: string[]) => (coverage ? refs.filter((r) => !coverage.covered.includes(r) && !coverage.organisationSpecific.includes(r)) : refs);
+  const organisationOpen = coverage ? coverage.organisationSpecific.filter((r) => !coverage.covered.includes(r)) : [];
   return ordered.flatMap((planned): UnresolvedRequirement[] => {
     const result = byId.get(planned.id);
-    if (!result) return [{ plannedBlockId: planned.id, kind: "not_generated", refs: [] }];
+    const organisation: UnresolvedRequirement[] =
+      planned.certumPhase === "bron" && organisationOpen.length > 0 ? [{ plannedBlockId: planned.id, kind: "organisation_source", refs: organisationOpen }] : [];
+    if (!result) return [{ plannedBlockId: planned.id, kind: "not_generated", refs: [] }, ...organisation];
     const body = result.body;
     switch (body.status) {
       case "needs_source":
-        return [{ plannedBlockId: planned.id, kind: "source", refs: result.accreditation.sourceNeedRefs }];
+        return [{ plannedBlockId: planned.id, kind: "source", refs: open(result.accreditation.sourceNeedRefs) }, ...organisation];
       case "needs_asset":
         return [{ plannedBlockId: planned.id, kind: "asset", refs: [] }];
       case "blocked_by_capability":
@@ -129,7 +147,7 @@ export function deriveUnresolvedRequirements(plan: BcOnlineBlockPlan, blocks: Bl
       case "generated":
         return body.content.catalogBlockId === "certum.bco.ai-feedback" && body.content.unavailableContext.length > 0
           ? [{ plannedBlockId: planned.id, kind: "ai_context", refs: body.content.unavailableContext }]
-          : [];
+          : organisation;
     }
   });
 }
@@ -139,8 +157,8 @@ export function deriveUnresolvedRequirements(plan: BcOnlineBlockPlan, blocks: Bl
  *   blocked_by_capability);
  * - `in_review`: alles gegenereerd, nog niet ieder blok goedgekeurd;
  * - `approved`: ieder blok gegenereerd en goedgekeurd.
- * Een niet-aangetoonde AI-context blijft zichtbaar als unresolved requirement, maar blokkeert de readiness niet: de
- * instructies vertrouwen er al niet op.
+ * Een niet-aangetoonde AI-context en organisatiegebonden kennis zonder organisatiebron blijven zichtbaar als unresolved
+ * requirement, maar blokkeren de readiness niet.
  */
 export function deriveReadiness(plan: BcOnlineBlockPlan, blocks: BlockContentResult[]): Readiness {
   const complete = plan.plannedBlocks.every((p) => blocks.some((b) => b.plannedBlockId === p.id && b.body.status === "generated"));
@@ -160,6 +178,8 @@ export function composeContentPackage(input: {
   blockPlan: BcOnlineBlockPlan;
   frame: FrameContent;
   blocks: BlockContentResult[];
+  /** Actuele brondekking (persisted workflow); zonder deze gelden de refs uit de blokken zelf. */
+  sourceCoverage?: SourceCoverage;
 }): TrainingContentPackage {
   const { blueprint, blockPlan, frame } = input;
   const order = new Map(blockPlan.plannedBlocks.map((b) => [b.id, b.sequence]));
@@ -174,7 +194,7 @@ export function composeContentPackage(input: {
     start: { ...frame.start, title: blueprint.title, learningGoals: [blueprint.learningGoal], estimatedDurationMinutes: deriveDuration(blockPlan, blocks) },
     blocks,
     end: { ...frame.end, followUpRecommendation: null },
-    unresolvedRequirements: deriveUnresolvedRequirements(blockPlan, blocks),
+    unresolvedRequirements: deriveUnresolvedRequirements(blockPlan, blocks, input.sourceCoverage),
     readiness: deriveReadiness(blockPlan, blocks),
   };
 }

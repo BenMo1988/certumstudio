@@ -8,7 +8,7 @@ import {
   type BlockContentResult,
 } from "@/modules/block-content/schema";
 import { checkBlockContentInvariants, composeBlockContent, resolveBlockTarget, type BlockPayloadDesign } from "@/modules/block-content";
-import type { BcOnlineBlockPlan } from "@/modules/block-plan";
+import { BcOnlineBlockPlanSchema, PlannedBlockEditSchema, applyPlannedBlockEdit, checkBlockPlanInvariants, type BcOnlineBlockPlan } from "@/modules/block-plan";
 import type { TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
 import { editableContentSchema } from "@/services/block-content/design";
 import { zodIssueCodes } from "@/services/block-content/diagnostics";
@@ -194,4 +194,53 @@ export async function revisionHistory(deps: WorkflowDeps, trainingId: string, ta
       current: r.id === current?.id,
       payload: r.payload,
     }));
+}
+
+/**
+ * Human Block Plan Override: één gepland blok handmatig corrigeren (bloktype, doel, motivering, configuratie-intentie),
+ * vóór of na goedkeuring, zonder het plan opnieuw te genereren. Altijd een nieuwe Block Plan-revision (n → n+1,
+ * herkomst `manual-edit`); de vorige revision en haar goedkeuring blijven historie en gelden niet voor de nieuwe.
+ * Inhoud die op de vorige revision steunt, telt daarna niet meer als current. De server valideert het volledige
+ * plan opnieuw: catalogus, fasen en volgorde, titel en leerdoel, open-choice-regels, geen bron-URL. 0 AI-aanroepen.
+ */
+export async function saveBlockPlanBlockEdit(
+  deps: WorkflowDeps,
+  trainingId: string,
+  plannedBlockId: string,
+  expectedRevisionId: string,
+  raw: unknown,
+): Promise<WorkflowResult> {
+  const action = "save_block_plan_edit";
+  const snap = await loadTrainingRecordSnapshot(deps.db, trainingId);
+  if (!snap) return reject(deps, action, "not_found");
+  const up = approvedUpstream(snap);
+  if (!up?.plan) return reject(deps, action, "invalid_state");
+  if (up.plan.id !== expectedRevisionId) return reject(deps, action, "stale_revision");
+
+  const edit = PlannedBlockEditSchema.safeParse(raw);
+  if (!edit.success) return invalidInput(deps, action, zodIssueCodes(edit.error));
+  const current = up.plan.payload as BcOnlineBlockPlan;
+  const next = applyPlannedBlockEdit(current, plannedBlockId, edit.data);
+  if (!next) return reject(deps, action, "not_found");
+  const parsed = BcOnlineBlockPlanSchema.safeParse(next);
+  if (!parsed.success) return invalidInput(deps, action, zodIssueCodes(parsed.error));
+  const violations = checkBlockPlanInvariants(parsed.data, up.blueprint.payload as TrainingBlueprintV2);
+  if (violations.length > 0) return invalidInput(deps, action, violations);
+  if (contentHash(parsed.data) === up.plan.contentHash) return ok(deps, trainingId, action);
+
+  try {
+    await createArtifactRevision(deps.db, {
+      trainingId,
+      artifactType: "block_plan",
+      contractVersion: parsed.data.version,
+      promptVersion: null,
+      modelVersion: MANUAL_EDIT,
+      payload: parsed.data,
+      basedOnRevisionIds: [up.blueprint.id],
+      expectedCurrentRevisionId: expectedRevisionId,
+    });
+  } catch (error) {
+    return rejectError(deps, action, error);
+  }
+  return ok(deps, trainingId, action);
 }

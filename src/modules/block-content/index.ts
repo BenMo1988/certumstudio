@@ -29,13 +29,22 @@ export {
   deriveDuration,
   deriveReadiness,
   deriveUnresolvedRequirements,
+  type SourceCoverage,
   type BlockAccreditationDesign,
   type BlockContentDesign,
   type BlockPayloadDesign,
   type FrameContent,
   type FrameDesign,
 } from "./compose";
-export { earlierBlocks, isQuestionBlock, requiredSourceNeedsFor, resolveBlockTarget, type BlockTarget } from "./target";
+export {
+  blockingSourceNeedsFor,
+  earlierBlocks,
+  isQuestionBlock,
+  organisationSpecificNeedsFor,
+  requiredSourceNeedsFor,
+  resolveBlockTarget,
+  type BlockTarget,
+} from "./target";
 export {
   checkBlockContentInvariants,
   checkContentPackageInvariants,

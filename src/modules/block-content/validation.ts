@@ -2,7 +2,7 @@ import type { BcOnlineBlockPlan } from "@/modules/block-plan/schema";
 import type { ValidatedSource } from "@/modules/sources/schema";
 import type { TrainingBlueprintV2 } from "@/modules/training-blueprint/v2/schema";
 import { BlockContentResultSchema, TrainingContentPackageSchema, isMediaBlock, type BlockContentResult } from "./schema";
-import { deriveDuration, deriveReadiness, deriveUnresolvedRequirements } from "./compose";
+import { deriveDuration, deriveReadiness, deriveUnresolvedRequirements, type SourceCoverage } from "./compose";
 import { resolveBlockTarget, type BlockTarget } from "./target";
 
 /** Codes voor overtreden Block Content-regels. Bevatten bewust geen inhoud. */
@@ -15,6 +15,7 @@ export type BlockContentViolation =
   | "bronverwijzing-onbekend"
   | "bronverwijzing-dubbel"
   | "bronbehoefte-zonder-ref"
+  | "bronverwijzing-zonder-bron"
   | "url-verzonnen"
   | "sleutelwoorddoel-bij-meerdere-routes"
   | "ai-context-niet-aangetoond"
@@ -39,7 +40,8 @@ function strings(value: unknown): string[] {
  *   inhoud gelijk aan dat van het geplande blok;
  * - de status is toegestaan voor dit blok (media → `needs_asset`, Bron → `needs_source`, AI Feedback of Conditionele
  *   logica zonder eerder vraagblok → `blocked_by_capability`);
- * - sourceNeedRefs bestaan in de Blueprint, zonder dubbelingen; `needs_source` noemt er minstens één;
+ * - sourceNeedRefs bestaan in de Blueprint, zonder dubbelingen; `needs_source` noemt er minstens één; gegenereerde
+ *   Bron-inhoud verwijst alleen naar sourceNeeds die een gevalideerde bron dekt (organisatiekennis wordt nooit ingevuld);
  * - nergens een URL;
  * - Chat simulatie bij `open_choice`: geen sleutelwoorddoel dat één route afdwingt;
  * - AI Feedback: alleen aantoonbare context (eerdere vraagblokken), exact zoals afgeleid;
@@ -83,6 +85,13 @@ export function checkBlockContentInvariants(
   if (refs.some((r) => !target.sourceNeedIds.includes(r))) violations.add("bronverwijzing-onbekend");
   if (new Set(refs).size !== refs.length) violations.add("bronverwijzing-dubbel");
   if (result.body.status === "needs_source" && refs.length === 0) violations.add("bronbehoefte-zonder-ref");
+  if (
+    target.block.certumPhase === "bron" &&
+    result.body.status === "generated" &&
+    refs.some((r) => !target.sources.some((s) => s.sourceNeedRefs.includes(r)))
+  ) {
+    violations.add("bronverwijzing-zonder-bron");
+  }
 
   if (strings(result.body).some((s) => URL.test(s)) || strings(result.accreditation).some((s) => URL.test(s))) {
     violations.add("url-verzonnen");
@@ -159,7 +168,7 @@ export type ContentPackageViolation =
  */
 export function checkContentPackageInvariants(
   candidate: unknown,
-  context: { blueprint: TrainingBlueprintV2; blockPlan: BcOnlineBlockPlan },
+  context: { blueprint: TrainingBlueprintV2; blockPlan: BcOnlineBlockPlan; sourceCoverage?: SourceCoverage },
 ): ContentPackageViolation[] {
   const parsed = TrainingContentPackageSchema.safeParse(candidate);
   if (!parsed.success) return ["schema"];
@@ -191,7 +200,7 @@ export function checkContentPackageInvariants(
 
   if (
     pkg.start.estimatedDurationMinutes !== deriveDuration(blockPlan, pkg.blocks) ||
-    JSON.stringify(pkg.unresolvedRequirements) !== JSON.stringify(deriveUnresolvedRequirements(blockPlan, pkg.blocks)) ||
+    JSON.stringify(pkg.unresolvedRequirements) !== JSON.stringify(deriveUnresolvedRequirements(blockPlan, pkg.blocks, context.sourceCoverage)) ||
     pkg.readiness !== deriveReadiness(blockPlan, pkg.blocks)
   ) {
     violations.add("afgeleid-veld-wijkt-af");

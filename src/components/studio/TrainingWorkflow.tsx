@@ -8,6 +8,7 @@ import {
   generateBlockPlanAction,
   generateBlueprintAction,
   generateContentAction,
+  saveBlockPlanBlockEditAction,
   runAnalysisAction,
   selectDirectionAction,
 } from "@/app/trainings/workflow/actions";
@@ -172,7 +173,10 @@ export function TrainingWorkflow({ initial }: { initial: TrainingWorkspaceView }
           <BlockPlanReview
             blockPlan={ws.blockPlan.payload}
             approved={ws.blockPlan.approved}
-            pending={pending}
+            revisionNo={ws.blockPlan.revisionNo}
+            manual={ws.blockPlan.source === "manual"}
+            onSaveBlock={(plannedBlockId, edit) => act(() => saveBlockPlanBlockEditAction(id, plannedBlockId, ws.blockPlan!.revisionId, edit))}
+            pending={pending || busy}
             onApprove={() => run([() => decideRevisionAction(id, ws.blockPlan!.revisionId, "approved")], { keepStep: true })}
             onCreateContent={() => run([() => generateContentAction(id)])}
             onBack={() => setStep("Blueprint")}

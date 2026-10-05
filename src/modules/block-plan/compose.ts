@@ -1,4 +1,5 @@
-import { BC_ONLINE_BLOCK_PLAN_VERSION, type BcOnlineBlockPlan, type PlannedBlock } from "./schema";
+import type { z } from "zod";
+import { BC_ONLINE_BLOCK_PLAN_VERSION, PlannedBlockSchema, type BcOnlineBlockPlan, type PlannedBlock } from "./schema";
 import type { BlockPlanBlueprintSource } from "./validation";
 
 /**
@@ -46,5 +47,33 @@ export function composeBlockPlan(design: BlockPlanDesign, blueprint: BlockPlanBl
     },
     plannedBlocks: design.plannedBlocks.map((block, i) => ({ ...block, id: `blok-${i + 1}`, sequence: i + 1 })),
     endIntent: { ...design.endIntent, followUpRecommendation: null },
+  };
+}
+
+/**
+ * Human Block Plan Override (Full Training Pilot TR-0014): wat een opleider aan één gepland blok mag wijzigen vóórdat
+ * hij het plan goedkeurt, zonder het plan opnieuw te laten genereren. Alleen het uitvoeringsmiddel en de intenties;
+ * id, volgorde, Certum-fase, titel, leerdoel, routebeleid en capability gaps blijven trusted. Strict: een onbekend veld
+ * (bijv. `certumPhase`) wordt geweigerd.
+ */
+export const PlannedBlockEditSchema = PlannedBlockSchema.pick({
+  catalogBlockId: true,
+  purpose: true,
+  whyThisBlock: true,
+  configurationIntent: true,
+}).strict();
+
+export type PlannedBlockEdit = z.infer<typeof PlannedBlockEditSchema>;
+
+/**
+ * Een nieuw Block Plan met de handmatige wijziging van één gepland blok; het origineel blijft ongewijzigd. `null` als het
+ * blok niet bestaat. Het resultaat moet daarna opnieuw door Zod en `checkBlockPlanInvariants` (catalogus, fasen,
+ * open-choice-regels, geen bron-URL); de opslaglaag doet dat bij iedere nieuwe revision opnieuw.
+ */
+export function applyPlannedBlockEdit(plan: BcOnlineBlockPlan, plannedBlockId: string, edit: PlannedBlockEdit): BcOnlineBlockPlan | null {
+  if (!plan.plannedBlocks.some((b) => b.id === plannedBlockId)) return null;
+  return {
+    ...plan,
+    plannedBlocks: plan.plannedBlocks.map((b) => (b.id === plannedBlockId ? { ...b, ...edit } : b)),
   };
 }

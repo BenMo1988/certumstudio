@@ -2,7 +2,7 @@ import type { TrainingContentPackage } from "@/modules/block-content";
 import type { BcOnlineBlockPlan } from "@/modules/block-plan";
 import type { AgentInputKind } from "@/modules/training-agent";
 import { findEpistemicFlags, segmentInput, type AnalysisOutcome, type EpistemicFlag, type SourceSegment } from "@/modules/training-agent/v2";
-import type { TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
+import { sourceNeedScope, type SourceNeedScope, type TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
 import type { Db } from "./db";
 import { sourceNeedCoverage, type CertumSource } from "@/modules/sources/schema";
 import {
@@ -92,7 +92,11 @@ export interface RevisionMeta {
 
 /** Source Workspace: per sourceNeed de dekking, en de bronnen van de training (current versie). */
 export interface SourcesView {
-  needs: { id: string; question: string; whyNeeded: string; covered: boolean; sourceIds: string[] }[];
+  /**
+   * Per sourceNeed de dekking. `scope` is `professional` (ook legacy zonder scope) of `organisation_specific`; alleen
+   * professionele kennis blokkeert, organisatiegebonden kennis blijft zichtbaar als aandachtspunt.
+   */
+  needs: { id: string; question: string; whyNeeded: string; scope: SourceNeedScope; covered: boolean; sourceIds: string[] }[];
   items: {
     sourceId: string;
     revisionId: string;
@@ -102,7 +106,10 @@ export interface SourcesView {
     validatedAt: string | null;
     payload: CertumSource;
   }[];
+  /** Alle professionele (blokkerende) sourceNeeds zijn gedekt. */
   allCovered: boolean;
+  /** Organisatiegebonden sourceNeeds zonder organisatiebron (niet blokkerend). */
+  organisationSpecificOpen: number;
 }
 
 /**
@@ -129,8 +136,10 @@ export interface TrainingReview {
   frameToReview: number;
   /** Onderdelen (blokken, Start, Einde) die nog een besluit van de opleider vragen. */
   toReview: number;
-  /** SourceNeeds van de Blueprint zonder current gevalideerde bron. */
+  /** Professionele sourceNeeds van de Blueprint zonder current gevalideerde bron (blokkerend). */
   sourceNeedsOpen: number;
+  /** Organisatiegebonden sourceNeeds zonder organisatiebron: zichtbaar aandachtspunt, niet blokkerend. */
+  organisationSpecificOpen: number;
   /** Bron-blokken waarvan een gebruikte bron intussen is gewijzigd. */
   staleBlocks: number;
 }
@@ -140,6 +149,8 @@ interface StoredArtifactView<T> {
   revisionNo: number;
   payload: T;
   approved: boolean;
+  /** Gegenereerd of handmatig aangepast (bijv. een Block Plan-override). */
+  source: RevisionSource;
 }
 
 export interface TrainingWorkspaceView {
@@ -171,7 +182,13 @@ const iso = (d: Date) => d.toISOString();
 
 function storedView<T>(snap: TrainingRecordSnapshot, revision: ArtifactRevision | null): StoredArtifactView<T> | null {
   if (!revision) return null;
-  return { revisionId: revision.id, revisionNo: revision.revisionNo, payload: revision.payload as T, approved: isApproved(snap, revision.id) };
+  return {
+    revisionId: revision.id,
+    revisionNo: revision.revisionNo,
+    payload: revision.payload as T,
+    approved: isApproved(snap, revision.id),
+    source: revision.modelVersion === MANUAL_EDIT ? "manual" : "generated",
+  };
 }
 
 export async function loadTrainingWorkspace(db: Db, trainingId: string): Promise<TrainingWorkspaceView | null> {
@@ -215,7 +232,9 @@ export function deriveWorkspace(snap: TrainingRecordSnapshot): TrainingWorkspace
         end: { ...revisionMeta(snap, endRev), approved: isApproved(snap, endRev.id) },
       };
       const review = deriveReview(stored.package, blockPlan.payload, frame);
-      review.sourceNeedsOpen = sourcesView(snap, blueprint.payload)?.needs.filter((n) => !n.covered).length ?? 0;
+      const sources = sourcesView(snap, blueprint.payload);
+      review.sourceNeedsOpen = sources.needs.filter((n) => n.scope === "professional" && !n.covered).length;
+      review.organisationSpecificOpen = sources.organisationSpecificOpen;
       review.staleBlocks = Object.values(blockRevisions).filter((m) => m.staleSources).length;
       content = { package: stored.package, blockRevisions, frame, review };
     }
@@ -253,10 +272,16 @@ function sourcesView(snap: TrainingRecordSnapshot, blueprint: TrainingBlueprintV
     id: n.id,
     question: n.question,
     whyNeeded: n.whyNeeded,
+    scope: sourceNeedScope(n),
     covered: coverage[n.id] ?? false,
     sourceIds: items.filter((i) => i.payload.sourceNeedRefs.includes(n.id)).map((i) => i.sourceId),
   }));
-  return { needs, items, allCovered: needs.every((n) => n.covered) };
+  return {
+    needs,
+    items,
+    allCovered: needs.filter((n) => n.scope === "professional").every((n) => n.covered),
+    organisationSpecificOpen: needs.filter((n) => n.scope === "organisation_specific" && !n.covered).length,
+  };
 }
 
 function revisionMeta(snap: TrainingRecordSnapshot, rev: ArtifactRevision): RevisionMeta {
@@ -294,6 +319,7 @@ export function deriveReview(
     frameToReview,
     toReview: generated.length - approved + frameToReview,
     sourceNeedsOpen: 0,
+    organisationSpecificOpen: 0,
     staleBlocks: 0,
   };
   const readiness =

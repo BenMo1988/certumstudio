@@ -64,12 +64,26 @@ const evaluationBasis = z
 
 export const SOURCE_NEED_ID = /^SN[1-9]$/;
 
+/**
+ * Reikwijdte van een kennisbehoefte (Full Training Pilot TR-0014):
+ * - `professional`: publieke of professionele kennis; vereist een gevalideerde bron, anders blijft Bron `needs_source`;
+ * - `organisation_specific`: de werkwijze van de eigen organisatie van de deelnemer. Zonder organisatiebron wordt er
+ *   niets ingevuld of vervangen; het blijft zichtbaar als aandachtspunt, maar blokkeert een generieke training niet.
+ * Optioneel en expliciet: een sourceNeed zonder scope (legacy) is `professional`. Nooit afgeleid uit tekst of trefwoorden.
+ */
+export const SOURCE_NEED_SCOPES = ["professional", "organisation_specific"] as const;
+export type SourceNeedScope = (typeof SOURCE_NEED_SCOPES)[number];
+
 export const SourceNeedV2Schema = z.strictObject({
   id: z.string().regex(SOURCE_NEED_ID).describe("Stabiele id: SN1, SN2, SN3 in volgorde."),
   question: intent("Kennisvraag die in de Bron-fase gevalideerd moet worden."),
   sourceType: z.enum(SOURCE_TYPES),
   whyNeeded: intent("Waarom deze kennis nodig is voor de training."),
+  scope: z.enum(SOURCE_NEED_SCOPES).optional(),
 });
+
+/** De reikwijdte van een sourceNeed; zonder expliciete scope (legacy) altijd `professional`. */
+export const sourceNeedScope = (need: { scope?: SourceNeedScope }): SourceNeedScope => need.scope ?? "professional";
 
 export const DecisionPointV2Schema = z.strictObject({
   task: intent(

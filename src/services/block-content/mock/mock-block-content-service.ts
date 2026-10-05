@@ -65,8 +65,8 @@ function designFor(target: BlockTarget, blueprint: TrainingBlueprintV2): BlockCo
     learningGoalContribution: fit(block.purpose, 500),
     assessmentRole: DEFAULT_ASSESSMENT_ROLE[block.certumPhase],
     estimatedMinutes: MINUTES[block.catalogBlockId] ?? null,
-    // Een Bron-blok steunt op de vereiste sourceNeeds; andere blokken niet.
-    sourceNeedRefs: target.sourcesCover ? target.requiredSourceNeedIds : [],
+    // Een Bron-blok steunt alleen op de sourceNeeds die een gevalideerde bron dekt; andere blokken niet.
+    sourceNeedRefs: target.sourcesCover ? target.sourceNeedIds.filter((id) => target.sources.some((s) => s.sourceNeedRefs.includes(id))) : [],
   };
   // Bron met onvoldoende broninhoud: eerlijk needs_source in plaats van kennis aanvullen.
   if (target.sourcesCover && target.sources.some((s) => s.relevantContent.includes(MOCK_INSUFFICIENT_SOURCE))) {
@@ -80,8 +80,16 @@ function designFor(target: BlockTarget, blueprint: TrainingBlueprintV2): BlockCo
   return { status: "generated", accreditation, content: contentFor(target, blueprint) };
 }
 
-/** Bron-tekst uitsluitend uit de aangeleverde gevalideerde broninhoud. */
-const fromSources = (target: BlockTarget) => target.sources.map((s) => `${s.title}: ${s.relevantContent}`).join("\n\n");
+/**
+ * Bron-tekst uitsluitend uit de aangeleverde gevalideerde broninhoud. Voor organisatiegebonden kennis zonder
+ * organisatiebron alleen een neutrale verwijzing naar de eigen werkwijze, zonder te suggereren wat die inhoudt.
+ */
+export const ORGANISATION_SPECIFIC_NOTE = "Controleer welke interne werkwijze of procedure binnen jouw organisatie geldt.";
+const fromSources = (target: BlockTarget) =>
+  [
+    ...target.sources.map((s) => `${s.title}: ${s.relevantContent}`),
+    ...(target.uncoveredOrganisationSpecificNeedIds.length > 0 ? [ORGANISATION_SPECIFIC_NOTE] : []),
+  ].join("\n\n");
 
 function contentFor(target: BlockTarget, blueprint: TrainingBlueprintV2): BlockPayloadDesign {
   const { block } = target;

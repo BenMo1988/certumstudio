@@ -251,12 +251,15 @@ export type EndContent = z.infer<typeof EndContentSchema>;
 // Training Content Package
 // ---------------------------------------------------------------------------------------------------------------
 
-export const UNRESOLVED_KINDS = ["source", "asset", "capability", "ai_context", "not_generated"] as const;
+export const UNRESOLVED_KINDS = ["source", "asset", "capability", "ai_context", "not_generated", "organisation_source"] as const;
 
 export const UnresolvedRequirementSchema = z.strictObject({
   plannedBlockId: z.string().min(1),
   kind: z.enum(UNRESOLVED_KINDS),
-  /** Alleen bij `source`: de sourceNeed-ids. Bij `ai_context`: de blokken waarvan context niet is aangetoond. */
+  /**
+   * Bij `source`: de sourceNeed-ids. Bij `organisation_source`: organisatiegebonden sourceNeeds zonder organisatiebron
+   * (zichtbaar aandachtspunt, blokkeert de readiness niet). Bij `ai_context`: de blokken waarvan context niet is aangetoond.
+   */
   refs: z.array(z.string().min(1)),
 });
 

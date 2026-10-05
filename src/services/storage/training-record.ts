@@ -20,7 +20,7 @@ import { MAX_INPUT_LENGTH, type AgentInputKind } from "@/modules/training-agent"
 import { segmentInput } from "@/modules/training-agent/v2";
 import { ANALYSIS_CONTRACT_V21_VERSION, AnalysisOutcomeV21Schema, checkOutcomeInvariantsV21 } from "@/modules/training-agent/v2-1";
 import { TrainingBlueprintV2Schema, routePolicyFor, type TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
-import { CERTUM_SOURCE_VERSION, CertumSourceSchema } from "@/modules/sources/schema";
+import { CERTUM_SOURCE_VERSION, CertumSourceSchema, relevantContentIssue, type CertumSource } from "@/modules/sources/schema";
 import { canonicalJson, contentHash } from "./canonical-json";
 import type { Db } from "./db";
 import {
@@ -96,7 +96,8 @@ export type StorageErrorCode =
   | "not_generated"
   | "hash_mismatch"
   | "duplicate_revision"
-  | "stale_revision";
+  | "stale_revision"
+  | "source_content_invalid";
 
 /** Fout van de storage-laag. De melding bevat nooit inhoud, invoer of hashes. */
 export class StorageError extends Error {
@@ -598,7 +599,14 @@ export async function listArtifactRevisions(
  */
 export async function appendWorkflowEvent(
   db: Db,
-  input: { trainingId: string; artifactRevisionId: string; eventType: WorkflowEventType; trainingDirectionId?: string },
+  input: {
+    trainingId: string;
+    artifactRevisionId: string;
+    eventType: WorkflowEventType;
+    trainingDirectionId?: string;
+    /** Alleen de bronvalidatie (met de expliciete verklaring) mag een bron goedkeuren; een generiek besluit niet. */
+    sourceValidation?: boolean;
+  },
 ): Promise<WorkflowEvent> {
   if (!WORKFLOW_EVENT_TYPES.includes(input.eventType)) throw new StorageError("invalid_event", "Onbekend eventtype.");
   return db.transaction(async (tx) => {
@@ -627,6 +635,13 @@ export async function appendWorkflowEvent(
         if (revision.artifactType === "block_content" && getBlockApprovalBlocker(revision.payload as BlockContentResult) !== null) {
           throw new StorageError("not_generated", "Alleen gegenereerde blokinhoud kan worden goedgekeurd.");
         }
+        if (revision.artifactType === "source" && input.sourceValidation !== true) {
+          throw new StorageError("invalid_event", "Een bron wordt alleen via de bronvalidatie goedgekeurd.");
+        }
+        // Een bron valideer je op zijn relevante inhoud; alleen een titel of URL is geen inhoud (TR-0014).
+        if (revision.artifactType === "source" && relevantContentIssue(revision.payload as CertumSource) !== null) {
+          throw new StorageError("source_content_invalid", "De relevante inhoud van de bron is alleen een titel of URL.");
+        }
       }
     }
 
@@ -641,6 +656,11 @@ export async function appendWorkflowEvent(
        values ($1, $2, $3, $4::text::jsonb, $5, null) returning *`,
       [input.trainingId, revision.id, input.eventType, JSON.stringify(eventData), revision.contentHash],
     );
+    // Canonieke trainingstitel: die van de goedgekeurde Blueprint. Alleen een Blueprint-goedkeuring zet hem; downstream
+    // generatie (Block Plan, inhoud) wijzigt de titel nooit.
+    if (input.eventType === "approved" && revision.artifactType === "blueprint") {
+      await tx.query("update training set title = $2 where id = $1", [input.trainingId, (revision.payload as { title: string }).title]);
+    }
     return toEvent(row);
   });
 }

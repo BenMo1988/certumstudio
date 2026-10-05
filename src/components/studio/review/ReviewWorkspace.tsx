@@ -12,7 +12,7 @@ import type { RevisionHistoryEntry } from "@/app/trainings/workflow/editing";
 import type { WorkflowResult } from "@/app/trainings/workflow/persisted-workflow";
 import { METHODOLOGY_STEPS } from "@/knowledge";
 import { getCatalogBlock } from "@/knowledge/platform/bc-online-block-catalog";
-import { requiredSourceNeedsFor, type BlockContentResult } from "@/modules/block-content";
+import { blockingSourceNeedsFor, type BlockContentResult } from "@/modules/block-content";
 import type { RevisionMeta, TrainingWorkspaceView } from "@/services/storage/workspace";
 import { Button } from "../Button";
 import { Icon } from "../Icon";
@@ -187,6 +187,12 @@ function ReviewSummary({ ws }: { ws: TrainingWorkspaceView }) {
       <p className="mt-1 text-sm text-muted" data-testid="review-counts">
         {counts.join(" · ")}
       </p>
+      {r.organisationSpecificOpen > 0 && (
+        <p className="mt-3 text-sm text-muted" data-testid="organisation-specific-attention">
+          Aandachtspunt (blokkeert niet): {r.organisationSpecificOpen === 1 ? "1 organisatiespecifieke kennisvraag" : `${r.organisationSpecificOpen} organisatiespecifieke kennisvragen`}.
+          De deelnemer gaat na welke werkwijze binnen de eigen organisatie geldt.
+        </p>
+      )}
       {r.readiness === "approved" ? (
         <p role="status" className="mt-4 flex items-center gap-2 rounded-md border border-petrol-100 bg-petrol-50 px-4 py-3 text-[15px] font-medium text-petrol-800" data-testid="review-cta">
           <Icon name="check" className="size-4" />
@@ -508,7 +514,7 @@ function ContextNotes({ block, blockLabel }: { block: BlockContentResult; blockL
 
 /** Of de sourceNeeds van het Bron-blok gedekt zijn door gevalideerde bronnen (server-snapshot). */
 function bronSourceState(ws: TrainingWorkspaceView): { required: string[]; covered: boolean } {
-  const required = ws.blueprint ? requiredSourceNeedsFor(ws.blueprint.payload) : [];
+  const required = ws.blueprint ? blockingSourceNeedsFor(ws.blueprint.payload) : [];
   const needs = ws.sources?.needs ?? [];
   return { required, covered: required.length > 0 && required.every((r) => needs.find((n) => n.id === r)?.covered) };
 }

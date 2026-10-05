@@ -1,8 +1,10 @@
 import { z } from "zod";
+import { MAX_ITEMS } from "@/modules/training-blueprint/schema";
 import {
   ActieV2Schema,
   DecisionPointV2Schema,
   LearningArcV2Schema,
+  SourceNeedV2Schema,
   TrainingBlueprintV2Schema,
 } from "@/modules/training-blueprint/v2/schema";
 import type { BlueprintV2Design } from "@/modules/training-blueprint/v2";
@@ -24,6 +26,9 @@ export const BlueprintV2DesignSchema = TrainingBlueprintV2Schema.omit({
 }).extend({
   decisionPoint: DecisionPointV2Schema.omit({ routePolicy: true }),
   learningArc: LearningArcV2Schema.extend({ actie: ActieV2Schema.omit({ routePolicy: true }) }),
+  // De reikwijdte (scope) classificeert de provider nog niet: het Claude-contract blijft ongewijzigd. Zonder scope is een
+  // sourceNeed `professional`. Classificatie door de provider volgt later, met eigen prompt en evals.
+  sourceNeeds: z.array(SourceNeedV2Schema.omit({ scope: true })).max(MAX_ITEMS),
 });
 
 export type BlueprintV2DesignOutput = z.infer<typeof BlueprintV2DesignSchema>;

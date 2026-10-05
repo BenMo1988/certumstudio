@@ -1,6 +1,6 @@
-import { composeContentPackage, type BlockContentResult, type TrainingContentPackage } from "@/modules/block-content";
+import { composeContentPackage, type BlockContentResult, type SourceCoverage, type TrainingContentPackage } from "@/modules/block-content";
 import type { BcOnlineBlockPlan } from "@/modules/block-plan";
-import type { TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
+import { sourceNeedScope, type TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
 import type { CertumSource, ValidatedSource } from "@/modules/sources/schema";
 import { contentHash } from "./canonical-json";
 import type {
@@ -174,13 +174,15 @@ export function composeContentFromSnapshot(snap: TrainingRecordSnapshot): Stored
     revisionIds.push(rev.id);
   }
 
+  const blueprint = blueprintRev.payload as TrainingBlueprintV2;
   return {
     status: "ok",
     package: composeContentPackage({
-      blueprint: blueprintRev.payload as TrainingBlueprintV2,
+      blueprint,
       blockPlan,
       frame: { start: startRev.payload as TrainingContentPackage["start"], end: endRev.payload as TrainingContentPackage["end"] },
       blocks,
+      sourceCoverage: sourceCoverageOf(snap, blueprint),
     }),
     revisionIds,
   };
@@ -224,6 +226,18 @@ export function validatedSources(snap: TrainingRecordSnapshot): ValidatedSource[
   return currentSources(snap)
     .filter((r) => isApproved(snap, r.id))
     .map(toValidatedSource);
+}
+
+/**
+ * De actuele brondekking: welke sourceNeeds een current gevalideerde bron dekt en welke organisatiegebonden zijn.
+ * Alleen de huidige weergave volgt deze dekking; opgeslagen revisions blijven ongewijzigd.
+ */
+export function sourceCoverageOf(snap: TrainingRecordSnapshot, blueprint: TrainingBlueprintV2): SourceCoverage {
+  const validated = validatedSources(snap);
+  return {
+    covered: blueprint.sourceNeeds.filter((n) => validated.some((s) => s.sourceNeedRefs.includes(n.id))).map((n) => n.id),
+    organisationSpecific: blueprint.sourceNeeds.filter((n) => sourceNeedScope(n) === "organisation_specific").map((n) => n.id),
+  };
 }
 
 /** De versies van bronnen waarop een (Bron-)blokrevision is gebaseerd. */

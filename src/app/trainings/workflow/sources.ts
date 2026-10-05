@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CERTUM_SOURCE_VERSION, CertumSourceSchema } from "@/modules/sources/schema";
+import { CERTUM_SOURCE_VERSION, CertumSourceSchema, relevantContentIssue, type CertumSource } from "@/modules/sources/schema";
 import type { TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
 import { zodIssueCodes } from "@/services/block-content/diagnostics";
 import { contentHash } from "@/services/storage/canonical-json";
@@ -118,8 +118,11 @@ export async function validateSource(deps: WorkflowDeps, trainingId: string, rev
   const snap = await loadTrainingRecordSnapshot(deps.db, trainingId);
   const revision = snap?.revisions.find((r) => r.id === revisionId);
   if (!snap || !revision || revision.artifactType !== "source") return reject(deps, action, "not_found");
+  // Deterministisch: alleen een titel of URL is geen relevante inhoud (ook afgedwongen in de opslaglaag).
+  const issue = relevantContentIssue(revision.payload as CertumSource);
+  if (issue) return invalidInput(deps, action, [issue]);
   try {
-    await appendWorkflowEvent(deps.db, { trainingId, artifactRevisionId: revisionId, eventType: "approved" });
+    await appendWorkflowEvent(deps.db, { trainingId, artifactRevisionId: revisionId, eventType: "approved", sourceValidation: true });
   } catch (error) {
     return rejectError(deps, action, error);
   }

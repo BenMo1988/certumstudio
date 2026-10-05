@@ -29,12 +29,20 @@ export class MockTrainingBlueprintServiceV2 implements TrainingBlueprintServiceV
   }
 }
 
+/**
+ * Mock-scenario: staat deze marker in de (synthetische) invoer, dan voegt de mock een expliciet organisatiegebonden
+ * kennisbehoefte toe (SN2, scope `organisation_specific`). Alleen voor tests en browserbewijs; de Claude-provider
+ * classificeert de scope (nog) niet.
+ */
+export const MOCK_ORGANISATION_SPECIFIC = "#organisatie";
+
 /** Het mock-ontwerp voor een gegeven ambiguïteit; gedeeld door de V2- en de V2.1-mock. */
 export function buildMockBlueprintV2Design(
   input: Pick<BlueprintGenerationInputV2, "selectedDirection" | "professionalCore">,
   multiple: boolean,
 ): BlueprintV2Design {
   const { selectedDirection: direction, professionalCore: core } = input;
+  const organisationSpecific = JSON.stringify(input).includes(MOCK_ORGANISATION_SPECIFIC);
   const conversational = /\b(reageert|reageren|gesprek|zegt|vraagt)\b/i.test(direction.focus);
 
   return {
@@ -64,6 +72,17 @@ export function buildMockBlueprintV2Design(
         sourceType: "nog_te_bepalen",
         whyNeeded: "De Bron-fase moet de afweging na het handelen onderbouwen met gevalideerde kennis.",
       },
+      ...(organisationSpecific
+        ? [
+            {
+              id: "SN2",
+              question: "Welke interne werkwijze of afspraak geldt binnen de eigen organisatie voor deze situatie?",
+              sourceType: "organisatiebeleid" as const,
+              whyNeeded: "De handelingsruimte hangt mede af van de afspraken van de organisatie van de deelnemer.",
+              scope: "organisation_specific" as const,
+            },
+          ]
+        : []),
     ],
     learningArc: {
       context: {
@@ -91,7 +110,7 @@ export function buildMockBlueprintV2Design(
       },
       bron: {
         learningIntent: "Gevalideerde kennis na het handelen koppelen aan de eigen gemaakte afweging.",
-        sourceNeedRefs: ["SN1"],
+        sourceNeedRefs: organisationSpecific ? ["SN1", "SN2"] : ["SN1"],
       },
       toets: {
         demonstrate: "Dezelfde professionele afweging maken en onderbouwen.",

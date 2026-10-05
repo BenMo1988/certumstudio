@@ -1,7 +1,7 @@
 import { getCatalogBlock, type CatalogBlock } from "@/knowledge/platform/bc-online-block-catalog";
 import type { BcOnlineBlockPlan, PlannedBlock } from "@/modules/block-plan/schema";
 import type { ValidatedSource } from "@/modules/sources/schema";
-import { routePolicyFor, type RoutePolicy, type TrainingBlueprintV2 } from "@/modules/training-blueprint/v2/schema";
+import { routePolicyFor, sourceNeedScope, type RoutePolicy, type TrainingBlueprintV2 } from "@/modules/training-blueprint/v2/schema";
 import { isMediaBlock, type BlockContentStatus } from "./schema";
 
 /**
@@ -23,10 +23,16 @@ export interface BlockTarget {
   /** Eerdere invoerblokken waarvan niet is aangetoond dat AI Feedback ze krijgt (bijv. Productie, Chat simulatie). */
   unprovenContextBlockIds: string[];
   /**
-   * Alleen bij een Bron-blok: de sourceNeeds die dit blok nodig heeft (de Bron-refs van de Blueprint, anders alle) en de
-   * current gevalideerde bronnen die daaraan gekoppeld zijn. Andere bronnen van de training krijgt het blok niet.
+   * Alleen bij een Bron-blok: de sourceNeeds die gedekt moeten zijn voordat Bron-inhoud mag ontstaan (de professionele
+   * Bron-refs; zijn die er niet, dan alle Bron-refs) en de current gevalideerde bronnen die aan een Bron-ref gekoppeld
+   * zijn. Andere bronnen van de training krijgt het blok niet.
    */
   requiredSourceNeedIds: string[];
+  /**
+   * Alleen bij een Bron-blok: organisatiegebonden Bron-refs zonder gevalideerde organisatiebron. Die blokkeren niet,
+   * maar de inhoud mag er nooit een antwoord op geven (hoogstens de deelnemer naar de eigen werkwijze verwijzen).
+   */
+  uncoveredOrganisationSpecificNeedIds: string[];
   sources: ValidatedSource[];
   /** Of de gevalideerde bronnen iedere vereiste sourceNeed dekken; alleen dan mag Bron-inhoud worden gegenereerd. */
   sourcesCover: boolean;
@@ -50,11 +56,28 @@ export function earlierBlocks(plan: BcOnlineBlockPlan, block: PlannedBlock): Pla
   return plan.plannedBlocks.filter((b) => b.sequence < block.sequence).sort((a, b) => a.sequence - b.sequence);
 }
 
-/** De sourceNeeds die een Bron-blok nodig heeft: de Bron-refs van de Blueprint, of anders alle sourceNeeds. */
+/** De sourceNeeds waarop een Bron-blok steunt: de Bron-refs van de Blueprint, of anders alle sourceNeeds. */
 export function requiredSourceNeedsFor(blueprint: TrainingBlueprintV2): string[] {
   const ids = blueprint.sourceNeeds.map((s) => s.id);
   const bronRefs = blueprint.learningArc.bron.sourceNeedRefs.filter((r) => ids.includes(r));
   return bronRefs.length > 0 ? bronRefs : ids;
+}
+
+/**
+ * De Bron-refs die gedekt moeten zijn voordat Bron-inhoud mag ontstaan: de professionele (`professional`, ook legacy
+ * zonder scope). Organisatiegebonden kennis blokkeert een generieke training niet. Heeft het Bron-blok alleen
+ * organisatiegebonden refs, dan moeten die gedekt zijn: zonder enige gevalideerde kennis is er geen Bron-inhoud.
+ */
+export function blockingSourceNeedsFor(blueprint: TrainingBlueprintV2): string[] {
+  const required = requiredSourceNeedsFor(blueprint);
+  const professional = required.filter((id) => sourceNeedScope(blueprint.sourceNeeds.find((s) => s.id === id) ?? {}) === "professional");
+  return professional.length > 0 ? professional : required;
+}
+
+/** De organisatiegebonden Bron-refs (scope `organisation_specific`). */
+export function organisationSpecificNeedsFor(blueprint: TrainingBlueprintV2): string[] {
+  const blocking = blockingSourceNeedsFor(blueprint);
+  return requiredSourceNeedsFor(blueprint).filter((id) => !blocking.includes(id));
 }
 
 export function resolveBlockTarget(
@@ -74,9 +97,12 @@ export function resolveBlockTarget(
     .map((b) => b.id);
   const sourceNeedIds = blueprint.sourceNeeds.map((s) => s.id);
   const isBron = block.certumPhase === "bron";
-  const requiredSourceNeedIds = isBron ? requiredSourceNeedsFor(blueprint) : [];
-  const sources = isBron ? validatedSources.filter((s) => s.sourceNeedRefs.some((r) => requiredSourceNeedIds.includes(r))) : [];
-  const sourcesCover = isBron && requiredSourceNeedIds.length > 0 && requiredSourceNeedIds.every((r) => sources.some((s) => s.sourceNeedRefs.includes(r)));
+  const bronRefs = isBron ? requiredSourceNeedsFor(blueprint) : [];
+  const requiredSourceNeedIds = isBron ? blockingSourceNeedsFor(blueprint) : [];
+  const sources = isBron ? validatedSources.filter((s) => s.sourceNeedRefs.some((r) => bronRefs.includes(r))) : [];
+  const covered = (id: string) => sources.some((s) => s.sourceNeedRefs.includes(id));
+  const sourcesCover = isBron && requiredSourceNeedIds.length > 0 && requiredSourceNeedIds.every(covered);
+  const uncoveredOrganisationSpecificNeedIds = isBron ? organisationSpecificNeedsFor(blueprint).filter((id) => !covered(id)) : [];
 
   return {
     block,
@@ -88,6 +114,7 @@ export function resolveBlockTarget(
     provenContextBlockIds,
     unprovenContextBlockIds,
     requiredSourceNeedIds,
+    uncoveredOrganisationSpecificNeedIds,
     sources,
     sourcesCover,
   };

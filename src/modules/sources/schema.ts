@@ -69,3 +69,19 @@ export interface ValidatedSource {
 export function sourceNeedCoverage(sourceNeedIds: string[], validated: Pick<ValidatedSource, "sourceNeedRefs">[]): Record<string, boolean> {
   return Object.fromEntries(sourceNeedIds.map((id) => [id, validated.some((s) => s.sourceNeedRefs.includes(id))]));
 }
+
+/**
+ * Waarom een bron (nog) niet gevalideerd kan worden, of `null`. Bewust alleen deterministische, laag-risico vormen die
+ * de Full Training Pilot (TR-0014) aantoonde: relevante inhoud die exact de titel is, exact de URL, of uitsluitend een
+ * http(s)-URL. Geen semantische kwaliteitsscore en geen minimale lengte: een korte, inhoudelijke notitie blijft geldig.
+ */
+export type RelevantContentIssue = "relevant_content_is_title" | "relevant_content_is_url";
+
+const ONLY_URL = /^https?:\/\/\S+$/i;
+
+export function relevantContentIssue(source: Pick<CertumSource, "title" | "url" | "relevantContent">): RelevantContentIssue | null {
+  const content = source.relevantContent.trim();
+  if (content === source.title.trim()) return "relevant_content_is_title";
+  if ((source.url !== null && content === source.url.trim()) || ONLY_URL.test(content)) return "relevant_content_is_url";
+  return null;
+}
