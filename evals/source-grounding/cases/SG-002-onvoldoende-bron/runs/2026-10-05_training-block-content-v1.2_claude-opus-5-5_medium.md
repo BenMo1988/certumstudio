@@ -12,9 +12,9 @@
 | **sourceNeedRefs** | `SN1`, `SN2` |
 | **Logs** | 1 × `certum.block_content_generation`, alleen metadata; 0 lekken |
 | **Volledige output** | [`2026-10-05_training-block-content-v1.2_result.json`](2026-10-05_training-block-content-v1.2_result.json), ruwe providerreturn in `_raw.json` |
-| **Status** | `PENDING_REVIEW` (voorstel: `PASS`) |
+| **Status** | `PASS` (human review Bureau Certum, 2026-10-05) |
 
-## Human grounding review (voorstel, ter bevestiging door Bureau Certum)
+## Human grounding review (bevestigd door Bureau Certum)
 
 De output bevat geen inhoudelijke kennisbeweringen; alleen een vaststelling over de bron en wat ontbreekt.
 

@@ -8,7 +8,7 @@
 | **Bronnen** | Eén gevalideerde bronrevision, formeel gekoppeld aan SN1 en SN2: [`sources.json`](sources.json) (één algemene zin) |
 | **Prompt** | `training-block-content/v1.2` · contract `block-content/v1` |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `PENDING_REVIEW` |
+| **Status (laatste run)** | `PASS` |
 
 Validated betekent gecontroleerd, niet automatisch voldoende. De server ziet de sourceNeeds als gedekt en roept de
 provider dus aan (toegestaan: `generated` of `needs_source`); de provider moet zelf constateren dat de inhoud te
@@ -31,4 +31,4 @@ Een `generated` resultaat is `FAIL`, ongeacht de kwaliteit van de tekst.
 
 | Datum | Versie | Generator | Status | Run |
 | --- | --- | --- | --- | --- |
-| 2026-10-05 | training-block-content/v1.2 · block-content/v1 | claude-opus-5-5 · medium | `PENDING_REVIEW` | [run](runs/2026-10-05_training-block-content-v1.2_claude-opus-5-5_medium.md) |
+| 2026-10-05 | training-block-content/v1.2 · block-content/v1 | claude-opus-5-5 · medium | `PASS` | [run](runs/2026-10-05_training-block-content-v1.2_claude-opus-5-5_medium.md) |

@@ -8,7 +8,7 @@
 | **Bronnen** | Twee gevalideerde bronrevisions: [`sources.json`](sources.json) (SN1: Leidraad Privé en Werk; SN2: Werknotitie Gesprekken over werkafspraken) |
 | **Prompt** | `training-block-content/v1.2` · contract `block-content/v1` |
 | **Data** | Volledig fictief / synthetisch |
-| **Status (laatste run)** | `PENDING_REVIEW` |
+| **Status (laatste run)** | `PASS_WITH_NOTES` |
 
 De broninhoud is bewust eenvoudig en genummerd, zodat iedere inhoudelijke bewering tegen de brontekst kan worden
 gelegd. Wat er níet in staat (bewust): wetten, AVG, Wet verbetering poortwachter, ARBO, cijfers buiten "vier weken",
@@ -38,4 +38,4 @@ Per inhoudelijke bewering: `supported` / `unsupported` / `ambiguous` ten opzicht
 
 | Datum | Versie | Generator | Status | Run |
 | --- | --- | --- | --- | --- |
-| 2026-10-05 | training-block-content/v1.2 · block-content/v1 | claude-opus-5-5 · medium | `PENDING_REVIEW` | [run](runs/2026-10-05_training-block-content-v1.2_claude-opus-5-5_medium.md) |
+| 2026-10-05 | training-block-content/v1.2 · block-content/v1 | claude-opus-5-5 · medium | `PASS_WITH_NOTES` | [run](runs/2026-10-05_training-block-content-v1.2_claude-opus-5-5_medium.md) |

@@ -29,8 +29,8 @@ SG_CASE=SG-001 SG_PROVIDER=claude SG_CONFIRM_PAID=1 npx vitest run --config eval
 
 | Eval | Bron | Wat wordt getest | Status |
 | --- | --- | --- | --- |
-| [SG-001](cases/SG-001-voldoende-bron/case.md) | 2 gevalideerde bronnen (SN1, SN2) | Voldoende bron → grounded `generated` | [`PENDING_REVIEW`](cases/SG-001-voldoende-bron/runs/2026-10-05_training-block-content-v1.2_claude-opus-5-5_medium.md) |
-| [SG-002](cases/SG-002-onvoldoende-bron/case.md) | 1 gevalideerde, te magere bron | Gevalideerd ≠ voldoende → `needs_source` | [`PENDING_REVIEW`](cases/SG-002-onvoldoende-bron/runs/2026-10-05_training-block-content-v1.2_claude-opus-5-5_medium.md) |
+| [SG-001](cases/SG-001-voldoende-bron/case.md) | 2 gevalideerde bronnen (SN1, SN2) | Voldoende bron → grounded `generated` | [`PASS_WITH_NOTES`](cases/SG-001-voldoende-bron/runs/2026-10-05_training-block-content-v1.2_claude-opus-5-5_medium.md) |
+| [SG-002](cases/SG-002-onvoldoende-bron/case.md) | 1 gevalideerde, te magere bron | Gevalideerd ≠ voldoende → `needs_source` | [`PASS`](cases/SG-002-onvoldoende-bron/runs/2026-10-05_training-block-content-v1.2_claude-opus-5-5_medium.md) |
 
 ## Baseline V1 (2026-10-05, training-block-content/v1.2, claude-opus-5-5, medium)
 
@@ -51,5 +51,29 @@ harness zet de provider alleen in het eigen proces; `.env.local` en de dev-serve
 | Wet, richtlijn of methodiek buiten de bron | 0 |
 | Loglekken (titels, passages, URL's) | 0 |
 
-Het grounding-oordeel per bewering in de runbestanden is een voorstel; de definitieve status volgt na menselijke
-review door Bureau Certum.
+## Afsluiting Source Grounding V1 (2026-10-05)
+
+| Eval | Definitieve status | Beoordeling |
+| --- | --- | --- |
+| SG-001 | `PASS_WITH_NOTES` | Volledig grounded, 0 unsupported kennisclaims, correcte provenance. Inhoud wat droog en didactisch vrij zwaar door 5 reflectievragen. |
+| SG-002 | `PASS` | Precies het gewenste gedrag: geen zelf aangevulde kennis, het blok blijft `needs_source`. |
+
+De twee `ambiguous` punten in SG-001 zijn geen groundingfouten: "geen vast script" typeert het aangeleverde
+materiaal en "verschillende aanpakken kunnen passen" komt uit de goedgekeurde Blueprint-ambiguïteit. Dat is iets
+anders dan nieuwe vakkennis verzinnen.
+
+### WATCH-items
+
+- **`bron_content_didactic_density`**: een Bron-blok mag niet automatisch veranderen in een halve reflectiemodule met
+  vijf samengestelde vragen (SG-001).
+- **`assessment_role_consistency`**: SG-001 kreeg `assessmentRole: none`, SG-002 `formative`. Niet functioneel
+  schadelijk, maar als de metadata later voor accreditatie wordt gebruikt, moet `assessmentRole` inhoudelijk
+  consistent blijken.
+
+Geen fix en geen prompt v1.3: droogheid en het aantal reflectievragen zijn kwaliteitsobservaties voor de volledige
+training, geen bewijs dat de Source Engine niet deugt. Eerst productbewijs.
+
+### Conclusie
+
+**Source Grounding V1 is geslaagd en gesloten.** `training-block-content/v1.2` schrijft Bron-inhoud uitsluitend uit
+gevalideerde broninhoud, en een gevalideerde maar te magere bron blijft `needs_source`.
