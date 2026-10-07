@@ -8,7 +8,15 @@ import {
   type BlockContentResult,
 } from "@/modules/block-content/schema";
 import { checkBlockContentInvariants, composeBlockContent, resolveBlockTarget, type BlockPayloadDesign } from "@/modules/block-content";
-import { BcOnlineBlockPlanSchema, PlannedBlockEditSchema, applyPlannedBlockEdit, checkBlockPlanInvariants, type BcOnlineBlockPlan } from "@/modules/block-plan";
+import {
+  BcOnlineBlockPlanSchema,
+  PlannedBlockAdditionSchema,
+  PlannedBlockEditSchema,
+  applyPlannedBlockAddition,
+  applyPlannedBlockEdit,
+  checkBlockPlanInvariants,
+  type BcOnlineBlockPlan,
+} from "@/modules/block-plan";
 import { SOURCE_NEED_ID, SOURCE_NEED_SCOPES, TrainingBlueprintV2Schema, type TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
 import { editableContentSchema } from "@/services/block-content/design";
 import { zodIssueCodes } from "@/services/block-content/diagnostics";
@@ -227,6 +235,47 @@ export async function saveBlockPlanBlockEdit(
   const violations = checkBlockPlanInvariants(parsed.data, up.blueprint.payload as TrainingBlueprintV2);
   if (violations.length > 0) return invalidInput(deps, action, violations);
   if (contentHash(parsed.data) === up.plan.contentHash) return ok(deps, trainingId, action);
+
+  try {
+    await createArtifactRevision(deps.db, {
+      trainingId,
+      artifactType: "block_plan",
+      contractVersion: parsed.data.version,
+      promptVersion: null,
+      modelVersion: MANUAL_EDIT,
+      payload: parsed.data,
+      basedOnRevisionIds: [up.blueprint.id],
+      expectedCurrentRevisionId: expectedRevisionId,
+    });
+  } catch (error) {
+    return rejectError(deps, action, error);
+  }
+  return ok(deps, trainingId, action);
+}
+
+/**
+ * Human Block Plan Override, toevoegen: de opleider voegt een ontbrekend gepland blok toe (vóór of na een bestaand
+ * blok, of aan het einde), zonder het plan opnieuw te genereren. Altijd een nieuwe Block Plan-revision (n → n+1,
+ * herkomst `manual-edit`); de vorige revision en haar goedkeuring blijven historie. De server zet id en volgorde en
+ * valideert het volledige plan opnieuw met dezelfde regels als een gegenereerd plan. 0 AI-aanroepen; nooit inhoud in
+ * logs.
+ */
+export async function addBlockPlanBlock(deps: WorkflowDeps, trainingId: string, expectedRevisionId: string, raw: unknown): Promise<WorkflowResult> {
+  const action = "add_block_plan_block";
+  const snap = await loadTrainingRecordSnapshot(deps.db, trainingId);
+  if (!snap) return reject(deps, action, "not_found");
+  const up = approvedUpstream(snap);
+  if (!up?.plan) return reject(deps, action, "invalid_state");
+  if (up.plan.id !== expectedRevisionId) return reject(deps, action, "stale_revision");
+
+  const addition = PlannedBlockAdditionSchema.safeParse(raw);
+  if (!addition.success) return invalidInput(deps, action, zodIssueCodes(addition.error));
+  const result = applyPlannedBlockAddition(up.plan.payload as BcOnlineBlockPlan, addition.data);
+  if (!result) return reject(deps, action, "not_found");
+  const parsed = BcOnlineBlockPlanSchema.safeParse(result.plan);
+  if (!parsed.success) return invalidInput(deps, action, zodIssueCodes(parsed.error));
+  const violations = checkBlockPlanInvariants(parsed.data, up.blueprint.payload as TrainingBlueprintV2);
+  if (violations.length > 0) return invalidInput(deps, action, violations);
 
   try {
     await createArtifactRevision(deps.db, {

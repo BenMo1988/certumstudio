@@ -6,6 +6,7 @@ import { sourceNeedScope, type SourceNeedScope, type TrainingBlueprintV2 } from 
 import type { Db } from "./db";
 import { sourceNeedCoverage, type CertumSource } from "@/modules/sources/schema";
 import {
+  humanAddedPlannedBlockIds,
   pendingRevisionFeedback,
   builtOn,
   composeContentFromSnapshot,
@@ -166,7 +167,8 @@ export interface TrainingWorkspaceView {
   } | null;
   /** `revisionFeedback`: de openstaande menselijke revisietoelichting op deze Blueprint-revision, of `null`. */
   blueprint: (StoredArtifactView<TrainingBlueprintV2> & { revisionFeedback: string | null }) | null;
-  blockPlan: StoredArtifactView<BcOnlineBlockPlan> | null;
+  /** `humanAddedBlockIds`: geplande blokken die een opleider handmatig heeft toegevoegd (afgeleid, niet opgeslagen). */
+  blockPlan: (StoredArtifactView<BcOnlineBlockPlan> & { humanAddedBlockIds: string[] }) | null;
   /** Bronnen en dekking; beschikbaar zodra de Blueprint is goedgekeurd. */
   sources: SourcesView | null;
   content: {
@@ -217,7 +219,8 @@ export function deriveWorkspace(snap: TrainingRecordSnapshot): TrainingWorkspace
   const blueprintView = analysisRev && builtOn(blueprintRev, [analysisRev.id]) ? storedView<TrainingBlueprintV2>(snap, blueprintRev) : null;
   const blueprint = blueprintView && blueprintRev ? { ...blueprintView, revisionFeedback: pendingRevisionFeedback(snap, blueprintRev) } : null;
   const planRev = currentRevision(snap, "block_plan");
-  const blockPlan = blueprint && builtOn(planRev, [blueprint.revisionId]) ? storedView<BcOnlineBlockPlan>(snap, planRev) : null;
+  const planView = blueprint && builtOn(planRev, [blueprint.revisionId]) ? storedView<BcOnlineBlockPlan>(snap, planRev) : null;
+  const blockPlan = planView && planRev ? { ...planView, humanAddedBlockIds: humanAddedPlannedBlockIds(snap, planRev, MANUAL_EDIT) } : null;
 
   let content: TrainingWorkspaceView["content"] = null;
   if (blueprint?.approved && blockPlan?.approved) {

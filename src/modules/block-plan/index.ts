@@ -6,4 +6,13 @@ export {
   type PlannedBlock,
 } from "./schema";
 export { checkBlockPlanInvariants, type BlockPlanBlueprintSource, type BlockPlanViolation } from "./validation";
-export { PlannedBlockEditSchema, applyPlannedBlockEdit, composeBlockPlan, type BlockPlanDesign, type PlannedBlockEdit } from "./compose";
+export {
+  PlannedBlockAdditionSchema,
+  PlannedBlockEditSchema,
+  applyPlannedBlockAddition,
+  applyPlannedBlockEdit,
+  composeBlockPlan,
+  type BlockPlanDesign,
+  type PlannedBlockAddition,
+  type PlannedBlockEdit,
+} from "./compose";

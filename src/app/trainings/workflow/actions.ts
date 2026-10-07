@@ -30,7 +30,7 @@ import {
   type WorkflowDeps,
   type WorkflowResult,
 } from "./persisted-workflow";
-import { revisionHistory, saveBlockEdit, saveBlockPlanBlockEdit, saveFrameEdit, saveSourceNeedScopes, type RevisionHistoryEntry } from "./editing";
+import { addBlockPlanBlock, revisionHistory, saveBlockEdit, saveBlockPlanBlockEdit, saveFrameEdit, saveSourceNeedScopes, type RevisionHistoryEntry } from "./editing";
 import { addSource, editSource, validateSource } from "./sources";
 
 /*
@@ -156,6 +156,12 @@ export async function saveSourceNeedScopesAction(trainingId: unknown, expectedRe
 export async function saveBlockPlanBlockEditAction(trainingId: unknown, plannedBlockId: unknown, expectedRevisionId: unknown, edit: unknown) {
   if (!isId(trainingId) || !isId(plannedBlockId) || !isId(expectedRevisionId)) return invalid;
   return guarded(() => saveBlockPlanBlockEdit(deps(), trainingId, plannedBlockId, expectedRevisionId, edit));
+}
+
+/** Human Block Plan Override, toevoegen: een ontbrekend gepland blok invoegen; de server zet id en volgorde. */
+export async function addBlockPlanBlockAction(trainingId: unknown, expectedRevisionId: unknown, addition: unknown) {
+  if (!isId(trainingId) || !isId(expectedRevisionId)) return invalid;
+  return guarded(() => addBlockPlanBlock(deps(), trainingId, expectedRevisionId, addition));
 }
 
 /** Read-only historie van één blok of van Start/Einde. */

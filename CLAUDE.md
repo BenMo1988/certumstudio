@@ -432,7 +432,17 @@ Correcties uit de Full Training Pilot TR-0014 (`evals/full-training-pilot/`). 0 
   gaps. Altijd een nieuwe Block Plan-revision (`manual-edit`, n → n+1, `expectedRevisionId` verplicht); de oude
   goedkeuring geldt niet voor de nieuwe; inhoud op de oude revision telt niet meer als current. De server valideert het
   volledige plan opnieuw (Zod + `checkBlockPlanInvariants`: catalogus, fasen, open-choice-regels, geen bron-URL). UI:
-  "Bewerken" per blok in `BlockPlanReview` (geen JSON). Geen toevoegen, verwijderen of herordenen in V1.
+  "Bewerken" per blok in `BlockPlanReview` (geen JSON).
+  - **Blok toevoegen (TR-0019):** `addBlockPlanBlock` / `addBlockPlanBlockAction` voegt een ontbrekend gepland blok in
+    (vóór of na een bestaand blok, of aan het einde).
+    - Invoer: fase, catalogusblok, doel, motivering en configuratie-intenties (`PlannedBlockAdditionSchema`, strict).
+    - De server zet het id (`blok-(hoogste + 1)`) en hernummert de volgorde deterministisch naar 1..n
+      (`applyPlannedBlockAddition`).
+    - Altijd een nieuwe revision (`manual-edit`), daarna het volledige schema en dezelfde invarianten. 0 AI-aanroepen.
+    - "Handmatig toegevoegd" wordt afgeleid: het blok ontbreekt in de laatste gegenereerde plan-revision op dezelfde
+      Blueprint (`humanAddedPlannedBlockIds`, `blockPlan.humanAddedBlockIds`).
+    - Minuten horen niet bij het Block Plan-contract; die stel je per blok in bij de inhoud.
+    - Verwijderen en herordenen blijven buiten V1.
 - **Organisatiegebonden sourceNeeds.** `SourceNeedV2.scope?: "professional" | "organisation_specific"`
   (`sourceNeedScope`: zonder scope = `professional`, nooit afgeleid uit tekst). De Claude-provider kan de scope nog niet
   zetten (`BlueprintV2DesignSchema` laat hem weg); classificatie volgt later met eigen prompt en evals. Alleen

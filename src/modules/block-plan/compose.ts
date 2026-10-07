@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import { z } from "zod";
 import { BC_ONLINE_BLOCK_PLAN_VERSION, PlannedBlockSchema, type BcOnlineBlockPlan, type PlannedBlock } from "./schema";
 import type { BlockPlanBlueprintSource } from "./validation";
 
@@ -76,4 +76,48 @@ export function applyPlannedBlockEdit(plan: BcOnlineBlockPlan, plannedBlockId: s
     ...plan,
     plannedBlocks: plan.plannedBlocks.map((b) => (b.id === plannedBlockId ? { ...b, ...edit } : b)),
   };
+}
+
+/**
+ * Human Block Plan Override, toevoegen: de opleider voegt een ontbrekend gepland blok toe op een gekozen positie (vóór
+ * of na een bestaand blok, of aan het einde). Alleen fase, bloktype, doel, motivering en configuratie-intenties; id en
+ * volgorde zet de server. Strict: onbekende velden (bijv. `id` of `sequence`) worden geweigerd.
+ */
+export const PlannedBlockAdditionSchema = z.strictObject({
+  block: PlannedBlockSchema.pick({
+    certumPhase: true,
+    catalogBlockId: true,
+    purpose: true,
+    whyThisBlock: true,
+    configurationIntent: true,
+  }).strict(),
+  placement: z.discriminatedUnion("position", [
+    z.strictObject({ position: z.literal("end") }),
+    z.strictObject({ position: z.enum(["before", "after"]), anchorBlockId: z.string().min(1) }),
+  ]),
+});
+
+export type PlannedBlockAddition = z.infer<typeof PlannedBlockAdditionSchema>;
+
+const BLOCK_ID = /^blok-([1-9][0-9]*)$/;
+
+/**
+ * Een nieuw Block Plan met één handmatig toegevoegd blok; het origineel blijft ongewijzigd. `null` als het ankerblok niet
+ * bestaat. Bestaande ids blijven gelijk; het nieuwe blok krijgt `blok-(hoogste nummer + 1)` en de volgorde wordt
+ * deterministisch hernummerd naar 1..n. Daarna gelden dezelfde Zod-regels en `checkBlockPlanInvariants` als voor een
+ * gegenereerd plan (catalogus, fasen in methodiekvolgorde, open-choice-regels, geen bron-URL, maximum aantal blokken).
+ */
+export function applyPlannedBlockAddition(plan: BcOnlineBlockPlan, addition: PlannedBlockAddition): { plan: BcOnlineBlockPlan; addedBlockId: string } | null {
+  const ordered = [...plan.plannedBlocks].sort((a, b) => a.sequence - b.sequence);
+  let index = ordered.length;
+  if (addition.placement.position !== "end") {
+    const anchor = ordered.findIndex((b) => b.id === (addition.placement as { anchorBlockId: string }).anchorBlockId);
+    if (anchor < 0) return null;
+    index = addition.placement.position === "before" ? anchor : anchor + 1;
+  }
+  const highest = Math.max(0, ...plan.plannedBlocks.map((b) => Number(BLOCK_ID.exec(b.id)?.[1] ?? 0)));
+  const addedBlockId = `blok-${highest + 1}`;
+  const added: PlannedBlock = { id: addedBlockId, sequence: 0, ...addition.block };
+  const next = [...ordered.slice(0, index), added, ...ordered.slice(index)].map((b, i) => ({ ...b, sequence: i + 1 }));
+  return { plan: { ...plan, plannedBlocks: next }, addedBlockId };
 }

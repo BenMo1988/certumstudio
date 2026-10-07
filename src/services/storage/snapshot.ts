@@ -109,6 +109,21 @@ export function pendingRevisionFeedback(snap: TrainingRecordSnapshot, revision: 
   return typeof feedback === "string" && feedback.trim() ? feedback : null;
 }
 
+/**
+ * Human Block Plan Override, toevoegen: de geplande blokken in deze plan-revision die niet voorkomen in de laatste
+ * gegenereerde (niet-handmatige) plan-revision op dezelfde Blueprint, dus door een mens toegevoegd. Afgeleid uit de
+ * onveranderlijke revisions; niets wordt dubbel opgeslagen.
+ */
+export function humanAddedPlannedBlockIds(snap: TrainingRecordSnapshot, revision: ArtifactRevision, manualMarker: string): string[] {
+  if (revision.modelVersion !== manualMarker) return [];
+  const sameBlueprint = (r: ArtifactRevision) => r.basedOnRevisionIds.join() === revision.basedOnRevisionIds.join();
+  const generated = snap.revisions
+    .filter((r) => r.artifactType === "block_plan" && r.modelVersion !== manualMarker && r.revisionNo < revision.revisionNo && sameBlueprint(r))
+    .sort((a, b) => b.revisionNo - a.revisionNo)[0];
+  const known = new Set(((generated?.payload as { plannedBlocks?: { id: string }[] } | undefined)?.plannedBlocks ?? []).map((b) => b.id));
+  return ((revision.payload as { plannedBlocks: { id: string }[] }).plannedBlocks ?? []).map((b) => b.id).filter((id) => !known.has(id));
+}
+
 /** De gekozen richting van een analyse-revision (laatste `direction_selected`), of `null`. */
 export function selectedDirection(snap: TrainingRecordSnapshot, analysisRevisionId: string): string | null {
   const last = eventsFor(snap, analysisRevisionId).filter((e) => e.eventType === "direction_selected").at(-1);

@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { METHODOLOGY_STEPS } from "@/knowledge";
 import { BC_ONLINE_BLOCK_CATALOG, PLANNABLE_BLOCK_IDS, getCatalogBlock } from "@/knowledge/platform/bc-online-block-catalog";
+import type { PlannedBlockAddition } from "@/modules/block-plan";
 import type { BcOnlineBlockPlan, PlannedBlock } from "@/modules/block-plan/schema";
 import { Button } from "./Button";
 import { Icon } from "./Icon";
@@ -28,6 +29,10 @@ interface BlockPlanReviewProps {
   /** Na goedkeuring: Training Content maken (Block Content per blok). */
   onCreateContent: () => void;
   pending: boolean;
+  /** Human Block Plan Override, toevoegen: een ontbrekend blok invoegen (nieuwe Block Plan-versie, geen AI). */
+  onAddBlock?: (addition: PlannedBlockAddition) => Promise<ActResult>;
+  /** Blokken die een opleider handmatig heeft toegevoegd (afgeleid). */
+  humanAddedBlockIds?: string[];
 }
 
 /**
@@ -35,9 +40,22 @@ interface BlockPlanReviewProps {
  * uitvoeringsmiddel en de intenties corrigeren (Human Block Plan Override); fase, volgorde, leerdoel en routebeleid
  * blijven vast. Iedere opslag is een nieuwe versie die opnieuw goedgekeurd moet worden.
  */
-export function BlockPlanReview({ blockPlan, approved, revisionNo, manual, onSaveBlock, onApprove, onBack, onCreateContent, pending }: BlockPlanReviewProps) {
+export function BlockPlanReview({
+  blockPlan,
+  approved,
+  revisionNo,
+  manual,
+  onSaveBlock,
+  onApprove,
+  onBack,
+  onCreateContent,
+  pending,
+  onAddBlock,
+  humanAddedBlockIds = [],
+}: BlockPlanReviewProps) {
   const blocks = [...blockPlan.plannedBlocks].sort((a, b) => a.sequence - b.sequence);
   const [editing, setEditing] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
   return (
@@ -109,11 +127,16 @@ export function BlockPlanReview({ blockPlan, approved, revisionNo, manual, onSav
                         <div className="flex flex-wrap items-baseline justify-between gap-2">
                           <p className="text-sm font-medium text-petrol-700">
                             {block.sequence}. {getCatalogBlock(block.catalogBlockId)?.visibleName ?? block.catalogBlockId}
+                            {humanAddedBlockIds.includes(block.id) && (
+                              <span className="ml-2 rounded bg-surface px-1.5 py-0.5 text-xs font-normal text-muted" data-testid={`human-added-${block.id}`}>
+                                Handmatig toegevoegd
+                              </span>
+                            )}
                           </p>
                           <button
                             type="button"
                             className="text-xs font-medium text-petrol-700 underline-offset-2 hover:underline disabled:opacity-40"
-                            disabled={pending || editing !== null}
+                            disabled={pending || editing !== null || adding}
                             onClick={() => {
                               setNotice(null);
                               setEditing(block.id);
@@ -142,6 +165,38 @@ export function BlockPlanReview({ blockPlan, approved, revisionNo, manual, onSav
             );
           })}
         </ol>
+        {onAddBlock &&
+          (adding ? (
+            <div className="mt-5 rounded-lg border border-petrol-100 p-5">
+              <AddBlockForm
+                blocks={blocks}
+                approved={approved}
+                pending={pending}
+                onCancel={() => setAdding(false)}
+                onAdd={async (addition) => {
+                  const result = await onAddBlock(addition);
+                  if (result.ok) {
+                    setAdding(false);
+                    setNotice("Blok toegevoegd: nieuwe Block Plan-versie. Keur het plan opnieuw goed.");
+                  }
+                  return result;
+                }}
+              />
+            </div>
+          ) : (
+            <div className="mt-5">
+              <Button
+                variant="secondary"
+                disabled={pending || editing !== null}
+                onClick={() => {
+                  setNotice(null);
+                  setAdding(true);
+                }}
+              >
+                Blok toevoegen
+              </Button>
+            </div>
+          ))}
       </section>
 
       <section className="mt-10" aria-labelledby="gaps-heading" data-testid="capability-gaps">
@@ -227,8 +282,6 @@ function PlannedBlockForm({
   });
   const [error, setError] = useState<{ message: string; issues?: string[] } | null>(null);
   const changedType = value.catalogBlockId !== block.catalogBlockId;
-  const setIntent = (i: number, key: "setting" | "intent", v: string) =>
-    setValue((prev) => ({ ...prev, configurationIntent: prev.configurationIntent.map((c, j) => (j === i ? { ...c, [key]: v } : c)) }));
   const options = BC_ONLINE_BLOCK_CATALOG.filter((c) => (PLANNABLE_BLOCK_IDS as readonly string[]).includes(c.certumCatalogId));
 
   return (
@@ -279,37 +332,7 @@ function PlannedBlockForm({
           onChange={(e) => setValue({ ...value, whyThisBlock: e.target.value })}
         />
       </label>
-      <fieldset className="space-y-3">
-        <legend className="text-sm font-medium text-muted">Configuratie-intenties (geen uiteindelijke inhoud)</legend>
-        {value.configurationIntent.map((c, i) => (
-          <div key={i} className="grid gap-2 sm:grid-cols-[12rem_1fr_auto]" data-testid="config-row">
-            <input className={inputClass} aria-label="Instelling" name={`setting-${i}`} value={c.setting} onChange={(e) => setIntent(i, "setting", e.target.value)} />
-            <textarea
-              className={`${inputClass} min-h-12`}
-              aria-label="Intentie"
-              name={`intent-${i}`}
-              value={c.intent}
-              onChange={(e) => setIntent(i, "intent", e.target.value)}
-            />
-            <button
-              type="button"
-              className="self-start rounded-md border border-line px-2.5 py-1 text-xs font-medium text-ink hover:bg-surface"
-              onClick={() => setValue({ ...value, configurationIntent: value.configurationIntent.filter((_, j) => j !== i) })}
-            >
-              Verwijderen
-            </button>
-          </div>
-        ))}
-        {value.configurationIntent.length < 8 && (
-          <button
-            type="button"
-            className="rounded-md border border-line px-2.5 py-1 text-xs font-medium text-ink hover:bg-surface"
-            onClick={() => setValue({ ...value, configurationIntent: [...value.configurationIntent, { setting: "", intent: "" }] })}
-          >
-            Intentie toevoegen
-          </button>
-        )}
-      </fieldset>
+      <IntentFields value={value.configurationIntent} onChange={(configurationIntent) => setValue((prev) => ({ ...prev, configurationIntent }))} />
       <p className="text-xs text-muted">
         Opslaan maakt een nieuwe versie van het Block Plan{approved ? "; de huidige goedkeuring geldt daar niet voor" : ""}. Keur het
         plan daarna (opnieuw) goed.
@@ -324,12 +347,178 @@ function PlannedBlockForm({
         <Button variant="secondary" disabled={pending} onClick={onCancel}>
           Annuleren
         </Button>
-        <button
-          type="submit"
-          disabled={pending}
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-petrol-700 px-4 text-sm font-medium text-white transition-colors hover:bg-petrol-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petrol-600 disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <button type="submit" disabled={pending} className={submitClass}>
           Opslaan als nieuwe versie
+        </button>
+      </div>
+    </form>
+  );
+}
+
+const submitClass =
+  "inline-flex h-10 items-center justify-center gap-2 rounded-md bg-petrol-700 px-4 text-sm font-medium text-white transition-colors hover:bg-petrol-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-petrol-600 disabled:cursor-not-allowed disabled:opacity-50";
+
+/** Configuratie-intenties (instelling + intentie), maximaal 8; gedeeld door bewerken en toevoegen. */
+function IntentFields({ value, onChange }: { value: { setting: string; intent: string }[]; onChange: (next: { setting: string; intent: string }[]) => void }) {
+  const setIntent = (i: number, key: "setting" | "intent", v: string) => onChange(value.map((c, j) => (j === i ? { ...c, [key]: v } : c)));
+  return (
+      <fieldset className="space-y-3">
+        <legend className="text-sm font-medium text-muted">Configuratie-intenties (geen uiteindelijke inhoud)</legend>
+        {value.map((c, i) => (
+          <div key={i} className="grid gap-2 sm:grid-cols-[12rem_1fr_auto]" data-testid="config-row">
+            <input className={inputClass} aria-label="Instelling" name={`setting-${i}`} value={c.setting} onChange={(e) => setIntent(i, "setting", e.target.value)} />
+            <textarea
+              className={`${inputClass} min-h-12`}
+              aria-label="Intentie"
+              name={`intent-${i}`}
+              value={c.intent}
+              onChange={(e) => setIntent(i, "intent", e.target.value)}
+            />
+            <button
+              type="button"
+              className="self-start rounded-md border border-line px-2.5 py-1 text-xs font-medium text-ink hover:bg-surface"
+              onClick={() => onChange(value.filter((_, j) => j !== i))}
+            >
+              Verwijderen
+            </button>
+          </div>
+        ))}
+        {value.length < 8 && (
+          <button
+            type="button"
+            className="rounded-md border border-line px-2.5 py-1 text-xs font-medium text-ink hover:bg-surface"
+            onClick={() => onChange([...value, { setting: "", intent: "" }])}
+          >
+            Intentie toevoegen
+          </button>
+        )}
+      </fieldset>
+  );
+}
+
+/**
+ * Human Block Plan Override, toevoegen: positie, Certum-fase, bestaand catalogusblok, doel, motivering en
+ * configuratie-intenties. Id en volgorde zet de server; minuten horen bij de blokinhoud (Editor), niet bij het plan.
+ */
+function AddBlockForm({
+  blocks,
+  approved,
+  pending,
+  onCancel,
+  onAdd,
+}: {
+  blocks: PlannedBlock[];
+  approved: boolean;
+  pending: boolean;
+  onCancel: () => void;
+  onAdd: (addition: PlannedBlockAddition) => Promise<ActResult>;
+}) {
+  const options = BC_ONLINE_BLOCK_CATALOG.filter((c) => (PLANNABLE_BLOCK_IDS as readonly string[]).includes(c.certumCatalogId));
+  const [placement, setPlacement] = useState("end");
+  const [block, setBlock] = useState<PlannedBlockAddition["block"]>({
+    certumPhase: METHODOLOGY_STEPS[METHODOLOGY_STEPS.length - 1].id as PlannedBlock["certumPhase"],
+    catalogBlockId: options[0].certumCatalogId as PlannedBlock["catalogBlockId"],
+    purpose: "",
+    whyThisBlock: "",
+    configurationIntent: [],
+  });
+  const [error, setError] = useState<{ message: string; issues?: string[] } | null>(null);
+  const toPlacement = (v: string): PlannedBlockAddition["placement"] => {
+    if (v === "end") return { position: "end" };
+    const [position, anchorBlockId] = v.split(":") as ["before" | "after", string];
+    return { position, anchorBlockId };
+  };
+
+  return (
+    <form
+      className="space-y-4"
+      data-testid="add-block-form"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        setError(null);
+        const result = await onAdd({ block, placement: toPlacement(placement) });
+        if (!result.ok) setError(result);
+      }}
+    >
+      <p className="text-sm font-medium text-ink">
+        Blok toevoegen <span className="font-normal text-muted">· handmatige aanvulling van het plan, geen AI</span>
+      </p>
+      <label className="block">
+        <span className="mb-1 block text-sm font-medium text-muted">Positie</span>
+        <select className={inputClass} name="placement" value={placement} onChange={(e) => setPlacement(e.target.value)}>
+          <option value="end">Aan het einde</option>
+          {blocks.map((b) => (
+            <option key={`before-${b.id}`} value={`before:${b.id}`}>
+              Vóór blok {b.sequence} ({getCatalogBlock(b.catalogBlockId)?.visibleName ?? b.catalogBlockId})
+            </option>
+          ))}
+          {blocks.map((b) => (
+            <option key={`after-${b.id}`} value={`after:${b.id}`}>
+              Na blok {b.sequence} ({getCatalogBlock(b.catalogBlockId)?.visibleName ?? b.catalogBlockId})
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="block">
+        <span className="mb-1 block text-sm font-medium text-muted">Certum-fase</span>
+        <select
+          className={inputClass}
+          name="certumPhase"
+          value={block.certumPhase}
+          onChange={(e) => setBlock({ ...block, certumPhase: e.target.value as PlannedBlock["certumPhase"] })}
+        >
+          {METHODOLOGY_STEPS.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="block">
+        <span className="mb-1 block text-sm font-medium text-muted">Bloktype (BC Online)</span>
+        <select
+          className={inputClass}
+          name="catalogBlockId"
+          value={block.catalogBlockId}
+          onChange={(e) => setBlock({ ...block, catalogBlockId: e.target.value as PlannedBlock["catalogBlockId"] })}
+        >
+          {options.map((c) => (
+            <option key={c.certumCatalogId} value={c.certumCatalogId}>
+              {c.visibleName}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="block">
+        <span className="mb-1 block text-sm font-medium text-muted">Doel van dit blok</span>
+        <textarea className={`${inputClass} min-h-20`} name="purpose" value={block.purpose} onChange={(e) => setBlock({ ...block, purpose: e.target.value })} />
+      </label>
+      <label className="block">
+        <span className="mb-1 block text-sm font-medium text-muted">Waarom dit blok</span>
+        <textarea
+          className={`${inputClass} min-h-20`}
+          name="whyThisBlock"
+          value={block.whyThisBlock}
+          onChange={(e) => setBlock({ ...block, whyThisBlock: e.target.value })}
+        />
+      </label>
+      <IntentFields value={block.configurationIntent} onChange={(configurationIntent) => setBlock((prev) => ({ ...prev, configurationIntent }))} />
+      <p className="text-xs text-muted">
+        Toevoegen maakt een nieuwe versie van het Block Plan{approved ? "; de huidige goedkeuring geldt daar niet voor" : ""}. De geschatte
+        minuten stel je later per blok in bij de inhoud.
+      </p>
+      {error && (
+        <div role="alert" className="rounded-md border border-danger/30 bg-danger-50 px-4 py-3 text-sm text-danger">
+          <p>{error.message}</p>
+          {error.issues && error.issues.length > 0 && <p className="mt-1 text-xs">Controleer: {error.issues.join(", ")}</p>}
+        </div>
+      )}
+      <div className="flex flex-wrap gap-3">
+        <Button variant="secondary" disabled={pending} onClick={onCancel}>
+          Annuleren
+        </Button>
+        <button type="submit" disabled={pending || !block.purpose.trim() || !block.whyThisBlock.trim()} className={submitClass}>
+          Toevoegen
         </button>
       </div>
     </form>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import {
+  addBlockPlanBlockAction,
   decideRevisionAction,
   generateBlockPlanAction,
   generateBlueprintAction,
@@ -182,6 +183,8 @@ export function TrainingWorkflow({ initial }: { initial: TrainingWorkspaceView }
             revisionNo={ws.blockPlan.revisionNo}
             manual={ws.blockPlan.source === "manual"}
             onSaveBlock={(plannedBlockId, edit) => act(() => saveBlockPlanBlockEditAction(id, plannedBlockId, ws.blockPlan!.revisionId, edit))}
+            onAddBlock={(addition) => act(() => addBlockPlanBlockAction(id, ws.blockPlan!.revisionId, addition))}
+            humanAddedBlockIds={ws.blockPlan.humanAddedBlockIds}
             pending={pending || busy}
             onApprove={() => run([() => decideRevisionAction(id, ws.blockPlan!.revisionId, "approved")], { keepStep: true })}
             onCreateContent={() => run([() => generateContentAction(id)])}
