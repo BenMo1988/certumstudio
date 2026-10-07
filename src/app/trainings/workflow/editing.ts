@@ -41,12 +41,15 @@ import { approvedEarlierContent, approvedUpstream, ok, reject, rejectError, type
  */
 
 const MINUTES = ACCREDITATION_FIELDS.estimatedMinutes;
+const ASSESSMENT_ROLE = ACCREDITATION_FIELDS.assessmentRole;
 
 export interface BlockEdit {
   /** Alleen de bewerkbare velden van dit bloktype. */
   content: unknown;
   /** Geschatte minuten (geheel getal 1–120) of `null`; weglaten = ongewijzigd. */
   estimatedMinutes?: unknown;
+  /** Toetsfunctie (`none`, `formative`, `summative`, `transfer`); weglaten = ongewijzigd. */
+  assessmentRole?: unknown;
 }
 
 const invalidInput = (deps: WorkflowDeps, action: string, issues: string[]): WorkflowResult => ({ ...reject(deps, action, "invalid_input", "validation"), issues });
@@ -90,13 +93,15 @@ export async function saveBlockEdit(
   if (!content.success) return invalidInput(deps, action, zodIssueCodes(content.error));
   const minutes = edit.estimatedMinutes === undefined ? { success: true as const, data: stored.accreditation.estimatedMinutes } : MINUTES.safeParse(edit.estimatedMinutes);
   if (!minutes.success) return invalidInput(deps, action, ["invalid@estimatedMinutes"]);
+  const role = edit.assessmentRole === undefined ? { success: true as const, data: stored.accreditation.assessmentRole } : ASSESSMENT_ROLE.safeParse(edit.assessmentRole);
+  if (!role.success) return invalidInput(deps, action, ["invalid@assessmentRole"]);
 
   const block = composeBlockContent(
     {
       status: "generated",
       accreditation: {
         learningGoalContribution: stored.accreditation.learningGoalContribution,
-        assessmentRole: stored.accreditation.assessmentRole,
+        assessmentRole: role.data,
         sourceNeedRefs: stored.accreditation.sourceNeedRefs,
         estimatedMinutes: minutes.data,
       },

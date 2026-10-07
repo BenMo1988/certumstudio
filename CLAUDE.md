@@ -365,8 +365,9 @@ Certum-fase, Vast Einde), per onderdeel bekijken, handmatig bewerken, goedkeuren
 - **Mens en AI volgen dezelfde regels.** De bewerkbare velden zijn precies de velden die een provider genereert:
   `editableContentSchema(target)` (`services/block-content/design.ts`, strict). Trusted en niet bewerkbaar: bloktype,
   fase, volgorde, routebeleid, plannedBlockId, AI Feedback-context, bron van Conditionele logica, `minimumWords`
-  (V1: `null`), werkvorm, bijdrage aan leerdoel, toetsfunctie, sourceNeedRefs. Bewerkbaar naast de inhoud: geschatte
-  minuten (1–120 of leeg). Daarna compose, het volledige contractschema en `checkBlockContentInvariants`. Geen
+  (V1: `null`), werkvorm, bijdrage aan leerdoel, sourceNeedRefs. Bewerkbaar naast de inhoud: geschatte minuten (1–120
+  of leeg) en de toetsfunctie (`assessmentRole`: geen, formatief, summatief, transfer; TR-0019), beide als nieuwe
+  handmatige revision zonder AI. Daarna compose, het volledige contractschema en `checkBlockContentInvariants`. Geen
   tekstpolitie.
 - **Start en Einde:** bewerkbaar zijn de uitleg (Start) en de afsluitende tekst en samenvatting (Einde); titel,
   leerdoel en vervolgaanbeveling (`null`) blijven trusted. Start en Einde hebben een eigen goedkeuring. Een

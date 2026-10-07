@@ -282,3 +282,55 @@ describe("prestatie van de editor", () => {
     expect(counted.stats.count).toBe(4);
   });
 });
+
+describe("toetsfunctie bewerken (assessmentRole)", () => {
+  /** Een gegenereerd blok in de Toets-fase (standaard: transfer). */
+  const toetsBlock = (view: TrainingWorkspaceView) => view.content!.package.blocks.find((b) => b.certumPhase === "toets" && b.body.status === "generated")!;
+
+  it("transfer → summatief: nieuwe handmatige revision, alleen de toetsfunctie verandert, vorige revision intact, geen AI", async () => {
+    const { d, id, view } = await trainingWithContent();
+    const block = toetsBlock(view);
+    expect(block.accreditation.assessmentRole).toBe("transfer");
+    const rev1 = view.content!.blockRevisions[block.plannedBlockId];
+    const before = await getArtifactRevision(db, rev1.revisionId);
+    let aiProviders = 0;
+    const noAi: WorkflowDeps = {
+      ...d,
+      getBlockContentService: () => {
+        aiProviders++;
+        throw new Error("geen AI");
+      },
+    };
+
+    const after = ws(await saveBlockEdit(noAi, id, block.plannedBlockId, rev1.revisionId, { content: editable(block), assessmentRole: "summative" }));
+    const edited = blockOf(after, block.plannedBlockId);
+    expect(after.content!.blockRevisions[block.plannedBlockId]).toMatchObject({ revisionNo: rev1.revisionNo + 1, source: "manual" });
+    expect(edited.accreditation).toEqual({ ...block.accreditation, assessmentRole: "summative" });
+    expect(edited.body).toEqual(block.body);
+    expect(edited.reviewStatus).toBe("draft");
+    expect(await getArtifactRevision(db, rev1.revisionId)).toEqual(before);
+    expect(aiProviders).toBe(0);
+  });
+
+  it("alleen geldige waarden; weglaten laat de toetsfunctie ongewijzigd", async () => {
+    const { d, id, view } = await trainingWithContent();
+    const block = toetsBlock(view);
+    const rev = view.content!.blockRevisions[block.plannedBlockId].revisionId;
+    for (const bad of ["eindtoets", "", 1, null]) {
+      expect(await saveBlockEdit(d, id, block.plannedBlockId, rev, { content: editable(block), assessmentRole: bad })).toMatchObject({ reason: "invalid_input", issues: ["invalid@assessmentRole"] });
+    }
+    const unchanged = ws(await saveBlockEdit(d, id, block.plannedBlockId, rev, { content: { ...editable(block), title: "Nieuwe titel." } }));
+    expect(blockOf(unchanged, block.plannedBlockId).accreditation.assessmentRole).toBe("transfer");
+  });
+
+  it("verouderde revision wordt geweigerd; een goedkeuring gaat niet mee naar de nieuwe versie", async () => {
+    const { d, id, view } = await trainingWithContent();
+    const block = toetsBlock(view);
+    const rev1 = view.content!.blockRevisions[block.plannedBlockId].revisionId;
+    const approved = ws(await decideRevision(d, id, rev1, "approved"));
+    expect(blockOf(approved, block.plannedBlockId).reviewStatus).toBe("approved");
+    const after = ws(await saveBlockEdit(d, id, block.plannedBlockId, rev1, { content: editable(block), assessmentRole: "summative" }));
+    expect(blockOf(after, block.plannedBlockId).reviewStatus).toBe("draft");
+    expect(await saveBlockEdit(d, id, block.plannedBlockId, rev1, { content: editable(block), assessmentRole: "formative" })).toMatchObject({ reason: "stale_revision" });
+  });
+});

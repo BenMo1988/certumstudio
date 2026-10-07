@@ -356,6 +356,7 @@ function BlockDetail({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Record<string, unknown> | null>(null);
   const [minutes, setMinutes] = useState<number | null>(block.accreditation.estimatedMinutes);
+  const [assessmentRole, setAssessmentRole] = useState(block.accreditation.assessmentRole);
   const [error, setError] = useState<{ message: string; issues?: string[] } | null>(null);
   const status = statusOf(block);
   const ctx: FieldContext = { routePolicy: block.routePolicy, blockLabel };
@@ -364,7 +365,7 @@ function BlockDetail({
   async function save() {
     if (!draft) return;
     setError(null);
-    const result = await run(() => saveBlockEditAction(id, plannedBlockId, meta.revisionId, { content: draft, estimatedMinutes: minutes }), "Nieuwe versie opgeslagen");
+    const result = await run(() => saveBlockEditAction(id, plannedBlockId, meta.revisionId, { content: draft, estimatedMinutes: minutes, assessmentRole }), "Nieuwe versie opgeslagen");
     if (result.ok) setEditing(false);
     else setError(result);
   }
@@ -416,7 +417,25 @@ function BlockDetail({
         <dl className="mt-2 divide-y divide-line border-y border-line">
           <Fact label="Werkvorm">{block.accreditation.workform}</Fact>
           <Fact label="Bijdrage aan leerdoel">{block.accreditation.learningGoalContribution}</Fact>
-          <Fact label="Toetsfunctie">{ASSESSMENT_LABEL[block.accreditation.assessmentRole]}</Fact>
+          <Fact label="Toetsfunctie">
+            {editing ? (
+              <select
+                aria-label="Toetsfunctie"
+                className="rounded-md border border-line bg-canvas px-3 py-1.5"
+                value={assessmentRole}
+                onChange={(e) => setAssessmentRole(e.target.value as typeof assessmentRole)}
+                data-testid="assessment-role"
+              >
+                {(Object.keys(ASSESSMENT_LABEL) as (keyof typeof ASSESSMENT_LABEL)[]).map((r) => (
+                  <option key={r} value={r}>
+                    {ASSESSMENT_LABEL[r]}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              ASSESSMENT_LABEL[block.accreditation.assessmentRole]
+            )}
+          </Fact>
           <Fact label="Geschatte minuten">
             {editing ? (
               <input
@@ -449,6 +468,7 @@ function BlockDetail({
                   setEditing(false);
                   setError(null);
                   setMinutes(block.accreditation.estimatedMinutes);
+                  setAssessmentRole(block.accreditation.assessmentRole);
                 }}
               >
                 Annuleren
@@ -465,6 +485,7 @@ function BlockDetail({
                     if (block.body.status !== "generated") return;
                     setDraft(structuredClone(editableFields(block.body.content)));
                     setMinutes(block.accreditation.estimatedMinutes);
+                    setAssessmentRole(block.accreditation.assessmentRole);
                     setEditing(true);
                   }}
                 >

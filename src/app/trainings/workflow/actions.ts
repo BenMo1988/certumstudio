@@ -136,8 +136,8 @@ export async function regenerateBlockAction(trainingId: unknown, plannedBlockId:
 /** Handmatige bewerking van één blok: alleen de bewerkbare velden en eventueel de geschatte minuten. */
 export async function saveBlockEditAction(trainingId: unknown, plannedBlockId: unknown, expectedRevisionId: unknown, edit: unknown) {
   if (!isId(trainingId) || !isId(plannedBlockId) || !isId(expectedRevisionId) || typeof edit !== "object" || edit === null) return invalid;
-  const { content, estimatedMinutes } = edit as { content?: unknown; estimatedMinutes?: unknown };
-  return guarded(() => saveBlockEdit(deps(), trainingId, plannedBlockId, expectedRevisionId, { content, estimatedMinutes }));
+  const { content, estimatedMinutes, assessmentRole } = edit as { content?: unknown; estimatedMinutes?: unknown; assessmentRole?: unknown };
+  return guarded(() => saveBlockEdit(deps(), trainingId, plannedBlockId, expectedRevisionId, { content, estimatedMinutes, assessmentRole }));
 }
 
 /** Handmatige bewerking van Vaste Start (`introduction`) of Vast Einde (`closingText`, `summary`). */
