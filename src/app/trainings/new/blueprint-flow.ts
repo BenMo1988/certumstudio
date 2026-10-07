@@ -1,3 +1,4 @@
+import type { BlueprintRevisionContext } from "@/knowledge/prompts/training-blueprint-v2-2";
 import { ACTIVE_DATA_POLICY, evaluateDataPolicy } from "@/modules/governance";
 import {
   evaluatePreflightGate,
@@ -79,6 +80,8 @@ export type BlueprintLogEntry =
       ambiguity?: TrainingBlueprint["ambiguity"];
       sourceNeeds?: number;
       inputKind?: AgentInput["kind"];
+      /** Gerichte revisie met menselijke toelichting (alleen ja/nee; nooit de toelichting zelf). */
+      revisionRequested?: boolean;
     }
   | {
       event: "certum.block_plan";
@@ -117,7 +120,7 @@ const V2_CONTRACT: BlueprintContract<TrainingBlueprintV2> = {
 
 const V21_CONTRACT: BlueprintContract<TrainingBlueprintV2> = { ...V2_CONTRACT, trustRoutePolicy: true };
 
-type ServiceRequest<A> = { input: AgentInput; analysis: A; segments: SourceSegment[]; selectedDirectionId: string };
+type ServiceRequest<A> = { input: AgentInput; analysis: A; segments: SourceSegment[]; selectedDirectionId: string; revision?: BlueprintRevisionContext };
 
 /**
  * Blueprint Generation (Blueprint Contract V1, baseline; niet meer aangesloten op de UI). Zie runBlueprintFlowV2.
@@ -161,8 +164,10 @@ export async function runBlueprintFlowV21(
   analysisCandidate: unknown,
   selectedDirectionId: string,
   deps: { getService: () => TrainingBlueprintServiceV21; log?: (entry: BlueprintLogEntry) => void },
+  /** Gerichte revisie: server-side geladen uit het `needs_revision`-besluit op de current Blueprint. */
+  revision?: BlueprintRevisionContext,
 ): Promise<BlueprintFlowResultV2> {
-  return runGatedBlueprintFlow(V21_CONTRACT, input, acknowledgement, analysisCandidate, selectedDirectionId, deps);
+  return runGatedBlueprintFlow(V21_CONTRACT, input, acknowledgement, analysisCandidate, selectedDirectionId, deps, revision);
 }
 
 /** De gedeelde poorten voor iedere contractversie. De provider wordt pas na alle poorten aangemaakt. */
@@ -179,6 +184,7 @@ async function runGatedBlueprintFlow<
     getService: () => { generate: (request: ServiceRequest<A>) => Promise<B> };
     log?: (entry: BlueprintLogEntry) => void;
   },
+  revision?: BlueprintRevisionContext,
 ): Promise<BlueprintFlowResult<B>> {
   const log = deps.log ?? defaultLog;
   const reject = (reason: BlueprintFlowRejection, errorKind?: AnalysisErrorKind | "unknown"): BlueprintFlowResult<B> => {
@@ -188,6 +194,7 @@ async function runGatedBlueprintFlow<
       outcome: "rejected",
       reason,
       ...(errorKind && { errorKind }),
+      ...(revision && { revisionRequested: true }),
     });
     return { status: "rejected", reason };
   };
@@ -219,7 +226,7 @@ async function runGatedBlueprintFlow<
   try {
     // Bij trusted routebeleid krijgt de provider de V2.1-uitkomst (met routePolicy), anders de V2-weergave.
     const serviceAnalysis = (contract.trustRoutePolicy && v21.success ? v21.data : analysis) as A;
-    blueprint = await deps.getService().generate({ input, analysis: serviceAnalysis, segments, selectedDirectionId });
+    blueprint = await deps.getService().generate({ input, analysis: serviceAnalysis, segments, selectedDirectionId, ...(revision && { revision }) });
   } catch (error) {
     if (error instanceof AnalysisError && error.kind === "invalid-output") return reject("invalid_blueprint", error.kind);
     return reject("provider_error", error instanceof AnalysisError ? error.kind : "unknown");
@@ -239,6 +246,7 @@ async function runGatedBlueprintFlow<
     ambiguity: blueprint.ambiguity,
     sourceNeeds: blueprint.sourceNeeds.length,
     inputKind: input.kind,
+    ...(revision && { revisionRequested: true }),
   });
   return { status: "blueprint", blueprint };
 }

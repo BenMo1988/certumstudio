@@ -3,6 +3,7 @@ import {
   TRAINING_BLUEPRINT_V21_INSTRUCTIONS,
   buildTrainingBlueprintV21Request,
 } from "@/knowledge/prompts/training-blueprint-v2-1";
+import { TRAINING_BLUEPRINT_V22_INSTRUCTIONS, buildTrainingBlueprintV22Request } from "@/knowledge/prompts/training-blueprint-v2-2";
 import { toV2Outcome } from "@/modules/training-agent/v2-1";
 import type { ReadyOutcome } from "@/modules/training-agent/v2";
 import {
@@ -45,8 +46,16 @@ export class ClaudeTrainingBlueprintServiceV21 implements TrainingBlueprintServi
       response = await this.client.messages.parse({
         model: this.settings.model,
         max_tokens: this.settings.maxTokens,
-        system: TRAINING_BLUEPRINT_V21_INSTRUCTIONS,
-        messages: [{ role: "user", content: buildTrainingBlueprintV21Request(generationInput) }],
+        // Gerichte revisie (training-blueprint/v2.2) alleen met een menselijke toelichting; anders exact v2.1.
+        system: request.revision ? TRAINING_BLUEPRINT_V22_INSTRUCTIONS : TRAINING_BLUEPRINT_V21_INSTRUCTIONS,
+        messages: [
+          {
+            role: "user",
+            content: request.revision
+              ? buildTrainingBlueprintV22Request(generationInput, request.revision)
+              : buildTrainingBlueprintV21Request(generationInput),
+          },
+        ],
         output_config: {
           effort: this.settings.effort,
           format: zodOutputFormat(BlueprintV21DesignSchema),

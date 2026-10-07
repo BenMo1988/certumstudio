@@ -4,6 +4,9 @@ import type { BcOnlineBlockPlan } from "@/modules/block-plan/schema";
 import type { TrainingBlueprint } from "@/modules/training-blueprint/schema";
 import type { TrainingBlueprintV2 } from "@/modules/training-blueprint/v2/schema";
 import type { ReadyOutcomeV21 } from "@/modules/training-agent/v2-1";
+import type { BlueprintRevisionContext } from "@/knowledge/prompts/training-blueprint-v2-2";
+
+export type { BlueprintRevisionContext } from "@/knowledge/prompts/training-blueprint-v2-2";
 
 /** Wat een Blueprint-generator krijgt: alleen een `ready`-analyse met een gekozen, bestaande richting. */
 export interface BlueprintRequest {
@@ -30,6 +33,11 @@ export interface TrainingBlueprintServiceV2 {
 /** V2.1-request: een Analysis V2.1-uitkomst, zodat het routebeleid van de gekozen richting trusted meegaat. */
 export interface BlueprintRequestV21 extends Omit<BlueprintRequest, "analysis"> {
   analysis: ReadyOutcomeV21;
+  /**
+   * Gerichte revisie: de afgekeurde revision en de menselijke toelichting erop, server-side uit het besluit geladen.
+   * Ontbreekt bij een gewone generatie; dan gedraagt de generator zich exact als vóór deze capability.
+   */
+  revision?: BlueprintRevisionContext;
 }
 
 /** Blueprint Contract V2 met trusted routebeleid (prompt training-blueprint/v2.1). */

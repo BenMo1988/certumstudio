@@ -11,6 +11,7 @@ import {
   saveBlockPlanBlockEditAction,
   saveSourceNeedScopesAction,
   runAnalysisAction,
+  requestBlueprintRevisionAction,
   selectDirectionAction,
 } from "@/app/trainings/workflow/actions";
 import type { WorkflowResult } from "@/app/trainings/workflow/persisted-workflow";
@@ -156,6 +157,9 @@ export function TrainingWorkflow({ initial }: { initial: TrainingWorkspaceView }
             approved={ws.blueprint.approved}
             pending={pending || busy}
             onSaveScopes={(scopes) => act(() => saveSourceNeedScopesAction(id, ws.blueprint!.revisionId, scopes))}
+            revisionFeedback={ws.blueprint.revisionFeedback}
+            onRequestRevision={(feedback) => act(() => requestBlueprintRevisionAction(id, ws.blueprint!.revisionId, feedback))}
+            onGenerateRevision={() => run([() => generateBlueprintAction(id)], { keepStep: true })}
             onApprove={() => {
               const revisionId = ws.blueprint!.revisionId;
               run(

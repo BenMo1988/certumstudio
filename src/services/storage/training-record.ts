@@ -605,6 +605,9 @@ function sourceNeedsClassified(payload: unknown): boolean {
   return (blueprint.sourceNeeds ?? []).every((n) => n.scope !== undefined);
 }
 
+/** Maximale lengte van een menselijke revisietoelichting op een Blueprint (tekens, na trimmen). */
+export const REVISION_FEEDBACK_MAX = 3_000;
+
 export async function appendWorkflowEvent(
   db: Db,
   input: {
@@ -614,9 +617,18 @@ export async function appendWorkflowEvent(
     trainingDirectionId?: string;
     /** Alleen de bronvalidatie (met de expliciete verklaring) mag een bron goedkeuren; een generiek besluit niet. */
     sourceValidation?: boolean;
+    /**
+     * Gerichte Blueprint-revisie: menselijke ontwerpaanwijzing bij `needs_revision` op een Blueprint. Wordt immutable in
+     * `event_data` vastgelegd en alleen gebruikt voor de eerstvolgende Blueprint-generatie op deze revision.
+     */
+    revisionFeedback?: string;
   },
 ): Promise<WorkflowEvent> {
   if (!WORKFLOW_EVENT_TYPES.includes(input.eventType)) throw new StorageError("invalid_event", "Onbekend eventtype.");
+  const revisionFeedback = input.revisionFeedback === undefined ? undefined : input.revisionFeedback.trim();
+  if (revisionFeedback !== undefined && (revisionFeedback.length === 0 || revisionFeedback.length > REVISION_FEEDBACK_MAX)) {
+    throw new StorageError("invalid_event", "Revisietoelichting is leeg of te lang.");
+  }
   return db.transaction(async (tx) => {
     const snap = await loadWriteSnapshot(tx, input.trainingId, false);
     const revision = revisionById(snap, input.artifactRevisionId);
@@ -634,6 +646,12 @@ export async function appendWorkflowEvent(
         throw new StorageError("invalid_event", "Onbekende trainingsrichting of analyse niet gereed.");
       }
       eventData = { trainingDirectionId: id };
+    } else if (revisionFeedback !== undefined) {
+      // Alleen bij "laten aanpassen" van een Blueprint; nooit bij goedkeuring of bij andere artefacten.
+      if (input.eventType !== "needs_revision" || revision.artifactType !== "blueprint") {
+        throw new StorageError("invalid_event", "Een revisietoelichting hoort alleen bij het laten aanpassen van een Blueprint.");
+      }
+      eventData = { revisionFeedback };
     } else {
       if (revision.artifactType === "analysis") throw new StorageError("invalid_event", "Een analyse wordt niet goedgekeurd; kies een richting.");
       if (input.eventType === "approved") {

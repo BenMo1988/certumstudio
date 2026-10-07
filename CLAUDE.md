@@ -238,6 +238,22 @@ Certum Studio is de didactische ontwerplaag; BC Online is de uitvoeringslaag.
   - `runBlueprintFlowV21` accepteert alleen een Analysis V2.1-uitkomst. Een V2-analyse zonder routebeleid geeft
     `incompatible_analysis` (geen stille gok). De flow controleert ook dat de ambiguïteit uit het routebeleid volgt.
   - V1 en V2 (`runBlueprintFlow`, `runBlueprintFlowV2`) blijven als baseline-codepaden bestaan.
+- **Gerichte Blueprint-revisie (TR-0019):** "Laten aanpassen" in de Blueprint-review vraagt een menselijke
+  toelichting ("Wat moet in de volgende versie worden aangepast?").
+  - **Vastleggen:** `requestBlueprintRevision` / `requestBlueprintRevisionAction` legt `needs_revision` met
+    `event_data.revisionFeedback` immutable vast op exact de current Blueprint-revision. Getrimd, 1–3000 tekens.
+    Alleen bij Blueprints en alleen bij `needs_revision`; geen migratie nodig.
+  - **Generatie:** `generateBlueprint` blijft idempotent. Alleen als het laatste besluit op de current Blueprint
+    `needs_revision` met toelichting is (`pendingRevisionFeedback`), volgt één nieuwe generatie.
+    - Die krijgt de toelichting en de vorige versie mee (`BlueprintRequestV21.revision`), en de prompt
+      `training-blueprint/v2.2` (= v2.1 plus de sectie "Gerichte revisie").
+    - Zonder toelichting gaat exact v2.1 naar de provider. Er is geen blinde regeneratie.
+  - **Toelichting is ontwerpaanwijzing, geen casusbron:** richting, leerdoel, dilemma, doelgroep, routebeleid en
+    bronsegmenten blijven trusted en vast.
+  - **Geen doorlekken:** de toelichting hoort bij één revision; een nieuwe revision heeft geen openstaande toelichting.
+  - **UI:** eerst de toelichting opslaan, daarna bewust "Nieuwe Blueprint-versie genereren" ("Dit start een nieuwe
+    AI-aanroep.").
+  - **Logging:** alleen `revisionRequested: true`, nooit de toelichting.
 - **Keten met heldere verantwoordelijkheden per laag:** Training Blueprint (didactische waarheid) → **Block Plan**
   (welke bestaande BC Online-blokken) → **Block Content** (uitgeschreven inhoud per blok, zie hieronder) → later
   Training Review/Editor, opslag en versies, preview, Accreditation Readiness → later **BC Online Adapter** (export

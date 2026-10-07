@@ -4,6 +4,7 @@ import { TRAINING_ANALYSIS_V211_PROMPT_VERSION } from "@/knowledge/prompts/train
 import { TRAINING_BLOCK_CONTENT_V1_2_PROMPT_VERSION } from "@/knowledge/prompts/training-block-content-v1-2";
 import { TRAINING_BLOCK_PLAN_PROMPT_VERSION } from "@/knowledge/prompts/training-block-plan-v1";
 import { TRAINING_BLUEPRINT_V21_PROMPT_VERSION } from "@/knowledge/prompts/training-blueprint-v2-1";
+import { TRAINING_BLUEPRINT_V22_PROMPT_VERSION } from "@/knowledge/prompts/training-blueprint-v2-2";
 import { parsePreflightAcknowledgement } from "@/modules/privacy";
 import { parseInputKind } from "@/modules/training-agent";
 import { getTrainingAnalysisService } from "@/services/analysis";
@@ -20,6 +21,7 @@ import {
   generateBlueprint,
   generateContent,
   regenerateBlock,
+  requestBlueprintRevision,
   runAnalysis,
   selectDirection,
   startTraining,
@@ -60,6 +62,7 @@ function deps(): WorkflowDeps {
     provenance: {
       analysis: provenance(readAnalysisConfig, TRAINING_ANALYSIS_V211_PROMPT_VERSION),
       blueprint: provenance(readBlueprintConfig, TRAINING_BLUEPRINT_V21_PROMPT_VERSION),
+      blueprintRevision: provenance(readBlueprintConfig, TRAINING_BLUEPRINT_V22_PROMPT_VERSION),
       blockPlan: provenance(readBlockPlanConfig, TRAINING_BLOCK_PLAN_PROMPT_VERSION),
       blockContent: provenance(readBlockContentConfig, TRAINING_BLOCK_CONTENT_V1_2_PROMPT_VERSION),
     },
@@ -103,6 +106,12 @@ export async function generateBlueprintAction(trainingId: unknown) {
 export async function decideRevisionAction(trainingId: unknown, revisionId: unknown, decision: unknown) {
   if (!isId(trainingId) || !isId(revisionId) || (decision !== "approved" && decision !== "needs_revision")) return invalid;
   return guarded(() => decideRevision(deps(), trainingId, revisionId, decision));
+}
+
+/** "Laten aanpassen" van de current Blueprint met een gerichte toelichting; genereert zelf niets. */
+export async function requestBlueprintRevisionAction(trainingId: unknown, revisionId: unknown, feedback: unknown) {
+  if (!isId(trainingId) || !isId(revisionId) || typeof feedback !== "string") return invalid;
+  return guarded(() => requestBlueprintRevision(deps(), trainingId, revisionId, feedback));
 }
 
 export async function generateBlockPlanAction(trainingId: unknown) {

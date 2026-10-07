@@ -45,6 +45,12 @@ interface BlueprintReviewProps {
   onBack: () => void;
   /** SourceNeed Scope Review: de classificatie opslaan (nieuwe Blueprint-versie). */
   onSaveScopes: (scopes: Record<string, SourceNeedScope>) => Promise<ActResult>;
+  /** Gerichte revisie: de openstaande menselijke toelichting op deze versie, of `null`. */
+  revisionFeedback?: string | null;
+  /** "Laten aanpassen": de toelichting opslaan (genereert zelf niets). */
+  onRequestRevision?: (feedback: string) => Promise<ActResult>;
+  /** De nieuwe Blueprint-versie genereren met de opgeslagen toelichting (een nieuwe AI-aanroep). */
+  onGenerateRevision?: () => void;
 }
 
 /**
@@ -52,7 +58,17 @@ interface BlueprintReviewProps {
  * kennisbehoeften is bewerkbaar (SourceNeed Scope Review); de Blueprint kan pas worden goedgekeurd als iedere
  * kennisbehoefte geclassificeerd en opgeslagen is.
  */
-export function BlueprintReview({ blueprint, pending, approved = false, onApprove, onBack, onSaveScopes }: BlueprintReviewProps) {
+export function BlueprintReview({
+  blueprint,
+  pending,
+  approved = false,
+  onApprove,
+  onBack,
+  onSaveScopes,
+  revisionFeedback = null,
+  onRequestRevision,
+  onGenerateRevision,
+}: BlueprintReviewProps) {
   const unclassified = blueprint.sourceNeeds.some((n) => n.scope === undefined);
   const arc = blueprint.learningArc;
   const phaseContent: Record<string, ReactNode> = {
@@ -158,6 +174,10 @@ export function BlueprintReview({ blueprint, pending, approved = false, onApprov
         </ol>
       </section>
 
+      {!approved && onRequestRevision && onGenerateRevision && (
+        <RevisionRequest pending={pending} revisionFeedback={revisionFeedback} onRequestRevision={onRequestRevision} onGenerateRevision={onGenerateRevision} />
+      )}
+
       <div className="mt-10 flex flex-col-reverse gap-4 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
         <Button variant="secondary" onClick={onBack} disabled={pending}>
           <Icon name="arrowLeft" className="size-4" />
@@ -175,6 +195,93 @@ export function BlueprintReview({ blueprint, pending, approved = false, onApprov
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * "Laten aanpassen" met een gerichte toelichting. Eerst opslaan (het besluit), daarna bewust de nieuwe versie laten
+ * genereren: dat is een nieuwe AI-aanroep. Geen editor; de reviewer beschrijft wat er anders moet.
+ */
+function RevisionRequest({
+  pending,
+  revisionFeedback,
+  onRequestRevision,
+  onGenerateRevision,
+}: {
+  pending: boolean;
+  revisionFeedback: string | null;
+  onRequestRevision: (feedback: string) => Promise<ActResult>;
+  onGenerateRevision: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  if (revisionFeedback) {
+    return (
+      <section className="mt-10 rounded-lg border border-attention/30 bg-attention-50 px-5 py-4" data-testid="blueprint-revision-pending">
+        <p className="text-sm font-medium text-attention-700">Laten aanpassen: toelichting opgeslagen</p>
+        <p className="mt-2 text-sm whitespace-pre-wrap text-ink" data-testid="blueprint-revision-feedback">
+          {revisionFeedback}
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <Button onClick={onGenerateRevision} disabled={pending}>
+            {pending ? "Nieuwe versie wordt gemaakt…" : "Nieuwe Blueprint-versie genereren"}
+          </Button>
+          <span className="text-sm text-attention-700">Dit start een nieuwe AI-aanroep.</span>
+        </div>
+      </section>
+    );
+  }
+
+  if (!open) {
+    return (
+      <div className="mt-10">
+        <Button variant="secondary" onClick={() => setOpen(true)} disabled={pending}>
+          Laten aanpassen
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <section className="mt-10 rounded-lg border border-line px-5 py-4" data-testid="blueprint-revision-form">
+      <label htmlFor="blueprint-revision" className="text-sm font-medium text-ink">
+        Wat moet in de volgende versie worden aangepast?
+      </label>
+      <p className="mt-1 text-sm text-muted">Deze toelichting wordt gebruikt bij het genereren van de volgende Blueprint-versie.</p>
+      <textarea
+        id="blueprint-revision"
+        className="mt-3 min-h-32 w-full rounded-md border border-line bg-canvas px-3 py-2 text-[15px] text-ink focus-visible:outline-2 focus-visible:outline-petrol-600"
+        value={text}
+        maxLength={3000}
+        onChange={(e) => setText(e.target.value)}
+        data-testid="blueprint-revision-input"
+      />
+      {error && (
+        <p role="alert" className="mt-2 text-sm text-danger">
+          {error}
+        </p>
+      )}
+      <div className="mt-3 flex flex-wrap gap-3">
+        <Button
+          disabled={pending || saving || !text.trim()}
+          onClick={async () => {
+            setSaving(true);
+            setError(null);
+            const result = await onRequestRevision(text);
+            setSaving(false);
+            if (!result.ok) setError(result.message);
+          }}
+        >
+          Toelichting opslaan
+        </Button>
+        <Button variant="secondary" disabled={saving} onClick={() => setOpen(false)}>
+          Annuleren
+        </Button>
+      </div>
+    </section>
   );
 }
 

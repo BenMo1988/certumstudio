@@ -6,6 +6,7 @@ import { sourceNeedScope, type SourceNeedScope, type TrainingBlueprintV2 } from 
 import type { Db } from "./db";
 import { sourceNeedCoverage, type CertumSource } from "@/modules/sources/schema";
 import {
+  pendingRevisionFeedback,
   builtOn,
   composeContentFromSnapshot,
   currentRevision,
@@ -163,7 +164,8 @@ export interface TrainingWorkspaceView {
     epistemicFlags: EpistemicFlag[];
     selectedDirectionId: string | null;
   } | null;
-  blueprint: StoredArtifactView<TrainingBlueprintV2> | null;
+  /** `revisionFeedback`: de openstaande menselijke revisietoelichting op deze Blueprint-revision, of `null`. */
+  blueprint: (StoredArtifactView<TrainingBlueprintV2> & { revisionFeedback: string | null }) | null;
   blockPlan: StoredArtifactView<BcOnlineBlockPlan> | null;
   /** Bronnen en dekking; beschikbaar zodra de Blueprint is goedgekeurd. */
   sources: SourcesView | null;
@@ -212,7 +214,8 @@ export function deriveWorkspace(snap: TrainingRecordSnapshot): TrainingWorkspace
 
   // Alleen artifacts op de huidige upstream tellen; een verouderd downstream-artifact wordt niet getoond als current.
   const blueprintRev = currentRevision(snap, "blueprint");
-  const blueprint = analysisRev && builtOn(blueprintRev, [analysisRev.id]) ? storedView<TrainingBlueprintV2>(snap, blueprintRev) : null;
+  const blueprintView = analysisRev && builtOn(blueprintRev, [analysisRev.id]) ? storedView<TrainingBlueprintV2>(snap, blueprintRev) : null;
+  const blueprint = blueprintView && blueprintRev ? { ...blueprintView, revisionFeedback: pendingRevisionFeedback(snap, blueprintRev) } : null;
   const planRev = currentRevision(snap, "block_plan");
   const blockPlan = blueprint && builtOn(planRev, [blueprint.revisionId]) ? storedView<BcOnlineBlockPlan>(snap, planRev) : null;
 

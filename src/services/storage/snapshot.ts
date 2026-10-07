@@ -99,6 +99,16 @@ export function lastRelevantEvent(snap: TrainingRecordSnapshot, revision: Artifa
   return eventsFor(snap, revision.id).filter((e) => relevant.includes(e.eventType)).at(-1) ?? null;
 }
 
+/**
+ * Gerichte Blueprint-revisie: de menselijke revisietoelichting op exact deze revision, als het laatste besluit erop
+ * `needs_revision` met toelichting is; anders `null`. Hoort bij één revision, dus lekt niet door naar latere versies.
+ */
+export function pendingRevisionFeedback(snap: TrainingRecordSnapshot, revision: ArtifactRevision): string | null {
+  const last = lastRelevantEvent(snap, revision);
+  const feedback = last?.eventType === "needs_revision" ? last.eventData.revisionFeedback : null;
+  return typeof feedback === "string" && feedback.trim() ? feedback : null;
+}
+
 /** De gekozen richting van een analyse-revision (laatste `direction_selected`), of `null`. */
 export function selectedDirection(snap: TrainingRecordSnapshot, analysisRevisionId: string): string | null {
   const last = eventsFor(snap, analysisRevisionId).filter((e) => e.eventType === "direction_selected").at(-1);

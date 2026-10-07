@@ -9,17 +9,18 @@ import { INPUT_KINDS, MAX_INPUT_LENGTH, type AgentInput, type AgentInputKind } f
 import { ANALYSIS_CONTRACT_V21_VERSION } from "@/modules/training-agent/v2-1";
 import { BLOCK_CONTENT_VERSION, type BlockContentResult } from "@/modules/block-content";
 import { BC_ONLINE_BLOCK_PLAN_VERSION, type BcOnlineBlockPlan } from "@/modules/block-plan";
-import type { TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
+import { TrainingBlueprintV2Schema, type TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
 import { AnalysisError, type AnalysisErrorKind } from "@/services/analysis/errors";
 import type { TrainingAnalysisServiceV2 } from "@/services/analysis/training-analysis-service-v2";
 import type { BlockContentService } from "@/services/block-content/services";
 import { lazyService } from "@/services/block-content/orchestrator";
 import type { BlockPlanService, TrainingBlueprintServiceV21 } from "@/services/blueprint/services";
 import type { Db } from "@/services/storage/db";
-import { builtOn, currentRevision, isApproved, selectedDirection, validatedSources, withRevision, type TrainingRecordSnapshot } from "@/services/storage/snapshot";
+import { builtOn, currentRevision, isApproved, pendingRevisionFeedback, selectedDirection, validatedSources, withRevision, type TrainingRecordSnapshot } from "@/services/storage/snapshot";
 import { resolveBlockTarget } from "@/modules/block-content";
 import {
   DATA_POLICY_VERSION,
+  REVISION_FEEDBACK_MAX,
   StorageError,
   appendWorkflowEvent,
   createArtifactRevision,
@@ -58,7 +59,14 @@ export interface WorkflowDeps {
   getBlueprintService: () => TrainingBlueprintServiceV21;
   getBlockPlanService: () => BlockPlanService;
   getBlockContentService: () => BlockContentService;
-  provenance: { analysis: Provenance; blueprint: Provenance; blockPlan: Provenance; blockContent: Provenance };
+  provenance: {
+    analysis: Provenance;
+    blueprint: Provenance;
+    /** Herkomst van een gerichte Blueprint-revisie (andere promptversie); zonder deze waarde geldt `blueprint`. */
+    blueprintRevision?: Provenance;
+    blockPlan: Provenance;
+    blockContent: Provenance;
+  };
   log?: (entry: WorkflowLogEntry) => void;
 }
 
@@ -245,12 +253,21 @@ export async function generateBlueprint(deps: WorkflowDeps, trainingId: string):
   if (!directionId) return reject(deps, action, "invalid_state");
   const current = currentRevision(snap, "blueprint");
   const currentId = current?.id ?? null;
-  if (builtOn(current, [analysis.id])) return ok(deps, trainingId, action);
+  // Idempotent, met één uitzondering: een menselijke revisietoelichting op exact de current Blueprint vraagt één
+  // nieuwe, gerichte generatie. Zonder toelichting gebeurt er niets (geen blinde nieuwe trekking).
+  let revision: { feedback: string; previous: TrainingBlueprintV2 } | undefined;
+  if (builtOn(current, [analysis.id])) {
+    const feedback = pendingRevisionFeedback(snap, current);
+    if (!feedback) return ok(deps, trainingId, action);
+    const previous = TrainingBlueprintV2Schema.safeParse(current.payload);
+    if (!previous.success) return reject(deps, action, "invalid_state");
+    revision = { feedback, previous: previous.data };
+  }
   const acknowledgement = storedAcknowledgement(snap.input);
   if (!acknowledgement) return reject(deps, action, "attestation_outdated");
 
   try {
-    const result = await runBlueprintFlowV21(agentInput(snap.input), acknowledgement, analysis.payload, directionId, { getService: deps.getBlueprintService });
+    const result = await runBlueprintFlowV21(agentInput(snap.input), acknowledgement, analysis.payload, directionId, { getService: deps.getBlueprintService }, revision);
     if (result.status === "rejected") {
       return reject(deps, action, result.reason === "provider_error" ? "provider_error" : result.reason === "invalid_blueprint" ? "invalid_output" : "invalid_state", result.reason);
     }
@@ -258,7 +275,7 @@ export async function generateBlueprint(deps: WorkflowDeps, trainingId: string):
       trainingId,
       artifactType: "blueprint",
       contractVersion: result.blueprint.version,
-      ...deps.provenance.blueprint,
+      ...(revision ? (deps.provenance.blueprintRevision ?? deps.provenance.blueprint) : deps.provenance.blueprint),
       payload: result.blueprint,
       basedOnRevisionIds: [analysis.id],
       expectedCurrentRevisionId: currentId,
@@ -278,14 +295,40 @@ export async function generateBlueprint(deps: WorkflowDeps, trainingId: string):
  * revision; de content_hash komt uit de database. Een herhaald besluit voegt niets toe. De write laadt zijn eigen
  * snapshot binnen de vergrendelde transactie en evalueert de approvalregels in het geheugen.
  */
-export async function decideRevision(deps: WorkflowDeps, trainingId: string, revisionId: string, decision: "approved" | "needs_revision"): Promise<WorkflowResult> {
+export async function decideRevision(
+  deps: WorkflowDeps,
+  trainingId: string,
+  revisionId: string,
+  decision: "approved" | "needs_revision",
+  options: { revisionFeedback?: string } = {},
+): Promise<WorkflowResult> {
   const action = `decide_${decision}`;
   try {
-    await appendWorkflowEvent(deps.db, { trainingId, artifactRevisionId: revisionId, eventType: decision });
+    await appendWorkflowEvent(deps.db, {
+      trainingId,
+      artifactRevisionId: revisionId,
+      eventType: decision,
+      ...(options.revisionFeedback !== undefined && { revisionFeedback: options.revisionFeedback }),
+    });
   } catch (error) {
     return rejectError(deps, action, error);
   }
   return ok(deps, trainingId, action);
+}
+
+/**
+ * "Laten aanpassen" van de current Blueprint met een gerichte menselijke toelichting. Legt alleen het besluit vast
+ * (immutable, in `event_data`); de nieuwe versie ontstaat pas bij een expliciete `generateBlueprint`. Leeg of te lang
+ * wordt geweigerd; de toelichting wordt nooit gelogd.
+ */
+export async function requestBlueprintRevision(deps: WorkflowDeps, trainingId: string, revisionId: string, feedback: unknown): Promise<WorkflowResult> {
+  const action = "request_blueprint_revision";
+  const text = typeof feedback === "string" ? feedback.trim() : "";
+  if (!text || text.length > REVISION_FEEDBACK_MAX) return reject(deps, action, "invalid_input");
+  const snap = await snapshotOf(deps, trainingId);
+  const current = snap && currentRevision(snap, "blueprint");
+  if (!current || current.id !== revisionId) return reject(deps, action, "stale_revision");
+  return decideRevision(deps, trainingId, revisionId, "needs_revision", { revisionFeedback: text });
 }
 
 // ---------------------------------------------------------------------------------------------------------------
