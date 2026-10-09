@@ -582,6 +582,10 @@ als een professioneel gesprek onder druk. Het is geen LMS en geen deelnemersomge
     - Restrisico, bewust geaccepteerd voor Trainer Preview met synthetic-only-attestatie: een echte persoon met exact
       dezelfde naam als een scenariopersoon is niet te onderscheiden. Voor een publiek deelnemersproduct opnieuw
       beoordelen.
+  - **Trainer-diagnose bij een blokkade:** het antwoord aan dezelfde browserrequest bevat `flagged`: de gemarkeerde
+    span(s) van blokkerende `review_required`-bevindingen (bijv. een mogelijke naam), getoond als "Mogelijk
+    persoonsgegeven: ‘…’". Nooit voor `blocked`-categorieën (e-mail, BSN, …), nooit in logs, nooit opgeslagen of naar de
+    provider. Het privacybesluit verandert er niet door.
 - **Weergave:** `buildPreview` (`modules/preview/`) toont Vaste Start, dan de blokken op `sequence`, dan Vast Einde.
   - V1 ondersteunt Tekst, Chat simulatie, Open vraag en AI Feedback. Elk ander bloktype, en elk blok zonder
     gegenereerde inhoud, wordt een expliciete capability blocker. Er wordt niets nagebootst.

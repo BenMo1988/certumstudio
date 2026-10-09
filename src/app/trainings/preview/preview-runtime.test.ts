@@ -456,8 +456,22 @@ describe("Participant Preview: trusted synthetic context (Step 17C)", () => {
 
   it("naam uitsluitend uit een toekomstige, nog niet zichtbare stap is niet vertrouwd", async () => {
     const p = previewDeps();
-    expect(await chat(p, ACTION_CHAT, "Ik begrijp dat Noor dit lastig vindt.")).toEqual({ status: "rejected", reason: "privacy_blocked", categories: ["possible_person_name"] });
+    expect(await chat(p, ACTION_CHAT, "Ik begrijp dat Noor dit lastig vindt.")).toEqual({ status: "rejected", reason: "privacy_blocked", categories: ["possible_person_name"], flagged: [{ category: "possible_person_name", text: "Noor" }] });
     expect(p.runtime.chats).toHaveLength(0);
+  });
+
+  it("trainer-diagnose: de gemarkeerde span gaat terug naar de browser, maar niet in de logs en niet naar de runtime", async () => {
+    const p = previewDeps();
+    const message = "Ik heb het vanmiddag met Gerrit en zijn collega besproken.";
+    const blocked = await chat(p, ACTION_CHAT, message);
+    expect(blocked).toEqual({ status: "rejected", reason: "privacy_blocked", categories: ["possible_person_name"], flagged: [{ category: "possible_person_name", text: "Gerrit" }] });
+    expect(p.runtime.chats).toHaveLength(0);
+    const logged = JSON.stringify(p.logs);
+    expect(logged).not.toContain("Gerrit");
+    expect(logged).not.toContain("vanmiddag");
+    expect(logged).not.toContain("flagged");
+    // Toegestane invoer: geen diagnoseveld.
+    expect(await chat(p, ACTION_CHAT, "Dat kan ik niet toezeggen.")).not.toHaveProperty("flagged");
   });
 
   it("een naam die alleen in verborgen persona-instructies staat, is niet vertrouwd", async () => {
@@ -469,8 +483,8 @@ describe("Participant Preview: trusted synthetic context (Step 17C)", () => {
 
   it("geen fuzzy matching, geen meelifters: 'Noor Bakker', een tweede naam en blocked-categorieën blijven blokkeren", async () => {
     const p = previewDeps();
-    expect(await chat(p, TOETS_CHAT, "Ik heb het met Noor Bakker besproken.")).toEqual({ status: "rejected", reason: "privacy_blocked", categories: ["possible_person_name"] });
-    expect(await chat(p, TOETS_CHAT, "Ik spreek eerst Noor en daarna ook Sanne.")).toEqual({ status: "rejected", reason: "privacy_blocked", categories: ["possible_person_name"] });
+    expect(await chat(p, TOETS_CHAT, "Ik heb het met Noor Bakker besproken.")).toEqual({ status: "rejected", reason: "privacy_blocked", categories: ["possible_person_name"], flagged: [{ category: "possible_person_name", text: "Noor Bakker" }] });
+    expect(await chat(p, TOETS_CHAT, "Ik spreek eerst Noor en daarna ook Sanne.")).toEqual({ status: "rejected", reason: "privacy_blocked", categories: ["possible_person_name"], flagged: [{ category: "possible_person_name", text: "Sanne" }] });
     expect(await chat(p, TOETS_CHAT, "Ik mail Noor via noor@example.nl.")).toEqual({ status: "rejected", reason: "privacy_blocked", categories: ["email"] });
     expect(p.runtime.chats).toHaveLength(0);
     const decisions = p.logs.flatMap((l) => (l.event === "certum.preview_privacy" ? [[l.outcome, l.trustedExempted, l.remainingCategories]] : []));

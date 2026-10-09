@@ -98,13 +98,16 @@ export type PreviewLoadResult =
   | { status: "not_found" }
   | { status: "not_ready"; training: { id: string; code: string; title: string }; stage: WorkflowStage };
 
+/** Trainer-diagnose bij `privacy_blocked`: de gemarkeerde span(s) uit de eigen tekst, alleen in dit antwoord (nooit gelogd). */
+export type PreviewPrivacyFlag = { category: string; text: string };
+
 export type PreviewChatResult =
   | { status: "ok"; reply: string; goalReached: boolean; goalMessage: string | null }
-  | { status: "rejected"; reason: PreviewRejection; categories?: string[] };
+  | { status: "rejected"; reason: PreviewRejection; categories?: string[]; flagged?: PreviewPrivacyFlag[] };
 
 export type PreviewFeedbackResult =
   | { status: "ok"; feedback: string; usedContext: string[] }
-  | { status: "rejected"; reason: PreviewRejection; categories?: string[] };
+  | { status: "rejected"; reason: PreviewRejection; categories?: string[]; flagged?: PreviewPrivacyFlag[] };
 
 const defaultLog = (entry: PreviewLogEntry) => console.info(JSON.stringify(entry));
 
@@ -147,7 +150,14 @@ function privacyGate(deps: PreviewDeps, pkg: TrainingContentPackage, kind: "chat
     remainingCategories: result.blockingCategories,
     outcome: result.decision,
   });
-  return result.decision === "allowed" ? null : { status: "rejected" as const, reason: "privacy_blocked" as const, categories: result.blockingCategories };
+  if (result.decision === "allowed") return null;
+  // De spans gaan alleen terug naar dezelfde browserrequest; het logbericht hierboven bevat ze bewust niet.
+  return {
+    status: "rejected" as const,
+    reason: "privacy_blocked" as const,
+    categories: result.blockingCategories,
+    ...(result.flaggedSpans.length > 0 && { flagged: result.flaggedSpans }),
+  };
 }
 
 const isTurns = (value: unknown): value is PreviewChatTurn[] =>

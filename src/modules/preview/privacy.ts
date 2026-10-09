@@ -68,6 +68,12 @@ export interface PreviewPrivacyDecision {
   categories: Partial<Record<PreflightCategory, number>>;
   /** Aantal vrijgestelde `possible_person_name`-bevindingen. */
   approvedEntityMatches: number;
+  /**
+   * Trainer-diagnose: de gemarkeerde spans van de blokkerende `review_required`-bevindingen (zoals een mogelijke naam),
+   * uniek. Alleen voor het antwoord aan dezelfde browserrequest; nooit loggen of opslaan. `blocked`-categorieën (e-mail,
+   * BSN, …) krijgen nooit een span: die waarde gaat niet terug. Verandert het besluit niet.
+   */
+  flaggedSpans: { category: PreflightCategory; text: string }[];
 }
 
 const RANK: Record<PreflightStatus, number> = { safe: 0, review_required: 1, blocked: 2 };
@@ -78,6 +84,7 @@ export function evaluatePreviewPrivacy(texts: string[], trusted: ReadonlySet<str
   const categories: Partial<Record<PreflightCategory, number>> = {};
   let preflightStatus: PreflightStatus = "safe";
   let approvedEntityMatches = 0;
+  const flagged = new Map<string, { category: PreflightCategory; text: string }>();
   for (const text of texts) {
     const { result, spans } = spansOf(text);
     if (RANK[result.status] > RANK[preflightStatus]) preflightStatus = result.status;
@@ -87,8 +94,16 @@ export function evaluatePreviewPrivacy(texts: string[], trusted: ReadonlySet<str
         approvedEntityMatches++;
       } else {
         blocking.add(finding.category);
+        if (finding.severity === "review_required") flagged.set(`${finding.category}\u0000${span}`, { category: finding.category, text: span });
       }
     }
   }
-  return { decision: blocking.size === 0 ? "allowed" : "blocked", blockingCategories: [...blocking], preflightStatus, categories, approvedEntityMatches };
+  return {
+    decision: blocking.size === 0 ? "allowed" : "blocked",
+    blockingCategories: [...blocking],
+    preflightStatus,
+    categories,
+    approvedEntityMatches,
+    flaggedSpans: [...flagged.values()],
+  };
 }

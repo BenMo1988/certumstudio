@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyChatResult, chatRequestFor, createSingleFlight, emptyChat, feedbackView, isFeedbackComplete } from "./preview-state";
+import { applyChatResult, chatRequestFor, createSingleFlight, emptyChat, feedbackView, isFeedbackComplete, rejectionMessage } from "./preview-state";
 
 /* Step 17E: expliciete, handmatige retry na afgekapte feedback en nooit twee gelijktijdige runtime-calls. */
 
@@ -85,5 +85,24 @@ describe("chat: afgekapt antwoord en dezelfde beurt opnieuw (Step 17E)", () => {
 
   it("andere weigeringen (bijv. privacy) laten het gesprek ongewijzigd en maken geen retry-stand", () => {
     expect(applyChatResult(before, A, { status: "rejected", reason: "privacy_blocked" })).toEqual(before);
+  });
+});
+
+describe("foutmelding in Trainer Preview", () => {
+  const BASE = "Je tekst bevat mogelijk persoonsgegevens. Er is niets verstuurd; pas je tekst aan.";
+
+  it("toont de gemarkeerde span(s) en de categorie, niet de hele tekst", () => {
+    expect(rejectionMessage(BASE, { categories: ["possible_person_name"], flagged: [{ category: "possible_person_name", text: "Maandag" }] })).toBe(
+      `${BASE}
+Mogelijk persoonsgegeven: ‘Maandag’
+(possible_person_name)`,
+    );
+    expect(rejectionMessage(BASE, { categories: ["possible_person_name"], flagged: [{ category: "possible_person_name", text: "A" }, { category: "possible_person_name", text: "B" }] })).toContain("‘A’, ‘B’");
+  });
+
+  it("zonder gemarkeerde span (bijv. e-mail) of zonder categorieën: alleen de bestaande melding", () => {
+    expect(rejectionMessage(BASE, { categories: ["email"] })).toBe(`${BASE}
+(email)`);
+    expect(rejectionMessage("Er kwam nu geen antwoord. Probeer het opnieuw.", {})).toBe("Er kwam nu geen antwoord. Probeer het opnieuw.");
   });
 });

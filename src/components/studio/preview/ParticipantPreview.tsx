@@ -6,7 +6,7 @@ import type { PreviewRejection } from "@/app/trainings/preview/preview-runtime";
 import type { PreviewModel, PreviewStep } from "@/modules/preview";
 import { Button } from "../Button";
 import { Icon } from "../Icon";
-import { applyChatResult, chatRequestFor, createSingleFlight, emptyChat, feedbackView, isFeedbackComplete, type ChatState, type FeedbackEntry } from "./preview-state";
+import { applyChatResult, chatRequestFor, createSingleFlight, emptyChat, feedbackView, isFeedbackComplete, rejectionMessage, type ChatState, type FeedbackEntry } from "./preview-state";
 
 /*
  * Participant Preview V1: de trainer doorloopt een goedgekeurde training als deelnemer. Eén rustige kolom, in de echte
@@ -129,7 +129,7 @@ export function ParticipantPreview({ trainingId, code, preview }: { trainingId: 
                 setError(null);
                 const result = await previewChatTurnAction(trainingId, id, request.history, request.message, state.confirmed);
                 if (result.status !== "ok" && result.reason !== "output_truncated") {
-                  setError(MESSAGES[result.reason] + (result.categories?.length ? ` (${result.categories.join(", ")})` : ""));
+                  setError(rejectionMessage(MESSAGES[result.reason], result));
                 }
                 // Afgekapt: de beurt blijft openstaan voor "Antwoord opnieuw genereren" (zelfde bericht, zelfde geschiedenis).
                 setState((s) => ({ ...s, chats: { ...s.chats, [id]: applyChatResult(s.chats[id] ?? emptyChat(), request.message, result) } }));
@@ -148,7 +148,7 @@ export function ParticipantPreview({ trainingId, code, preview }: { trainingId: 
                   return;
                 }
                 if (result.status !== "ok") {
-                  setError(MESSAGES[result.reason] + (result.categories?.length ? ` (${result.categories.join(", ")})` : ""));
+                  setError(rejectionMessage(MESSAGES[result.reason], result));
                   return;
                 }
                 setState((s) => ({ ...s, feedback: { ...s.feedback, [id]: { status: "done", text: result.feedback, usedContext: result.usedContext } } }));
@@ -157,7 +157,7 @@ export function ParticipantPreview({ trainingId, code, preview }: { trainingId: 
           />
 
           {error && (
-            <p role="alert" className="mt-4 rounded-md border border-danger/30 bg-danger-50 px-4 py-3 text-sm text-danger" data-testid="preview-error">
+            <p role="alert" className="mt-4 whitespace-pre-line rounded-md border border-danger/30 bg-danger-50 px-4 py-3 text-sm text-danger" data-testid="preview-error">
               {error}
             </p>
           )}

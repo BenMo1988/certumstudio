@@ -17,6 +17,17 @@ export function feedbackView(entry: FeedbackEntry | undefined): "request" | "don
   return entry.status;
 }
 
+/**
+ * De foutmelding bij een geweigerde runtime-call. Bij een privacyblokkade toont Trainer Preview welke span(s) uit de
+ * eigen, zojuist ingevoerde tekst zijn gemarkeerd (alleen wat de detector vond, nooit de hele tekst), plus de categorie.
+ */
+export function rejectionMessage(base: string, result: { categories?: string[]; flagged?: { category: string; text: string }[] }): string {
+  const lines = [base];
+  if (result.flagged?.length) lines.push(`Mogelijk persoonsgegeven: ${result.flagged.map((f) => `‘${f.text}’`).join(", ")}`);
+  if (result.categories?.length) lines.push(`(${result.categories.join(", ")})`);
+  return lines.join("\n");
+}
+
 /** Alleen complete feedback rondt het blok af; afgekapte feedback niet. */
 export const isFeedbackComplete = (entry: FeedbackEntry | undefined) => entry?.status === "done";
 

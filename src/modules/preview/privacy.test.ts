@@ -54,6 +54,7 @@ describe("besluit: bestaande preflight leidend, smalle exacte vrijstelling", () 
       preflightStatus: "review_required",
       categories: { possible_person_name: 1 },
       approvedEntityMatches: 1,
+      flaggedSpans: [],
     });
   });
 
@@ -80,5 +81,33 @@ describe("besluit: bestaande preflight leidend, smalle exacte vrijstelling", () 
 
   it("zonder bevindingen is het besluit toegestaan zonder vrijstelling", () => {
     expect(evaluatePreviewPrivacy(["Ik zou eerst vragen wat de leerling zelf wil."], transferSet)).toMatchObject({ decision: "allowed", preflightStatus: "safe", approvedEntityMatches: 0 });
+  });
+});
+
+describe("trainer-diagnose: gemarkeerde spans (zonder gevolgen voor het besluit)", () => {
+  it("een blokkerende mogelijke naam geeft de gemarkeerde span; een vrijgestelde naam niet", () => {
+    const r = evaluatePreviewPrivacy(["Ik spreek eerst Noor en daarna ook Sanne."], transferSet);
+    expect(r).toMatchObject({ decision: "blocked", blockingCategories: ["possible_person_name"], approvedEntityMatches: 1 });
+    expect(r.flaggedSpans).toEqual([{ category: "possible_person_name", text: "Sanne" }]);
+  });
+
+  it("een blocked-categorie (e-mail) krijgt nooit een span: die waarde gaat niet terug", () => {
+    const r = evaluatePreviewPrivacy(["Mail me op test@example.nl"], new Set());
+    expect(r).toMatchObject({ decision: "blocked", blockingCategories: ["email"] });
+    expect(r.flaggedSpans).toEqual([]);
+  });
+
+  it("toegestane invoer heeft geen gemarkeerde spans", () => {
+    for (const text of ["Hoi, ik heb het nog niet gedaan", "Dat kan ik niet toezeggen."]) {
+      expect(evaluatePreviewPrivacy([text], new Set())).toMatchObject({ decision: "allowed", flaggedSpans: [] });
+    }
+  });
+
+  it("het besluit volgt alleen uit de blokkerende categorieën; spans zijn altijd een deel daarvan", () => {
+    for (const text of ["Ik heb het met Noor Bakker besproken.", "Ik spreek eerst Noor en daarna ook Sanne.", "Ik mail Noor via noor@example.nl.", "Ik begrijp dat Noor dit lastig vindt.", "Dat kan ik niet toezeggen."]) {
+      const r = evaluatePreviewPrivacy([text], transferSet);
+      expect(r.decision).toBe(r.blockingCategories.length === 0 ? "allowed" : "blocked");
+      for (const span of r.flaggedSpans) expect(r.blockingCategories).toContain(span.category);
+    }
   });
 });
