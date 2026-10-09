@@ -402,8 +402,11 @@ async function generateAndStoreBlock(
   const earlier = approvedEarlierContent(snap, plan, plannedBlockId, upstream);
   // Bron-blok: alleen de current gevalideerde bronnen die aan zijn vereiste sourceNeeds gekoppeld zijn; hun versies
   // worden provenance (based_on), zodat een nieuwe bronversie het blok stale maakt.
-  const sources = resolveBlockTarget(blueprint, plan, plannedBlockId, validatedSources(snap))?.sources ?? [];
-  const result = await runBlockRegenerationFlow(blueprint, { status: "approved" }, plan, { status: "approved" }, plannedBlockId, earlier, { getService }, sources);
+  const validated = validatedSources(snap);
+  const sources = resolveBlockTarget(blueprint, plan, plannedBlockId, validated)?.sources ?? [];
+  // Eerdere goedgekeurde Bron-inhoud wordt opnieuw gecontroleerd tegen de current gevalideerde bronnen, niet tegen de
+  // bronnen van het doelblok.
+  const result = await runBlockRegenerationFlow(blueprint, { status: "approved" }, plan, { status: "approved" }, plannedBlockId, earlier, { getService }, sources, validated);
   if (result.status === "rejected") {
     return reject(deps, "generate_block", result.reason === "provider_error" ? "provider_error" : result.reason === "invalid_block_content" ? "invalid_output" : "invalid_state", result.reason);
   }

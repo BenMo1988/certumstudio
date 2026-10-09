@@ -102,6 +102,12 @@ export async function runBlockRegenerationFlow(
   deps: Deps,
   /** Server-side bepaalde current gevalideerde bronnen (alleen relevant voor Bron-blokken). */
   validatedSources: ValidatedSource[] = [],
+  /**
+   * Alleen voor de hercontrole van eerdere goedgekeurde inhoud: alle current gevalideerde bronnen van de training. Een
+   * eerder gegenereerd Bron-blok is alleen geldig tegen de bronnen waarop het steunde; `resolveBlockTarget` scopet ze per
+   * blok. Gaat nooit als generatie-input naar het doelblok.
+   */
+  earlierContentSources: ValidatedSource[] = [],
 ): Promise<BlockRegenerationResult> {
   const log = deps.log ?? defaultLog;
   const reject = (reason: ContentFlowRejection, errorKind?: AnalysisErrorKind | "unknown"): BlockRegenerationResult => {
@@ -118,7 +124,7 @@ export async function runBlockRegenerationFlow(
   if (!earlier.success) return reject("invalid_earlier_content");
   const approvedEarlier = earlier.data.filter((b) => b.sequence < target.sequence && b.reviewStatus === "approved");
   for (const block of approvedEarlier) {
-    const context = { ...gated, approvedEarlierContent: approvedEarlier.filter((b) => b.sequence < block.sequence) };
+    const context = { ...gated, approvedEarlierContent: approvedEarlier.filter((b) => b.sequence < block.sequence), validatedSources: earlierContentSources };
     if (checkBlockContentInvariants(block, context).length > 0) return reject("invalid_earlier_content");
   }
 

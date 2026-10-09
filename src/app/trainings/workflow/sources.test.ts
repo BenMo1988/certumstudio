@@ -6,9 +6,11 @@ import { MOCK_INSUFFICIENT_SOURCE } from "@/services/block-content/mock/mock-blo
 import { createBlockPlanService } from "@/services/block-plan/factory";
 import { createTrainingBlueprintServiceV21 } from "@/services/blueprint/factory";
 import { instrumentDb } from "@/services/storage/instrumented-db";
-import { StorageError, createArtifactRevision, getArtifactRevision } from "@/services/storage/training-record";
+import { validatedSources } from "@/services/storage/snapshot";
+import { StorageError, createArtifactRevision, getArtifactRevision, loadTrainingRecordSnapshot } from "@/services/storage/training-record";
 import { loadTrainingWorkspace, type TrainingWorkspaceView } from "@/services/storage/workspace";
 import { createTestDb, type TestDb } from "../../../../test/pglite-db";
+import { runBlockRegenerationFlow } from "../new/content-flow";
 import { saveBlockEdit } from "./editing";
 import {
   decideRevision,
@@ -248,6 +250,69 @@ describe("Bron-inhoud uit gevalideerde bronnen", () => {
     const stored = await getArtifactRevision(db, edited.content!.blockRevisions[bronId].revisionId);
     expect(stored!.basedOnRevisionIds).toContain(item(after, "src-1").revisionId);
     expect(edited.content!.blockRevisions[bronId]).toMatchObject({ source: "manual", basedOnSources: ["Richtlijn de-escalatie (synthetisch)"] });
+  });
+});
+
+describe("een later blok na een goedgekeurd Bron-blok", () => {
+  /** Bron-blok genereren uit een gevalideerde bron en goedkeuren; geeft ook het eerste latere blok terug. */
+  async function approvedBron(spyDeps?: (d: WorkflowDeps) => WorkflowDeps) {
+    const base = await trainingWithContent();
+    const d = spyDeps ? spyDeps(base.d) : base.d;
+    const { id, bronId, needIds, view } = base;
+    await addValidated(d, id, needIds);
+    const generated = ws(await regenerateBlock(d, id, bronId, view.content!.blockRevisions[bronId].revisionId));
+    expect(bronBlock(generated, bronId).body.status).toBe("generated");
+    const approved = ws(await decideRevision(d, id, generated.content!.blockRevisions[bronId].revisionId, "approved"));
+    const bronSeq = bronBlock(approved, bronId).sequence;
+    const later = approved.content!.package.blocks.find((b) => b.sequence > bronSeq && b.body.status === "generated")!;
+    return { ...base, d, approved, laterId: later.plannedBlockId };
+  }
+
+  it("regenereert een later blok: de eerdere Bron-inhoud is geldig tegen de gevalideerde bronnen en gaat mee", async () => {
+    let generate: ReturnType<typeof vi.fn> | undefined;
+    const { d, id, bronId, approved, laterId } = await approvedBron((base) => ({
+      ...base,
+      getBlockContentService: () => {
+        const service = createBlockContentService({});
+        const original = service.generate.bind(service);
+        generate = vi.fn(original);
+        service.generate = generate as typeof service.generate;
+        return service;
+      },
+    }));
+    generate!.mockClear();
+    const after = ws(await regenerateBlock(d, id, laterId, approved.content!.blockRevisions[laterId].revisionId));
+    expect(generate).toHaveBeenCalledTimes(1);
+    expect(generate!.mock.calls[0][0].approvedEarlierContent.map((b: { plannedBlockId: string }) => b.plannedBlockId)).toContain(bronId);
+    expect(after.content!.blockRevisions[laterId].revisionId).not.toBe(approved.content!.blockRevisions[laterId].revisionId);
+    // Het latere blok krijgt geen bronnen als generatie-input of provenance.
+    expect(after.content!.blockRevisions[laterId].basedOnSources).toEqual([]);
+  });
+
+  it("zonder of met een niet-passende gevalideerde bron blijft dezelfde Bron-inhoud ongeldig", async () => {
+    const { id, bronId, approved, laterId } = await approvedBron();
+    const snap = (await loadTrainingRecordSnapshot(db, id))!;
+    const blueprint = approved.blueprint!.payload;
+    const plan = approved.blockPlan!.payload;
+    const earlier = [bronBlock(approved, bronId)];
+    const validated = validatedSources(snap);
+    const run = (sources: typeof validated) => runBlockRegenerationFlow(blueprint, { status: "approved" }, plan, { status: "approved" }, laterId, earlier, { getService: () => createBlockContentService({}), log: () => {} }, [], sources);
+    expect(await run(validated)).toMatchObject({ status: "block_content" });
+    expect(await run([])).toMatchObject({ status: "rejected", reason: "invalid_earlier_content" });
+    const mismatch = validated.map((s) => ({ ...s, sourceNeedRefs: ["SN9"] }));
+    expect(await run(mismatch)).toMatchObject({ status: "rejected", reason: "invalid_earlier_content" });
+  });
+
+  it("een gecorrigeerde, nog niet gevalideerde bron maakt de eerdere Bron-inhoud niet geldig", async () => {
+    const { d, id, bronId, needIds, approved, laterId } = await approvedBron();
+    const src = item(approved, "src-1");
+    const edited = ws(await editSource(d, id, "src-1", src.revisionId, fields(needIds, { relevantContent: `${SECRET} Gecorrigeerd.` })));
+    const snap = (await loadTrainingRecordSnapshot(db, id))!;
+    expect(validatedSources(snap)).toEqual([]);
+    // Het Bron-blok is nu stale en telt niet meer als goedgekeurde eerdere inhoud.
+    expect(bronBlock(edited, bronId).reviewStatus).not.toBe("approved");
+    const after = ws(await regenerateBlock(d, id, laterId, edited.content!.blockRevisions[laterId].revisionId));
+    expect(after.content!.blockRevisions[laterId].basedOnSources).toEqual([]);
   });
 });
 
