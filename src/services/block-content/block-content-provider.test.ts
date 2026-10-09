@@ -1,8 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import {
-  TRAINING_BLOCK_CONTENT_V1_2_INSTRUCTIONS,
-  TRAINING_BLOCK_CONTENT_V1_2_PROMPT_VERSION,
-} from "@/knowledge/prompts/training-block-content-v1-2";
+import { TRAINING_BLOCK_CONTENT_V1_2_INSTRUCTIONS } from "@/knowledge/prompts/training-block-content-v1-2";
+import { TRAINING_BLOCK_CONTENT_V1_3_INSTRUCTIONS, TRAINING_BLOCK_CONTENT_V1_3_PROMPT_VERSION } from "@/knowledge/prompts/training-block-content-v1-3";
 import {
   BLOCK_GUIDANCE_V1_1,
   TRAINING_BLOCK_CONTENT_V1_1_INSTRUCTIONS,
@@ -197,7 +195,7 @@ describe("Claude-provider (zonder echte aanroepen)", () => {
     expect(await service.generate(request("BLP-003", "blok-8"))).toEqual(expected);
     expect(parse).toHaveBeenCalledTimes(1);
     const sent = parse.mock.calls[0][0] as { model: string; system: string; output_config: { effort: string } };
-    expect(sent).toMatchObject({ model: "claude-opus-5-5", system: TRAINING_BLOCK_CONTENT_V1_2_INSTRUCTIONS, output_config: { effort: "medium" } });
+    expect(sent).toMatchObject({ model: "claude-opus-5-5", system: TRAINING_BLOCK_CONTENT_V1_3_INSTRUCTIONS, output_config: { effort: "medium" } });
   });
 
   it("de provider krijgt geen oorspronkelijke invoer, analyse of bronsegment-ids", async () => {
@@ -368,16 +366,18 @@ describe("grounding v1.1 (training-block-content/v1.1, contract block-content/v1
     expect(buildTrainingBlockContentV1_1Request(input)).toBe(buildTrainingBlockContentV1Request(input));
   });
 
-  it("de Claude-provider gebruikt v1.2 (v1.1 plus de bronregel) en logt die promptversie", async () => {
+  it("de Claude-provider gebruikt v1.3 (v1.2 plus lengtebudget) en logt die promptversie", async () => {
     const entries: BlockContentGenerationLogEntry[] = [];
     const { service, parse } = claudeReturning(await productieDesign());
-    const logged = withBlockContentLogging(service, { provider: "claude", promptVersion: TRAINING_BLOCK_CONTENT_V1_2_PROMPT_VERSION }, (e) => entries.push(e));
+    const logged = withBlockContentLogging(service, { provider: "claude", promptVersion: TRAINING_BLOCK_CONTENT_V1_3_PROMPT_VERSION }, (e) => entries.push(e));
     await logged.generate(request("BLP-002", "blok-3"));
-    expect((parse.mock.calls[0][0] as { system: string }).system).toBe(TRAINING_BLOCK_CONTENT_V1_2_INSTRUCTIONS);
+    expect((parse.mock.calls[0][0] as { system: string }).system).toBe(TRAINING_BLOCK_CONTENT_V1_3_INSTRUCTIONS);
+    expect(TRAINING_BLOCK_CONTENT_V1_3_INSTRUCTIONS).toContain("## Lengtebudget");
+    expect(TRAINING_BLOCK_CONTENT_V1_3_INSTRUCTIONS.startsWith(TRAINING_BLOCK_CONTENT_V1_2_INSTRUCTIONS.slice(0, 2000))).toBe(true);
     expect(TRAINING_BLOCK_CONTENT_V1_2_INSTRUCTIONS).toContain("## Bron-inhoud alleen uit gevalideerde bronnen");
     expect(TRAINING_BLOCK_CONTENT_V1_2_INSTRUCTIONS.startsWith(TRAINING_BLOCK_CONTENT_V1_1_INSTRUCTIONS.slice(0, 2000))).toBe(true);
     expect((parse.mock.calls[0][0] as { messages: { content: string }[] }).messages[0].content).toContain(BLOCK_GUIDANCE_V1_1["certum.bco.productie"]);
-    expect(entries[0]).toMatchObject({ promptVersion: "training-block-content/v1.2", contentContractVersion: "block-content/v1" });
+    expect(entries[0]).toMatchObject({ promptVersion: "training-block-content/v1.3", contentContractVersion: "block-content/v1" });
   });
 });
 
@@ -402,7 +402,7 @@ describe("structured-output diagnose (TR-0018): inhoudsvrij, zonder gedragswijzi
   it("een te lange tekst: veld, issuecode en grens uit het schema, nooit de inhoud", async () => {
     const service = claudeParsing(JSON.stringify(tekstDesign(`${SECRET} `.repeat(400))));
     const entries: BlockContentGenerationLogEntry[] = [];
-    const logged = withBlockContentLogging(service, { provider: "claude", promptVersion: TRAINING_BLOCK_CONTENT_V1_2_PROMPT_VERSION }, (e) => entries.push(e));
+    const logged = withBlockContentLogging(service, { provider: "claude", promptVersion: TRAINING_BLOCK_CONTENT_V1_3_PROMPT_VERSION }, (e) => entries.push(e));
     const error = await logged.generate(request("BLP-001", "blok-1")).catch((e: unknown) => e);
     expect(error).toBeInstanceOf(BlockContentValidationError);
     expect(error).toMatchObject({ kind: "invalid-output", stage: "structured_output", codes: ["too_big@result.content.text:max=4000"] });

@@ -1,7 +1,7 @@
 "use server";
 
 import { TRAINING_ANALYSIS_V211_PROMPT_VERSION } from "@/knowledge/prompts/training-analysis-v2-1-1";
-import { TRAINING_BLOCK_CONTENT_V1_2_PROMPT_VERSION } from "@/knowledge/prompts/training-block-content-v1-2";
+import { TRAINING_BLOCK_CONTENT_V1_3_PROMPT_VERSION } from "@/knowledge/prompts/training-block-content-v1-3";
 import { TRAINING_BLOCK_PLAN_PROMPT_VERSION } from "@/knowledge/prompts/training-block-plan-v1";
 import { TRAINING_BLUEPRINT_V21_PROMPT_VERSION } from "@/knowledge/prompts/training-blueprint-v2-1";
 import { TRAINING_BLUEPRINT_V22_PROMPT_VERSION } from "@/knowledge/prompts/training-blueprint-v2-2";
@@ -64,7 +64,7 @@ function deps(): WorkflowDeps {
       blueprint: provenance(readBlueprintConfig, TRAINING_BLUEPRINT_V21_PROMPT_VERSION),
       blueprintRevision: provenance(readBlueprintConfig, TRAINING_BLUEPRINT_V22_PROMPT_VERSION),
       blockPlan: provenance(readBlockPlanConfig, TRAINING_BLOCK_PLAN_PROMPT_VERSION),
-      blockContent: provenance(readBlockContentConfig, TRAINING_BLOCK_CONTENT_V1_2_PROMPT_VERSION),
+      blockContent: provenance(readBlockContentConfig, TRAINING_BLOCK_CONTENT_V1_3_PROMPT_VERSION),
     },
   };
 }

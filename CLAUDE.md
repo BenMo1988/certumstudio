@@ -532,7 +532,12 @@ Blueprint-prompt.
   current block revision.
 - **Provider:** `CERTUM_BLOCK_CONTENT_PROVIDER` (standaard `mock`, los van de andere providers, geen terugval).
   `CLAUDE_BLOCK_CONTENT_DEFAULTS`: `claude-opus-5-5`, `medium`, `maxRetries: 0`.
-  - Actieve prompt `training-block-content/v1.1` (`src/knowledge/prompts/training-block-content-v1-1.ts`): de v1-kern
+  - **Actieve prompt `training-block-content/v1.3`** (`training-block-content-v1-3.ts`): exact v1.2 plus de sectie
+    "Lengtebudget" (Tekst `text` ≤ 3600, Open vraag `question` ≤ 500) en één budgetregel per doelblok, ook voor
+    Bron-blokken (die krijgen de blokaanwijzing niet). De schemagrenzen (4000 en 600) blijven ongewijzigd: structured
+    output geeft ze alleen als beschrijving door, Zod controleert pas na ontvangst (TR-0019:
+    `too_big@result.content.question:max=600`). v1.2 en eerder blijven ongewijzigd.
+  - `training-block-content/v1.1` (`src/knowledge/prompts/training-block-content-v1-1.ts`): de v1-kern
     plus korte aanwijzingen per bloktype. v1 (`training-block-content-v1.ts`) blijft ongewijzigd voor de
     reproduceerbare V1-baseline. v1.1 voegt drie semantische regels toe uit de baseline-review (bewaakt via prompt,
     eval en human review; **geen** regex, woordenlijst of tekstvalidator):
