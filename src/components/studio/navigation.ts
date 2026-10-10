@@ -10,4 +10,5 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/", icon: "dashboard" },
   { label: "Nieuwe training", href: "/trainings/new", icon: "plus" },
   { label: "Mijn trainingen", href: "/trainings", icon: "trainings" },
+  { label: "Leerlijnen", href: "/learning-lines", icon: "topic" },
 ];

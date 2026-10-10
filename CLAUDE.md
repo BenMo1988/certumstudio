@@ -635,6 +635,43 @@ als een professioneel gesprek onder druk. Het is geen LMS en geen deelnemersomge
   duur, tokens, uitkomst/fouttype en aantallen (beurten, contextitems). Nooit berichten, antwoorden, replies, feedback,
   broninhoud of prompts (tests).
 
+### Leerlijn Engine V1 (fundering)
+
+Eén prompt → een leerlijn van **exact zes modules** → zes trainingen in de bestaande Training Engine → Certum-, Tom- en
+SKJ-pakket. Een laag bóven de bestaande Studio; er is geen tweede Training Engine.
+
+- **Contract `certum-learning-line/v1`** (`modules/learning-lines/`): titel, doelgroep, beroepsprobleem, overkoepelende
+  competentie, belofte, beroepsrelevantie, exact zes ModuleSpecs (M1..M6, sequence 1..6), progressie, overlap-preventie
+  en toetsopbouw. Per ModuleSpec: eigen professionele spanning, functie, leerdoelen, succescriteria, routebeleid,
+  hoofdsimulatie-, transfer- en toetsrichting, sourceNeeds en studielast. Geen modulecontent op dit niveau.
+  Invarianten (`checkLearningLineInvariants`): aantal, volgorde, ids, unieke titels, unieke sourceNeeds, progressie.
+- **Leerlijn Architect:** `CERTUM_LEARNING_LINE_PROVIDER` (standaard `mock`, geen terugval), prompt
+  `learning-line-architect/v1` (golden-master-principes van TR-0019, abstract; expliciete lengtebudgetten),
+  `CLAUDE_LEARNING_LINE_DEFAULTS`: `claude-opus-5-5`, `medium`, `maxRetries: 0`. Logging
+  `certum.learning_line_generation`/`certum.learning_line_workflow`: alleen metadata.
+- **Opslag (migratie 003, alleen nieuwe tabellen):** `learning_line` (`LL-nnnn`), `learning_line_input` (prompt +
+  preflight-metadata), `learning_line_revision` (immutable), `learning_line_event` (append-only:
+  `design_approved`, `needs_revision`, `package_approved`) en `learning_line_module` (M1..M6 → één training,
+  append-only). Code: `services/storage/learning-line-record.ts`.
+- **Governance:** de prompt en een revisie-aanwijzing doorlopen de Privacy Preflight (V1: alleen `safe` gaat door) en de
+  synthetic_only-attestatie, server-side (geen hashing in de browser nodig).
+- **Gate 1** (`approveDesign`): GO op exact de current ontwerprevision, met attestatie en een bevestiging van iedere
+  review-bevinding in de zes module-invoerteksten; of één gerichte revisie-instructie voor het hele ontwerp (één nieuwe
+  versie). Na GO is het ontwerp vast.
+- **Orchestrator** (`startProduction`): iedere ModuleSpec → `moduleTrainingInputText` (deterministisch) →
+  `startTraining` (zelfde preflight, policy en Certum Analyse) → koppeling. Idempotent, stopt bij de eerste fout.
+  **Daarna gelden de bestaande menselijke stappen per training** (richting, Blueprint, Block Plan, bronvalidatie,
+  blokinhoud, Start/Einde); die worden niet overgeslagen.
+- **Pakketten** (pure functies over de opgeslagen stand, deterministisch, niets opgeslagen): Certum Package
+  (`buildCertumPackage`), Tom Package (`buildTomPackage`, transport-agnostisch, zonder Studio-interne ids, hashes,
+  versies, invoer of broninhoud) en accreditatie via `modules/accreditation` (`SKJ_PROFILE`; ontbrekende menselijke
+  velden zijn `HUMAN_REQUIRED`, geen punten, geen indiening). Een nieuw register = een nieuw profiel; de kern kent geen
+  registervelden. JSON via `/learning-lines/[id]/packages/certum|tom|skj`.
+- **Gate 2** (`approvePackage`): alleen als alle zes modules Training gereed zijn; gebonden aan de hash van het Certum
+  Package. Een latere wijziging in een module maakt de goedkeuring ongeldig.
+- **Mobiel/lokaal netwerk:** `CERTUM_DEV_LAN_HOST` (alleen dev) voegt het LAN-adres toe aan `allowedDevOrigins`. Geen auth:
+  alleen op een vertrouwd netwerk.
+
 ### Privacy in logs (niet onderhandelbaar)
 
 - Log **nooit** de inputtekst, prompts of providerresponses: niet naar de console, niet naar analytics en niet naar
@@ -685,6 +722,8 @@ src/
     block-content/     Block Content V1 en Training Content Package: contract, trusted compose, invarianten, review
     preview/           Participant Preview: deelnemersweergave van een goedgekeurd pakket
     sources/           Certum Source V1: brongegevens en dekking per sourceNeed
+    learning-lines/    Certum Learning Line V1: zes ModuleSpecs, invarianten, module-invoer, Certum/Tom-pakket
+    accreditation/     Accreditatielaag: profielen per register (nu SKJ), HUMAN_REQUIRED-velden
   knowledge/           Certum-kennis en methodiek; platform/ bevat de BC Online-blokcatalogus
   services/            Externe koppelingen, elk achter een interface, alleen server-side
     analysis/          TrainingAnalysisService(V2): mock + Claude; v1 historisch naast v2
@@ -692,6 +731,7 @@ src/
     block-plan/        Block Plan-provider: Claude, config, diagnose, logging, factory
     block-content/     Block Content: mock + Claude, ontwerpschema per blok, orchestrator, logging, factory
     preview/           Participant Preview-runtime: mock + Claude (platte tekst), config, factory
+    learning-line/     Leerlijn Architect: mock + Claude, config, logging, factory
     storage/           Certum Training Record: Postgres-repository (plain SQL), migratierunner, hashing
 ```
 
@@ -757,6 +797,7 @@ Routes:
   Content als opleiderswerkplek (per blok bekijken, bewerken als nieuwe versie, goedkeuren, laten aanpassen, opnieuw
   genereren; Vaste Start en Vast Einde bewerken en goedkeuren).
 - `/trainings/[id]/preview`: Participant Preview van een gereede training (trainer preview, niets wordt opgeslagen).
+- `/learning-lines`, `/learning-lines/new`, `/learning-lines/[id]`: Leerlijn Engine (één prompt, Gate 1, productie, pakketten, Gate 2).
 
 Er is één centrale instroom voor het maken van trainingen: `/trainings/new`. `?input=casus` (of `onderwerp`, of
 `praktijkvraag`) selecteert vooraf een soort; de dashboardactie "Casus invoeren" gebruikt dat. Er komt geen aparte
@@ -817,6 +858,8 @@ CERTUM_BLUEPRINT_PROVIDER=mock     # standaard; claude = echte Blueprint Generat
 CERTUM_BLOCK_PLAN_PROVIDER=mock    # standaard; claude = echt Block Plan (betaald)
 CERTUM_BLOCK_CONTENT_PROVIDER=mock # standaard; claude = echte Block Content, één aanroep per blok (betaald)
 CERTUM_PREVIEW_PROVIDER=mock       # standaard; claude = echte Participant Preview, één aanroep per beurt (betaald)
+CERTUM_LEARNING_LINE_PROVIDER=mock # standaard; claude = echte Leerlijn Architect, één aanroep per ontwerp (betaald)
+CERTUM_DEV_LAN_HOST=               # optioneel, alleen dev: LAN-IP van de laptop voor gebruik vanaf de telefoon
 ANTHROPIC_API_KEY=sk-ant-...       # alleen nodig bij claude
 DATABASE_URL=postgres://...        # Supabase Postgres (Frankfurt); alleen server-side, nooit loggen
 ```
