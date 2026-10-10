@@ -57,12 +57,25 @@ export interface LearningLineModuleLink {
   revisionId: string;
 }
 
+/** Voorlopig Block Plan van een module (vóór Gate 1), gebonden aan één Blueprint-revision. */
+export interface ModulePlanProposal {
+  moduleId: ModuleId;
+  trainingId: string;
+  blueprintRevisionId: string;
+  promptVersion: string | null;
+  modelVersion: string | null;
+  payload: unknown;
+  contentHash: string;
+}
+
 export interface LearningLineSnapshot {
   line: LearningLineRecord;
   prompt: string | null;
   revisions: LearningLineRevision[];
   events: LearningLineEvent[];
+  /** Alle koppelingen, over alle ontwerprevisions heen; de current horen bij de current revision. */
   modules: LearningLineModuleLink[];
+  plans: ModulePlanProposal[];
 }
 
 const toLine = (r: Row): LearningLineRecord => ({
@@ -189,7 +202,11 @@ export async function linkModuleTraining(db: Db, input: { learningLineId: string
   if (!MODULE_IDS.includes(input.moduleId)) throw new StorageError("invalid_payload", "Onbekende module.");
   await db.transaction(async (tx) => {
     await lockLine(tx, input.learningLineId);
-    const [existing] = await tx.query("select 1 from learning_line_module where learning_line_id = $1 and module_id = $2", [input.learningLineId, input.moduleId]);
+    const [existing] = await tx.query("select 1 from learning_line_module where learning_line_id = $1 and revision_id = $2 and module_id = $3", [
+      input.learningLineId,
+      input.revisionId,
+      input.moduleId,
+    ]);
     if (existing) throw new StorageError("duplicate_revision", "Deze module heeft al een training.");
     await tx.query("insert into learning_line_module (learning_line_id, module_id, training_id, revision_id) values ($1, $2, $3, $4)", [
       input.learningLineId,
@@ -200,15 +217,29 @@ export async function linkModuleTraining(db: Db, input: { learningLineId: string
   });
 }
 
-/** De volledige stand van één leerlijn in vijf queries (gelijktijdig). */
+/** Voorlopig plan opslaan (append-only). Hetzelfde plan op dezelfde Blueprint-revision nogmaals: niets. */
+export async function saveModulePlanProposal(
+  db: Db,
+  input: { learningLineId: string; moduleId: ModuleId; trainingId: string; blueprintRevisionId: string; promptVersion: string | null; modelVersion: string | null; payload: unknown },
+): Promise<void> {
+  await db.query(
+    `insert into learning_line_module_plan (learning_line_id, module_id, training_id, blueprint_revision_id, prompt_version, model_version, payload, content_hash)
+     values ($1, $2, $3, $4, $5, $6, $7::text::jsonb, $8)
+     on conflict (training_id, blueprint_revision_id) do nothing`,
+    [input.learningLineId, input.moduleId, input.trainingId, input.blueprintRevisionId, input.promptVersion, input.modelVersion, JSON.stringify(input.payload), contentHash(input.payload)],
+  );
+}
+
+/** De volledige stand van één leerlijn in zes queries (gelijktijdig). */
 export async function loadLearningLineSnapshot(db: Db, lineId: string): Promise<LearningLineSnapshot | null> {
   if (!UUID.test(lineId)) return null;
-  const [lines, inputs, revisions, events, modules] = await Promise.all([
+  const [lines, inputs, revisions, events, modules, plans] = await Promise.all([
     db.query("select * from learning_line where id = $1", [lineId]),
     db.query("select prompt_text from learning_line_input where learning_line_id = $1 order by created_at desc limit 1", [lineId]),
     db.query("select * from learning_line_revision where learning_line_id = $1 order by revision_no", [lineId]),
     db.query("select * from learning_line_event where learning_line_id = $1 order by event_no", [lineId]),
-    db.query("select * from learning_line_module where learning_line_id = $1 order by module_id", [lineId]),
+    db.query("select * from learning_line_module where learning_line_id = $1 order by created_at, module_id", [lineId]),
+    db.query("select * from learning_line_module_plan where learning_line_id = $1 order by created_at, id", [lineId]),
   ]);
   if (!lines[0]) return null;
   return {
@@ -217,6 +248,15 @@ export async function loadLearningLineSnapshot(db: Db, lineId: string): Promise<
     revisions: revisions.map(toRevision),
     events: events.map(toEvent),
     modules: modules.map((r) => ({ moduleId: r.module_id as ModuleId, trainingId: r.training_id as string, revisionId: r.revision_id as string })),
+    plans: plans.map((r) => ({
+      moduleId: r.module_id as ModuleId,
+      trainingId: r.training_id as string,
+      blueprintRevisionId: r.blueprint_revision_id as string,
+      promptVersion: (r.prompt_version as string | null) ?? null,
+      modelVersion: (r.model_version as string | null) ?? null,
+      payload: r.payload,
+      contentHash: r.content_hash as string,
+    })),
   };
 }
 

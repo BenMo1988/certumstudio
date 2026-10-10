@@ -649,19 +649,39 @@ SKJ-pakket. Een laag bóven de bestaande Studio; er is geen tweede Training Engi
   `learning-line-architect/v1` (golden-master-principes van TR-0019, abstract; expliciete lengtebudgetten),
   `CLAUDE_LEARNING_LINE_DEFAULTS`: `claude-opus-5-5`, `medium`, `maxRetries: 0`. Logging
   `certum.learning_line_generation`/`certum.learning_line_workflow`: alleen metadata.
-- **Opslag (migratie 003, alleen nieuwe tabellen):** `learning_line` (`LL-nnnn`), `learning_line_input` (prompt +
+- **Opslag (migraties 003 en 004, alleen leerlijntabellen):** `learning_line` (`LL-nnnn`), `learning_line_input` (prompt +
   preflight-metadata), `learning_line_revision` (immutable), `learning_line_event` (append-only:
-  `design_approved`, `needs_revision`, `package_approved`) en `learning_line_module` (M1..M6 → één training,
-  append-only). Code: `services/storage/learning-line-record.ts`.
+  `design_approved`, `needs_revision`, `package_approved`), `learning_line_module` (M1..M6 → één training per ontwerprevision,
+  append-only) en `learning_line_module_plan` (voorlopige plannen, append-only). Code:
+  `services/storage/learning-line-record.ts`.
 - **Governance:** de prompt en een revisie-aanwijzing doorlopen de Privacy Preflight (V1: alleen `safe` gaat door) en de
   synthetic_only-attestatie, server-side (geen hashing in de browser nodig).
-- **Gate 1** (`approveDesign`): GO op exact de current ontwerprevision, met attestatie en een bevestiging van iedere
-  review-bevinding in de zes module-invoerteksten; of één gerichte revisie-instructie voor het hele ontwerp (één nieuwe
-  versie). Na GO is het ontwerp vast.
-- **Orchestrator** (`startProduction`): iedere ModuleSpec → `moduleTrainingInputText` (deterministisch) →
-  `startTraining` (zelfde preflight, policy en Certum Analyse) → koppeling. Idempotent, stopt bij de eerste fout.
-  **Daarna gelden de bestaande menselijke stappen per training** (richting, Blueprint, Block Plan, bronvalidatie,
-  blokinhoud, Start/Einde); die worden niet overgeslagen.
+- **Gate Compression V1 (governancebesluit Bureau Certum): maximaal twee menselijke handelingen per leerlijn.** De
+  bediening wordt gecomprimeerd, niet de governance: onder iedere GO legt de server de afzonderlijke besluiten vast als
+  events in de bestaande Training Records.
+  - **Voorbereiding vóór Gate 1** (`prepareModules`, automatisch, begrensd parallel): per ModuleSpec een training via
+    `startTraining` (zelfde preflight, policy en Certum Analyse; de module-invoer is server-side afgeleid van de
+    geattesteerde prompt), een **systeemvoorstel voor de richting** (eerste `ready`-richting met hetzelfde routebeleid),
+    de Blueprint en een **voorlopig Block Plan** (`runProvisionalBlockPlanFlow`: dezelfde validatie zonder de
+    goedkeuringscheck). Het voorlopige plan staat in `learning_line_module_plan` (migratie 004), níet in het Training
+    Record, dat een goedgekeurde upstream blijft eisen.
+  - **Regelwijziging (alleen leerlijnmodules):** Blueprint en Block Plan worden in dezelfde menselijke handeling
+    goedgekeurd. De harde poort blijft: geen Block Content vóór Blueprint, Block Plan en gevalideerde bronnen akkoord zijn.
+  - **Gate 1 = één GO** (`approveGate1`) over het leerlijnontwerp, de richtingen, de scope per sourceNeed (geen
+    voorselectie), de Blueprints, de plannen en de bronnen. Eerst alle controles zonder schrijven (planhash die de
+    opleider zag, scopes, bronnen); daarna per module: scopes (nieuwe Blueprint-revision) → Blueprint approved → het
+    voorlopige plan als Block Plan-revision (zelfde hash) → approved → bronnen toevoegen en valideren
+    (`GATE1_SOURCE_STATEMENT`), tot slot `design_approved`. Herhaalbaar.
+  - **Bronnen vooraf ingevuld uit de bibliotheek** (`listValidatedSourceLibrary`): current bronversies met een geldig
+    laatste `approved`-besluit, ontdubbeld. AI schrijft nooit bronpassages. Alleen zonder bibliotheekvoorstel een klein
+    invoerblok (uitzonderingspad). In een nieuwe training valideert de opleider opnieuw (via GO).
+  - **Productie na Gate 1** (`produceContent`): alle blokken begrensd parallel (`mapWithConcurrency`, standaard 4;
+    blokken zijn onafhankelijk zolang er geen goedgekeurde eerdere inhoud is), daarna Start/Einde. Geen automatische
+    retry; een mislukt blok blijft open tot een expliciete hervatting.
+  - **Gate 2 = één GO** (`approveGate2`) op de vingerafdruk van alle current revisions die de opleider zag: per blok,
+    Start en Einde een `approved`-event, daarna `package_approved` op de hash van het Certum Package.
+  - **Uitzonderingspad** (geen standaard extra gate): module-invoer met een preflight-bevinding, analyse niet `ready`,
+    ontbrekende bron, mislukt blok. Alleen dat concrete probleem stopt.
 - **Pakketten** (pure functies over de opgeslagen stand, deterministisch, niets opgeslagen): Certum Package
   (`buildCertumPackage`), Tom Package (`buildTomPackage`, transport-agnostisch, zonder Studio-interne ids, hashes,
   versies, invoer of broninhoud) en accreditatie via `modules/accreditation` (`SKJ_PROFILE`; ontbrekende menselijke

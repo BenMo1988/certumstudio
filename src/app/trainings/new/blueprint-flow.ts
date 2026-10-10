@@ -280,6 +280,33 @@ export async function runBlockPlanFlow(
   };
 
   if (getBlockPlanGenerationBlocker(approval) !== null) return reject("blueprint_not_approved");
+  return blockPlanFromBlueprint(blueprintCandidate, log, reject, deps);
+}
+
+/**
+ * Leerlijn Gate Compression V1: een voorlopig Block Plan op een nog niet goedgekeurde Blueprint, zodat de opleider
+ * Blueprint en plan in één menselijke handeling (Gate 1) beoordeelt en goedkeurt. Dezelfde validatie als
+ * `runBlockPlanFlow`; alleen de goedkeuringscheck vervalt. Het resultaat is géén revision: het Training Record legt een
+ * plan pas vast na de goedkeuring van de Blueprint, en Block Content blijft hard afhankelijk van beide goedkeuringen.
+ */
+export async function runProvisionalBlockPlanFlow(
+  blueprintCandidate: unknown,
+  deps: { getService: () => BlockPlanService; log?: (entry: BlueprintLogEntry) => void },
+): Promise<BlockPlanFlowResult> {
+  const log = deps.log ?? defaultLog;
+  const reject = (reason: BlueprintFlowRejection, errorKind?: AnalysisErrorKind | "unknown"): BlockPlanFlowResult => {
+    log({ event: "certum.block_plan", version: BC_ONLINE_BLOCK_PLAN_VERSION, outcome: "rejected", reason, ...(errorKind && { errorKind }) });
+    return { status: "rejected", reason };
+  };
+  return blockPlanFromBlueprint(blueprintCandidate, log, reject, deps);
+}
+
+async function blockPlanFromBlueprint(
+  blueprintCandidate: unknown,
+  log: (entry: BlueprintLogEntry) => void,
+  reject: (reason: BlueprintFlowRejection, errorKind?: AnalysisErrorKind | "unknown") => BlockPlanFlowResult,
+  deps: { getService: () => BlockPlanService },
+): Promise<BlockPlanFlowResult> {
   const v2 = TrainingBlueprintV2Schema.safeParse(blueprintCandidate);
   const parsed = v2.success ? v2 : TrainingBlueprintSchema.safeParse(blueprintCandidate);
   if (!parsed.success) return reject("invalid_blueprint");

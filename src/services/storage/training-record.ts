@@ -740,3 +740,44 @@ export async function composeStoredContentPackage(db: Db, trainingId: string): P
   if (!snap) return { status: "not_ready", reason: "blueprint_not_approved" };
   return composeContentFromSnapshot(snap);
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// Bronnenbibliotheek (Leerlijn Gate Compression V1)
+// ---------------------------------------------------------------------------------------------------------------
+
+/** Een eerder door een mens gevalideerde bron, als voorstel voor een andere training (opnieuw te valideren). */
+export interface LibrarySource {
+  /** Stabiel per inhoud: dezelfde titel en passage geven dezelfde id. */
+  libraryId: string;
+  fields: Omit<CertumSource, "version" | "sourceNeedRefs">;
+}
+
+/**
+ * Alle current bronversies met een geldig, laatste `approved`-besluit op exact die hash, ontdubbeld op inhoud. Alleen
+ * echte, gevalideerde passages: nooit een candidate, nooit gegenereerde tekst. Gebruik als voorstel; in een andere
+ * training valideert een mens opnieuw.
+ */
+export async function listValidatedSourceLibrary(db: Db): Promise<LibrarySource[]> {
+  const rows = await db.query(
+    `with cur as (
+       select distinct on (training_id, artifact_key) * from artifact_revision
+       where artifact_type = 'source' order by training_id, artifact_key, revision_no desc
+     )
+     select cur.payload, cur.created_at from cur
+     where (select e.event_type from workflow_event e
+            where e.artifact_revision_id = cur.id and e.content_hash = cur.content_hash
+            order by e.event_no desc limit 1) = 'approved'
+     order by cur.created_at, cur.id`,
+  );
+  const seen = new Map<string, LibrarySource>();
+  for (const row of rows) {
+    const parsed = CertumSourceSchema.safeParse(row.payload);
+    if (!parsed.success) continue;
+    const { version, sourceNeedRefs, ...fields } = parsed.data;
+    void version;
+    void sourceNeedRefs;
+    const libraryId = contentHash({ title: fields.title, relevantContent: fields.relevantContent }).slice(0, 16);
+    if (!seen.has(libraryId)) seen.set(libraryId, { libraryId, fields });
+  }
+  return [...seen.values()];
+}

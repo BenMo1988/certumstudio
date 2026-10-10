@@ -3,23 +3,40 @@
 import Link from "next/link";
 import { useState, useTransition, type ReactNode } from "react";
 import {
-  approveDesignAction,
-  approvePackageAction,
+  approveGate1Action,
+  approveGate2Action,
   generateDesignAction,
+  prepareModulesAction,
+  produceContentAction,
   requestDesignRevisionAction,
-  startProductionAction,
 } from "@/app/learning-lines/workflow/actions";
-import type { LearningLineResult, LearningLineView } from "@/app/learning-lines/workflow/learning-lines";
+import { GATE1_SOURCE_STATEMENT, type LearningLineResult, type LearningLineView, type ProductionIssue } from "@/app/learning-lines/workflow/learning-lines";
+import { getCatalogBlock } from "@/knowledge/platform/bc-online-block-catalog";
 import { SYNTHETIC_DATA_ATTESTATION } from "@/modules/governance";
 import { learningLineError } from "./messages";
 
 /*
- * Leerlijnwerkplek. Eén kolom, mobiel bruikbaar. Twee menselijke gates: Gate 1 (ontwerp: GO of één revisie-instructie)
- * en Gate 2 (eindpakket). De productie per module loopt in de bestaande trainingwerkplek (/trainings/[id]).
- * React-state is alleen een weergave van de laatste server-snapshot.
+ * Leerlijnwerkplek met Gate Compression V1. Twee menselijke handelingen: Gate 1 (ontwerp, richting, Blueprint, plan,
+ * scopes en bronnen) en Gate 2 (alle inhoud, Start/Einde en de pakketten). Daartussen werkt Certum automatisch.
+ * Eén kolom, mobiel bruikbaar; details zijn uitklapbaar. React-state is alleen een weergave van de laatste
+ * server-snapshot plus de keuzes in het Gate 1-scherm.
  */
 
-const ROUTE_LABEL = { open_choice: "Meerdere routes verdedigbaar", prescribed_action: "Eén handelingslijn leidend" } as const;
+type Scope = "professional" | "organisation_specific";
+type Extra = { title: string; publisher: string; url: string; relevantContent: string };
+const EMPTY_EXTRA: Extra = { title: "", publisher: "", url: "", relevantContent: "" };
+const ROUTE_LABEL: Record<string, string> = { open_choice: "Meerdere routes verdedigbaar", prescribed_action: "Eén handelingslijn leidend" };
+const BLOCKER_LABEL = {
+  input_review: "De module-invoer bevat een gemarkeerd fragment; bevestig dat het fictief is.",
+  input_blocked: "De module-invoer bevat een direct herkenbaar gegeven; vraag een revisie van het ontwerp aan.",
+  analysis_not_ready: "De Certum Analyse vond geen concreet keuzemoment; vraag een revisie van het ontwerp aan.",
+} as const;
+
+const primary =
+  "h-12 w-full rounded-md bg-petrol-700 px-4 text-base font-medium text-white hover:bg-petrol-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto";
+const secondary =
+  "h-12 w-full rounded-md border border-line bg-canvas px-4 text-base font-medium text-ink hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto";
+const input = "mt-1 w-full rounded-md border border-line bg-canvas px-3 py-2 text-base text-ink focus:border-petrol-600 focus:outline-none";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -39,18 +56,24 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-const primary =
-  "h-12 w-full rounded-md bg-petrol-700 px-4 text-base font-medium text-white hover:bg-petrol-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto";
-const secondary =
-  "h-12 w-full rounded-md border border-line bg-canvas px-4 text-base font-medium text-ink hover:bg-surface disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto";
+function issueText(issue: ProductionIssue) {
+  return `${issue.moduleId} · ${issue.step}${issue.plannedBlockId ? ` ${issue.plannedBlockId}` : ""}: ${issue.reason}`;
+}
 
 export function LearningLineWorkspace({ initial }: { initial: LearningLineView }) {
   const [view, setView] = useState(initial);
+  const [issues, setIssues] = useState<ProductionIssue[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [attested, setAttested] = useState(false);
-  const [findingsConfirmed, setFindingsConfirmed] = useState(false);
+  const [sourcesValidated, setSourcesValidated] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const [scopes, setScopes] = useState<Record<string, Record<string, Scope>>>(() =>
+    Object.fromEntries(initial.modules.map((m) => [m.moduleId, Object.fromEntries((m.blueprint?.sourceNeeds ?? []).flatMap((n) => (n.scope ? [[n.id, n.scope]] : [])))])),
+  );
+  const [deselected, setDeselected] = useState<Record<string, string[]>>({});
+  const [extra, setExtra] = useState<Record<string, Extra>>({});
+  const [inputAcks, setInputAcks] = useState<Record<string, boolean>>({});
 
   const run = (action: () => Promise<LearningLineResult>, after?: () => void) =>
     startTransition(async () => {
@@ -58,15 +81,47 @@ export function LearningLineWorkspace({ initial }: { initial: LearningLineView }
       const result = await action();
       if (result.status === "ok") {
         setView(result.view);
+        setIssues(result.issues ?? []);
         after?.();
       } else {
-        setError(learningLineError(result));
+        setError(learningLineError(result) + (result.moduleId ? `\nModule: ${result.moduleId}` : ""));
       }
     });
 
   const design = view.design;
-  const reviewFindings = view.gate1?.moduleInputs.flatMap((m) => m.findings.filter((f) => f.severity === "review_required").map((f) => ({ ...f, moduleId: m.moduleId }))) ?? [];
-  const blockedModules = view.gate1?.moduleInputs.filter((m) => m.status === "blocked") ?? [];
+  const library = view.library ?? [];
+  const selectedFor = (moduleId: string) => library.map((l) => l.libraryId).filter((id) => !(deselected[moduleId] ?? []).includes(id));
+  const extraFilled = (moduleId: string) => !!extra[moduleId]?.title.trim() && !!extra[moduleId]?.relevantContent.trim();
+  const gate1Ready =
+    view.status === "gate1" &&
+    view.modules.every(
+      (m) =>
+        !m.blocker &&
+        m.blueprint &&
+        m.plan &&
+        m.blueprint.sourceNeeds.every((n) => scopes[m.moduleId]?.[n.id]) &&
+        (m.blueprint.bronRefs.length === 0 || selectedFor(m.moduleId).length > 0 || extraFilled(m.moduleId) || m.validatedSources.length > 0),
+    );
+
+  const gate1Payload = () => ({
+    revisionId: design!.revisionId,
+    syntheticDataAttested: attested,
+    sourcesValidated,
+    modules: Object.fromEntries(
+      view.modules.map((m) => [
+        m.moduleId,
+        {
+          blueprintRevisionId: m.blueprint!.revisionId,
+          planHash: m.plan!.hash,
+          scopes: scopes[m.moduleId] ?? {},
+          librarySourceIds: selectedFor(m.moduleId),
+          extraSources: extraFilled(m.moduleId)
+            ? [{ title: extra[m.moduleId].title, sourceType: "document", author: null, publisher: extra[m.moduleId].publisher || null, publicationDate: null, url: extra[m.moduleId].url || null, relevantContent: extra[m.moduleId].relevantContent }]
+            : [],
+        },
+      ]),
+    ),
+  });
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -81,10 +136,20 @@ export function LearningLineWorkspace({ initial }: { initial: LearningLineView }
           {error}
         </p>
       )}
+      {issues.length > 0 && (
+        <div className="mt-6 rounded-md border border-attention/30 bg-attention-50 px-4 py-3 text-sm text-attention-700">
+          <p className="font-medium">Niet alles is gelukt (uitzonderingspad):</p>
+          <ul className="mt-1 list-disc pl-5">
+            {issues.map((i, n) => (
+              <li key={n}>{issueText(i)}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {!design && (
         <Section title="Ontwerp">
-          <p className="text-[15px] text-muted">Er is nog geen leerlijnontwerp. Dit start een nieuwe AI-aanroep als de Leerlijn Architect op Claude staat.</p>
+          <p className="text-[15px] text-muted">Er is nog geen leerlijnontwerp. Dit start nieuwe AI-aanroepen.</p>
           <button type="button" className={`mt-4 ${primary}`} disabled={pending} onClick={() => run(() => generateDesignAction(view.line.id))}>
             {pending ? "Bezig…" : "Ontwerp maken"}
           </button>
@@ -95,171 +160,240 @@ export function LearningLineWorkspace({ initial }: { initial: LearningLineView }
         <>
           <Section title={`Leerlijnontwerp · versie ${design.revisionNo}${design.source === "mock" ? " (mock)" : ""}`}>
             <Field label="Doelgroep">{design.payload.targetAudience}</Field>
-            <Field label="Beroepsprobleem">{design.payload.professionalProblem}</Field>
             <Field label="Overkoepelende competentie">{design.payload.overarchingCompetency}</Field>
             <Field label="Belofte">{design.payload.promise}</Field>
-            <Field label="Progressie M1 → M6">
-              {design.payload.progression.rationale}
-              <span className="mt-1 block text-muted">{design.payload.progression.difficultyArc}</span>
-            </Field>
-            <Field label="Toetsopbouw">{design.payload.assessmentArc}</Field>
-            <Field label="Overlap voorkomen">
-              <ul className="list-disc pl-5">
-                {design.payload.overlapPrevention.map((o, i) => (
-                  <li key={i}>{o}</li>
-                ))}
-              </ul>
-            </Field>
-            <Field label="Studielastvoorstel">{design.plannedMinutes} minuten (som van de zes modules)</Field>
+            <details className="mt-3">
+              <summary className="cursor-pointer text-sm text-petrol-700">Beroepsprobleem, progressie, toetsopbouw en studielast</summary>
+              <Field label="Beroepsprobleem">{design.payload.professionalProblem}</Field>
+              <Field label="Progressie M1 → M6">
+                {design.payload.progression.rationale}
+                <span className="mt-1 block text-muted">{design.payload.progression.difficultyArc}</span>
+              </Field>
+              <Field label="Overlap voorkomen">{design.payload.overlapPrevention.join(" · ")}</Field>
+              <Field label="Toetsopbouw">{design.payload.assessmentArc}</Field>
+              <Field label="Studielastvoorstel">{design.plannedMinutes} minuten</Field>
+            </details>
           </Section>
+
+          {view.status === "preparing" && (
+            <Section title="Voorbereiding">
+              <p className="text-[15px] text-muted">
+                Certum maakt per module een training, een Certum Analyse, een richting, een Blueprint en een voorlopig Block Plan.
+                Is dit onderbroken, hervat dan; wat er al is, blijft.
+              </p>
+              <button type="button" className={`mt-3 ${primary}`} disabled={pending} onClick={() => run(() => prepareModulesAction(view.line.id, undefined))}>
+                {pending ? "Bezig met voorbereiden…" : "Voorbereiding hervatten"}
+              </button>
+            </Section>
+          )}
 
           <Section title="Zes modules">
             <ol className="space-y-3">
-              {design.payload.modules.map((m) => {
-                const production = view.modules.find((p) => p.moduleId === m.id)?.training;
+              {view.modules.map((m) => {
+                const spec = design.payload.modules.find((s) => s.id === m.moduleId)!;
                 return (
-                  <li key={m.id} className="rounded-lg border border-line bg-surface px-4 py-3">
-                    <details>
-                      <summary className="cursor-pointer list-none">
-                        <span className="text-sm font-medium text-petrol-700">Module {m.sequence}</span>
-                        <span className="block text-[15px] font-medium text-ink">{m.title}</span>
-                        <span className="mt-1 block text-sm text-muted">
-                          {m.estimatedMinutes} min · {ROUTE_LABEL[m.routePolicy]}
-                          {production ? ` · ${production.code}: ${production.stageLabel}` : ""}
-                        </span>
-                      </summary>
-                      <Field label="Eigen professionele spanning">{m.uniqueProfessionalTension}</Field>
-                      <Field label="Functie in de leerlijn">{m.learningFunction}</Field>
-                      <Field label="Leerdoelen">
-                        <ul className="list-disc pl-5">
-                          {m.learningGoals.map((g, i) => (
-                            <li key={i}>{g}</li>
-                          ))}
-                        </ul>
-                      </Field>
-                      <Field label="Succescriteria">
-                        <ul className="list-disc pl-5">
-                          {m.successCriteria.map((c, i) => (
-                            <li key={i}>{c}</li>
-                          ))}
-                        </ul>
-                      </Field>
-                      <Field label="Hoofdsimulatie">{m.primaryScenarioDirection}</Field>
-                      <Field label="Transfer">{m.transferDirection}</Field>
-                      <Field label="Toetsing">{m.assessmentDirection}</Field>
-                      {m.sourceNeeds.length > 0 && (
-                        <Field label="Kennisbehoeften">
-                          <ul className="list-disc pl-5">
-                            {m.sourceNeeds.map((s) => (
-                              <li key={s.id}>
-                                {s.id}: {s.question}
-                              </li>
-                            ))}
-                          </ul>
-                        </Field>
-                      )}
-                      {production && (
-                        <p className="mt-3">
-                          <Link href={`/trainings/${production.id}`} className="text-sm text-petrol-700 underline underline-offset-2">
-                            Open training {production.code}
-                          </Link>
-                        </p>
-                      )}
+                  <li key={m.moduleId} className="rounded-lg border border-line bg-surface px-4 py-3">
+                    <p className="text-sm font-medium text-petrol-700">Module {m.sequence}</p>
+                    <p className="text-[15px] font-medium text-ink">{m.title}</p>
+                    <p className="mt-1 text-sm text-muted">
+                      {spec.estimatedMinutes} min · {ROUTE_LABEL[spec.routePolicy]}
+                      {m.training ? ` · ${m.training.code}: ${m.training.stageLabel}` : ""}
+                    </p>
+
+                    {m.blocker && (
+                      <div className="mt-3 rounded-md border border-attention/30 bg-attention-50 px-3 py-2 text-sm text-attention-700">
+                        <p>{BLOCKER_LABEL[m.blocker]}</p>
+                        {m.blocker === "input_review" && m.inputCheck && (
+                          <>
+                            <ul className="mt-1 list-disc pl-5">
+                              {m.inputCheck.findings.map((f) => (
+                                <li key={f.id}>
+                                  {f.label} ‘{f.text}’
+                                </li>
+                              ))}
+                            </ul>
+                            <label className="mt-2 flex items-start gap-3">
+                              <input type="checkbox" className="mt-1 size-5 shrink-0" checked={!!inputAcks[m.moduleId]} onChange={(e) => setInputAcks((a) => ({ ...a, [m.moduleId]: e.target.checked }))} />
+                              <span>Deze fragmenten zijn fictief en verwijzen niet naar echte personen of instellingen.</span>
+                            </label>
+                            <button
+                              type="button"
+                              className={`mt-2 ${secondary}`}
+                              disabled={pending || !inputAcks[m.moduleId]}
+                              onClick={() => run(() => prepareModulesAction(view.line.id, { [m.moduleId]: m.inputCheck!.findings.filter((f) => f.severity === "review_required").map((f) => f.id) }))}
+                            >
+                              Module voorbereiden
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    <details className="mt-3">
+                      <summary className="cursor-pointer text-sm text-petrol-700">Moduleopdracht</summary>
+                      <Field label="Eigen professionele spanning">{spec.uniqueProfessionalTension}</Field>
+                      <Field label="Hoofdsimulatie">{spec.primaryScenarioDirection}</Field>
+                      <Field label="Transfer">{spec.transferDirection}</Field>
+                      <Field label="Toetsing">{spec.assessmentDirection}</Field>
                     </details>
+
+                    {m.direction && (
+                      <Field label="Richting (systeemvoorstel)">
+                        <span className="font-medium">{m.direction.title}</span> · {m.direction.focus}
+                      </Field>
+                    )}
+                    {m.blueprint && (
+                      <Field label={`Blueprint${m.blueprint.approved ? " · goedgekeurd" : ""}`}>
+                        <span className="font-medium">{m.blueprint.title}</span>
+                        <span className="mt-1 block">{m.blueprint.learningGoal}</span>
+                      </Field>
+                    )}
+                    {m.plan && (
+                      <details className="mt-3">
+                        <summary className="cursor-pointer text-sm text-petrol-700">
+                          Block Plan{m.plan.approved ? " · goedgekeurd" : " · voorlopig"} ({m.plan.blocks.length} blokken)
+                        </summary>
+                        <ol className="mt-2 space-y-1 text-sm text-ink">
+                          {m.plan.blocks.map((b) => (
+                            <li key={b.sequence}>
+                              {b.sequence}. {b.certumPhase} · {getCatalogBlock(b.catalogBlockId)?.visibleName ?? b.catalogBlockId}: {b.purpose}
+                            </li>
+                          ))}
+                        </ol>
+                      </details>
+                    )}
+
+                    {view.status === "gate1" && m.blueprint && !m.blueprint.approved && (
+                      <div className="mt-3">
+                        <p className="text-xs font-medium tracking-wide text-muted uppercase">Kennisbehoeften: kies de scope</p>
+                        {m.blueprint.sourceNeeds.map((n) => (
+                          <div key={n.id} className="mt-2 text-sm text-ink">
+                            <p>
+                              {n.id}: {n.question}
+                            </p>
+                            <div className="mt-1 flex flex-col gap-1 sm:flex-row sm:gap-4">
+                              {(["professional", "organisation_specific"] as const).map((scope) => (
+                                <label key={scope} className="flex items-center gap-2">
+                                  <input
+                                    type="radio"
+                                    className="size-5"
+                                    name={`${m.moduleId}-${n.id}`}
+                                    checked={scopes[m.moduleId]?.[n.id] === scope}
+                                    onChange={() => setScopes((s) => ({ ...s, [m.moduleId]: { ...(s[m.moduleId] ?? {}), [n.id]: scope } }))}
+                                  />
+                                  {scope === "professional" ? "Professionele / algemene kennis" : "Organisatiespecifieke kennis"}
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+
+                        <p className="mt-4 text-xs font-medium tracking-wide text-muted uppercase">Bronnen voor deze module</p>
+                        {library.length > 0 ? (
+                          library.map((l) => (
+                            <label key={l.libraryId} className="mt-2 flex items-start gap-3 text-sm text-ink">
+                              <input
+                                type="checkbox"
+                                className="mt-1 size-5 shrink-0"
+                                checked={!(deselected[m.moduleId] ?? []).includes(l.libraryId)}
+                                onChange={(e) =>
+                                  setDeselected((d) => ({
+                                    ...d,
+                                    [m.moduleId]: e.target.checked ? (d[m.moduleId] ?? []).filter((x) => x !== l.libraryId) : [...(d[m.moduleId] ?? []), l.libraryId],
+                                  }))
+                                }
+                              />
+                              <span>{l.fields.title}</span>
+                            </label>
+                          ))
+                        ) : (
+                          <ExtraSource value={extra[m.moduleId] ?? EMPTY_EXTRA} onChange={(v) => setExtra((x) => ({ ...x, [m.moduleId]: v }))} />
+                        )}
+                      </div>
+                    )}
+
+                    {m.validatedSources.length > 0 && <Field label="Gevalideerde bronnen">{m.validatedSources.join(" · ")}</Field>}
+                    {m.content && (
+                      <p className="mt-3 text-sm text-muted">
+                        Inhoud: {m.content.generated}/{m.content.total} blokken gegenereerd, {m.content.approved} goedgekeurd{m.content.frame ? ", Start/Einde aanwezig" : ""}.
+                      </p>
+                    )}
+                    {m.training && (
+                      <p className="mt-3">
+                        <Link href={`/trainings/${m.training.id}`} className="text-sm text-petrol-700 underline underline-offset-2">
+                          Open training {m.training.code}
+                        </Link>
+                      </p>
+                    )}
                   </li>
                 );
               })}
             </ol>
           </Section>
 
-          {view.gate1 && (
-            <Section title="Gate 1 · ontwerp beoordelen">
+          {view.status === "gate1" && (
+            <Section title="Gate 1 · één GO">
+              {library.length > 0 && (
+                <details className="mb-4" open>
+                  <summary className="cursor-pointer text-sm text-petrol-700">Voorgestelde bronnen en passages (eerder door een mens gevalideerd)</summary>
+                  {library.map((l) => (
+                    <div key={l.libraryId} className="mt-3 rounded-md border border-line bg-canvas px-3 py-2 text-sm text-ink">
+                      <p className="font-medium">{l.fields.title}</p>
+                      <p className="text-muted">{[l.fields.publisher, l.fields.publicationDate, l.fields.url].filter(Boolean).join(" · ")}</p>
+                      <p className="mt-2 whitespace-pre-line">{l.fields.relevantContent}</p>
+                    </div>
+                  ))}
+                </details>
+              )}
               <p className="text-[15px] text-muted">
-                GO legt dit ontwerp vast en maakt productie mogelijk. Wil je iets anders, geef dan één aanwijzing voor het hele ontwerp.
+                GO keurt in één handeling goed: het leerlijnontwerp, de richting, de scopes, de Blueprint en het Block Plan van iedere
+                module, en valideert de aangevinkte bronnen. Daarna start de productie automatisch (nieuwe AI-aanroepen).
               </p>
-              {blockedModules.length > 0 && (
-                <p className="mt-4 rounded-md border border-danger/30 bg-danger-50 px-4 py-3 text-sm text-danger">
-                  De invoer van {blockedModules.map((m) => m.moduleId).join(", ")} bevat een direct herkenbaar gegeven. Vraag eerst een revisie aan.
-                </p>
-              )}
-              {reviewFindings.length > 0 && (
-                <div className="mt-4 rounded-md border border-line bg-surface px-4 py-3 text-sm text-ink">
-                  <p className="font-medium">Gemarkeerd in de module-invoer (Privacy Preflight):</p>
-                  <ul className="mt-2 list-disc pl-5">
-                    {reviewFindings.map((f) => (
-                      <li key={`${f.moduleId}-${f.id}`}>
-                        {f.moduleId}: {f.label} ‘{f.text}’
-                      </li>
-                    ))}
-                  </ul>
-                  <label className="mt-3 flex items-start gap-3">
-                    <input type="checkbox" checked={findingsConfirmed} onChange={(e) => setFindingsConfirmed(e.target.checked)} className="mt-1 size-5 shrink-0" />
-                    <span>Ik heb deze fragmenten gecontroleerd: ze zijn fictief en verwijzen niet naar echte personen of instellingen.</span>
-                  </label>
-                </div>
-              )}
               <label className="mt-4 flex items-start gap-3 text-sm text-ink">
+                <input type="checkbox" checked={sourcesValidated} onChange={(e) => setSourcesValidated(e.target.checked)} className="mt-1 size-5 shrink-0" />
+                <span>{GATE1_SOURCE_STATEMENT}</span>
+              </label>
+              <label className="mt-3 flex items-start gap-3 text-sm text-ink">
                 <input type="checkbox" checked={attested} onChange={(e) => setAttested(e.target.checked)} className="mt-1 size-5 shrink-0" />
                 <span>{SYNTHETIC_DATA_ATTESTATION}</span>
               </label>
-              <div className="mt-4">
-                <button
-                  type="button"
-                  className={primary}
-                  disabled={pending || !attested || blockedModules.length > 0 || (reviewFindings.length > 0 && !findingsConfirmed)}
-                  onClick={() =>
-                    run(() =>
-                      approveDesignAction(
-                        view.line.id,
-                        design.revisionId,
-                        attested,
-                        Object.fromEntries(view.gate1!.moduleInputs.map((m) => [m.moduleId, m.findings.filter((f) => f.severity === "review_required").map((f) => f.id)])),
-                      ),
-                    )
-                  }
-                >
-                  GO · ontwerp goedkeuren
-                </button>
-              </div>
+              <button type="button" className={`mt-4 ${primary}`} disabled={pending || !gate1Ready || !attested || !sourcesValidated} onClick={() => run(() => approveGate1Action(view.line.id, gate1Payload()))}>
+                {pending ? "Goedkeuren en produceren…" : "GO · Gate 1"}
+              </button>
+              {!gate1Ready && <p className="mt-2 text-xs text-muted">Kies voor iedere kennisbehoefte een scope en zorg per module voor minstens één bron.</p>}
 
               <label htmlFor="revision-feedback" className="mt-8 block text-sm font-medium text-ink">
-                Of: wat moet er in de volgende versie anders?
+                Of: wat moet er in de volgende versie van het hele ontwerp anders?
               </label>
-              <textarea
-                id="revision-feedback"
-                value={feedback}
-                onChange={(e) => setFeedback(e.target.value)}
-                maxLength={3000}
-                rows={4}
-                className="mt-2 w-full rounded-md border border-line bg-canvas px-3 py-3 text-base text-ink focus:border-petrol-600 focus:outline-none"
-              />
-              <p className="mt-1 text-xs text-muted">Dit start een nieuwe AI-aanroep voor het hele ontwerp.</p>
-              <button
-                type="button"
-                className={`mt-3 ${secondary}`}
-                disabled={pending || !feedback.trim()}
-                onClick={() => run(() => requestDesignRevisionAction(view.line.id, design.revisionId, feedback), () => setFeedback(""))}
-              >
+              <textarea id="revision-feedback" value={feedback} onChange={(e) => setFeedback(e.target.value)} maxLength={3000} rows={4} className={input} />
+              <p className="mt-1 text-xs text-muted">Dit start nieuwe AI-aanroepen: een nieuw ontwerp en een nieuwe voorbereiding van de modules.</p>
+              <button type="button" className={`mt-3 ${secondary}`} disabled={pending || !feedback.trim()} onClick={() => run(() => requestDesignRevisionAction(view.line.id, design.revisionId, feedback), () => setFeedback(""))}>
                 Revisie aanvragen
               </button>
             </Section>
           )}
 
-          {design.approved && (
+          {view.status === "producing" && (
             <Section title="Productie">
               <p className="text-[15px] text-muted">
-                Iedere module wordt een training in de bestaande Studio: Certum Analyse, richting, Blueprint, Block Plan, bronnen en
-                inhoud, met de bestaande menselijke stappen per training. {view.production.started}/{view.production.total} gestart,{" "}
-                {view.production.ready}/{view.production.total} Training gereed.
+                Certum maakt de inhoud van alle blokken en Start/Einde, meerdere tegelijk. Mislukt er iets, dan blijft alleen dat open;
+                hervatten start nieuwe AI-aanroepen voor wat nog ontbreekt.
               </p>
-              {view.production.started < view.production.total && (
-                <>
-                  <p className="mt-2 text-xs text-muted">Per nieuwe module start de Certum Analyse (een AI-aanroep als de analyse op Claude staat).</p>
-                  <button type="button" className={`mt-3 ${primary}`} disabled={pending} onClick={() => run(() => startProductionAction(view.line.id))}>
-                    {pending ? "Trainingen worden aangemaakt…" : "Productie starten"}
-                  </button>
-                </>
-              )}
+              <button type="button" className={`mt-3 ${primary}`} disabled={pending} onClick={() => run(() => produceContentAction(view.line.id))}>
+                {pending ? "Bezig met produceren…" : "Productie hervatten"}
+              </button>
+            </Section>
+          )}
+
+          {view.status === "gate2" && view.gate2 && (
+            <Section title="Gate 2 · één GO">
+              <p className="text-[15px] text-muted">
+                Bekijk per module de inhoud (link naar de training) en de pakketten hieronder. GO keurt alle blokken, Start en Einde van
+                de zes modules goed en daarna het eindpakket.
+              </p>
+              <button type="button" className={`mt-4 ${primary}`} disabled={pending} onClick={() => run(() => approveGate2Action(view.line.id, view.gate2!.fingerprint))}>
+                GO · Gate 2
+              </button>
             </Section>
           )}
 
@@ -275,17 +409,8 @@ export function LearningLineWorkspace({ initial }: { initial: LearningLineView }
                 ))}
               </ul>
               <p className="mt-3 text-sm text-muted">
-                {view.packages.approved
-                  ? "Gate 2: eindpakket goedgekeurd."
-                  : view.packages.complete
-                    ? "Alle zes modules zijn gereed. Bekijk de pakketten en keur het eindpakket goed (Gate 2)."
-                    : "De pakketten zijn een afgeleide van de huidige stand; ze zijn pas compleet als alle zes modules Training gereed zijn."}
+                {view.packages.approved ? "Eindpakket goedgekeurd." : "Afgeleid van de huidige stand; compleet na Gate 2."}
               </p>
-              {view.packages.complete && !view.packages.approved && (
-                <button type="button" className={`mt-3 ${primary}`} disabled={pending} onClick={() => run(() => approvePackageAction(view.line.id, view.packages!.certumHash))}>
-                  Gate 2 · eindpakket goedkeuren
-                </button>
-              )}
             </Section>
           )}
         </>
@@ -293,3 +418,29 @@ export function LearningLineWorkspace({ initial }: { initial: LearningLineView }
     </div>
   );
 }
+
+function ExtraSource({ value, onChange }: { value: Extra; onChange: (v: Extra) => void }) {
+  const set = (k: keyof Extra) => (e: { target: { value: string } }) => onChange({ ...value, [k]: e.target.value });
+  return (
+    <div className="mt-2 rounded-md border border-attention/30 bg-attention-50 px-3 py-2 text-sm text-ink">
+      <p>Er is nog geen gevalideerde bron in de bibliotheek. Voeg één echte bron toe (uitzonderingspad).</p>
+      <label className="mt-2 block">
+        Titel
+        <input className={input} value={value.title} onChange={set("title")} />
+      </label>
+      <label className="mt-2 block">
+        Uitgever / organisatie
+        <input className={input} value={value.publisher} onChange={set("publisher")} />
+      </label>
+      <label className="mt-2 block">
+        URL
+        <input className={input} value={value.url} onChange={set("url")} inputMode="url" />
+      </label>
+      <label className="mt-2 block">
+        Letterlijke passage
+        <textarea className={input} rows={5} value={value.relevantContent} onChange={set("relevantContent")} />
+      </label>
+    </div>
+  );
+}
+

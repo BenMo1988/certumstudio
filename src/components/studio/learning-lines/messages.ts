@@ -8,10 +8,13 @@ export const LEARNING_LINE_MESSAGES: Record<LearningLineRejection, string> = {
   invalid_state: "Deze stap past niet bij de huidige stand. Ververs de pagina.",
   stale_revision: "Er is intussen een nieuwere versie. Ververs de pagina.",
   acknowledgement_required: "Bevestig eerst de gemarkeerde fragmenten in de module-invoer.",
-  not_ready: "Nog niet alle zes modules zijn Training gereed.",
+  not_ready: "Nog niet alle inhoud van de zes modules is klaar.",
+  modules_not_prepared: "Nog niet alle modules zijn voorbereid. Hervat de voorbereiding.",
+  scope_required: "Kies voor iedere kennisbehoefte een scope.",
+  sources_missing: "Een module heeft nog geen bron.",
+  source_invalid: "Een bron is niet bruikbaar: titel en een letterlijke passage zijn nodig.",
   provider_error: "Er kwam nu geen ontwerp. Probeer het opnieuw.",
   invalid_output: "Het ontwerp voldeed niet aan het leerlijncontract (exact zes modules). Probeer het opnieuw.",
-  production_failed: "Een module kon niet als training worden aangemaakt. Bekijk de modules en probeer het opnieuw.",
   persistence_error: "Opslaan lukte niet. Probeer het opnieuw.",
 };
 
