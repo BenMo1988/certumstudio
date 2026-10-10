@@ -4,6 +4,7 @@ import { MODULE_IDS, type ModuleId } from "@/modules/learning-lines";
 import { SOURCE_KINDS } from "@/modules/sources/schema";
 import { SOURCE_NEED_SCOPES, type SourceNeedScope } from "@/modules/training-blueprint/v2/schema";
 import { createLearningLineArchitect, learningLineProvenance } from "@/services/learning-line/factory";
+import { createSourceSelector } from "@/services/learning-line/source-selector";
 import { StorageError, getDb } from "@/services/storage";
 import { workflowDeps } from "../../trainings/workflow/deps";
 import {
@@ -29,7 +30,7 @@ import {
  */
 
 function deps(): LearningLineDeps {
-  return { db: getDb(), getArchitect: createLearningLineArchitect, provenance: learningLineProvenance(), training: workflowDeps() };
+  return { db: getDb(), getArchitect: createLearningLineArchitect, getSourceSelector: () => createSourceSelector(), provenance: learningLineProvenance(), training: workflowDeps() };
 }
 
 const isId = (value: unknown): value is string => typeof value === "string" && value.length > 0 && value.length <= 100;

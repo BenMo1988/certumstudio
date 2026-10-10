@@ -71,7 +71,8 @@ export function LearningLineWorkspace({ initial }: { initial: LearningLineView }
   const [scopes, setScopes] = useState<Record<string, Record<string, Scope>>>(() =>
     Object.fromEntries(initial.modules.map((m) => [m.moduleId, Object.fromEntries((m.blueprint?.sourceNeeds ?? []).flatMap((n) => (n.scope ? [[n.id, n.scope]] : [])))])),
   );
-  const [deselected, setDeselected] = useState<Record<string, string[]>>({});
+  /** Per module de gekozen bibliotheekbronnen; zolang de opleider niets wijzigt: het voorstel van de bronselectie. */
+  const [chosen, setChosen] = useState<Record<string, string[]>>({});
   const [extra, setExtra] = useState<Record<string, Extra>>({});
   const [inputAcks, setInputAcks] = useState<Record<string, boolean>>({});
 
@@ -90,7 +91,7 @@ export function LearningLineWorkspace({ initial }: { initial: LearningLineView }
 
   const design = view.design;
   const library = view.library ?? [];
-  const selectedFor = (moduleId: string) => library.map((l) => l.libraryId).filter((id) => !(deselected[moduleId] ?? []).includes(id));
+  const selectedFor = (moduleId: string) => chosen[moduleId] ?? view.modules.find((m) => m.moduleId === moduleId)?.proposedSourceIds ?? [];
   const extraFilled = (moduleId: string) => !!extra[moduleId]?.title.trim() && !!extra[moduleId]?.relevantContent.trim();
   const gate1Ready =
     view.status === "gate1" &&
@@ -290,20 +291,25 @@ export function LearningLineWorkspace({ initial }: { initial: LearningLineView }
 
                         <p className="mt-4 text-xs font-medium tracking-wide text-muted uppercase">Bronnen voor deze module</p>
                         {library.length > 0 ? (
-                          library.map((l) => (
+                          [...library]
+                            .sort((a, b) => Number(m.proposedSourceIds.includes(b.libraryId)) - Number(m.proposedSourceIds.includes(a.libraryId)))
+                            .map((l) => (
                             <label key={l.libraryId} className="mt-2 flex items-start gap-3 text-sm text-ink">
                               <input
                                 type="checkbox"
                                 className="mt-1 size-5 shrink-0"
-                                checked={!(deselected[m.moduleId] ?? []).includes(l.libraryId)}
+                                checked={selectedFor(m.moduleId).includes(l.libraryId)}
                                 onChange={(e) =>
-                                  setDeselected((d) => ({
-                                    ...d,
-                                    [m.moduleId]: e.target.checked ? (d[m.moduleId] ?? []).filter((x) => x !== l.libraryId) : [...(d[m.moduleId] ?? []), l.libraryId],
-                                  }))
+                                  setChosen((c) => {
+                                    const current = c[m.moduleId] ?? m.proposedSourceIds;
+                                    return { ...c, [m.moduleId]: e.target.checked ? [...current, l.libraryId] : current.filter((x) => x !== l.libraryId) };
+                                  })
                                 }
                               />
-                              <span>{l.fields.title}</span>
+                              <span>
+                                {l.fields.title}
+                                {m.proposedSourceIds.includes(l.libraryId) && <span className="ml-2 text-xs text-petrol-700">voorgesteld</span>}
+                              </span>
                             </label>
                           ))
                         ) : (

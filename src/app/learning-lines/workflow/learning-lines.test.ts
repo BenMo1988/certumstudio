@@ -10,6 +10,7 @@ import { createBlockPlanService } from "@/services/block-plan/factory";
 import { createTrainingBlueprintServiceV21 } from "@/services/blueprint/factory";
 import { MockLearningLineArchitect } from "@/services/learning-line/mock-learning-line-architect";
 import type { LearningLineArchitectService } from "@/services/learning-line/services";
+import { MockSourceSelector } from "@/services/learning-line/source-selector";
 import { loadLearningLineSnapshot } from "@/services/storage/learning-line-record";
 import { loadTrainingRecordSnapshot } from "@/services/storage/training-record";
 import { loadTrainingWorkspace } from "@/services/storage/workspace";
@@ -65,7 +66,7 @@ function trainingDeps(content?: () => BlockContentService): WorkflowDeps {
 }
 
 function deps(opts: { logs?: LearningLineWorkflowLogEntry[]; architect?: LearningLineArchitectService; content?: () => BlockContentService } = {}): LearningLineDeps {
-  return { db, getArchitect: () => opts.architect ?? new MockLearningLineArchitect(), provenance: mock, training: trainingDeps(opts.content), concurrency: 3, log: (e) => opts.logs?.push(e) };
+  return { db, getArchitect: () => opts.architect ?? new MockLearningLineArchitect(), getSourceSelector: () => new MockSourceSelector(), provenance: mock, training: trainingDeps(opts.content), concurrency: 3, log: (e) => opts.logs?.push(e) };
 }
 
 async function prepared(d = deps()) {
@@ -87,9 +88,9 @@ function gate1(view: LearningLineView, opts: { extra?: boolean; scopes?: boolean
           blueprintRevisionId: m.blueprint!.revisionId,
           planHash: m.plan!.hash,
           scopes: opts.scopes === false ? {} : Object.fromEntries(m.blueprint!.sourceNeeds.map((n) => [n.id, "professional" as const])),
-          librarySourceIds: (view.library ?? []).map((l) => l.libraryId),
+          librarySourceIds: m.proposedSourceIds,
           extraSources: opts.extra
-            ? [{ title: "Synthetische richtlijn", sourceType: "guideline" as const, author: null, publisher: "Fictief Kenniscentrum", publicationDate: "2025", url: null, relevantContent: PASSAGE }]
+            ? [{ title: "Testrichtlijn de-escalatie", sourceType: "guideline" as const, author: null, publisher: "Fictief Kenniscentrum", publicationDate: "2025", url: null, relevantContent: PASSAGE }]
             : [],
         },
       ]),
@@ -192,6 +193,9 @@ describe("Gate 1 (één GO)", () => {
   it("bronnen komen vooraf ingevuld uit de bibliotheek van eerder gevalideerde passages; nooit gegenereerd", async () => {
     const { view } = await prepared();
     expect(view.library!.some((l) => l.fields.relevantContent === PASSAGE)).toBe(true);
+    // De bronselectie stelt per module bestaande bibliotheek-ids voor; testbronnen ("synthetisch") staan er niet in.
+    expect(view.modules.every((m) => m.proposedSourceIds.length > 0 && m.proposedSourceIds.every((id) => view.library!.some((l) => l.libraryId === id)))).toBe(true);
+    expect(view.library!.some((l) => /synthetisch/i.test(l.fields.title))).toBe(false);
     const { id, d } = await prepared();
     const fresh = (await loadLearningLineView(db, id))!;
     const r = await approveGate1(d, id, gate1(fresh));
@@ -295,8 +299,8 @@ describe("garanties", () => {
     for (const value of ["begrenzen", "ZQ-42", "BX-77", view.design!.payload.modules[0].title]) expect(json).not.toContain(value);
   }, 180_000);
 
-  it("migraties 003 en 004 raken het Training Record niet", () => {
-    for (const file of ["003_certum_learning_lines.sql", "004_learning_line_gate_compression.sql"]) {
+  it("migraties 003 t/m 005 raken het Training Record niet", () => {
+    for (const file of ["003_certum_learning_lines.sql", "004_learning_line_gate_compression.sql", "005_learning_line_source_selection.sql"]) {
       const sql = readFileSync(join(process.cwd(), "migrations", file), "utf8").toLowerCase();
       expect(sql).not.toMatch(/alter\s+table\s+(training|training_input|artifact_revision|workflow_event)\b/);
       expect(sql).not.toMatch(/drop\s+table|truncate|delete\s+from|update\s+\w+\s+set/);

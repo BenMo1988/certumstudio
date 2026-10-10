@@ -673,7 +673,11 @@ SKJ-pakket. Een laag bóven de bestaande Studio; er is geen tweede Training Engi
     voorlopige plan als Block Plan-revision (zelfde hash) → approved → bronnen toevoegen en valideren
     (`GATE1_SOURCE_STATEMENT`), tot slot `design_approved`. Herhaalbaar.
   - **Bronnen vooraf ingevuld uit de bibliotheek** (`listValidatedSourceLibrary`): current bronversies met een geldig
-    laatste `approved`-besluit, ontdubbeld. AI schrijft nooit bronpassages. Alleen zonder bibliotheekvoorstel een klein
+    laatste `approved`-besluit, ontdubbeld, zonder synthetische testbronnen (`proposalLibrary`). De **bronselectie**
+    (`services/learning-line/source-selector.ts`, prompt `source-selector/v1`, effort `low`, via
+    `CERTUM_LEARNING_LINE_PROVIDER`) kiest per sourceNeed alleen bestaande bibliotheek-ids (schema-enum, server-side
+    opnieuw gecontroleerd), tegelijk met het voorlopige plan; opgeslagen als `source_selection` (migratie 005) en in
+    Gate 1 voorgeselecteerd. AI schrijft nooit bronpassages. Alleen zonder bibliotheekvoorstel een klein
     invoerblok (uitzonderingspad). In een nieuwe training valideert de opleider opnieuw (via GO).
   - **Productie na Gate 1** (`produceContent`): alle blokken begrensd parallel (`mapWithConcurrency`, standaard 4;
     blokken zijn onafhankelijk zolang er geen goedgekeurde eerdere inhoud is), daarna Start/Einde. Geen automatische

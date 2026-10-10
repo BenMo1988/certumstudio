@@ -66,6 +66,8 @@ export interface ModulePlanProposal {
   modelVersion: string | null;
   payload: unknown;
   contentHash: string;
+  /** sourceNeed-id → voorgestelde bibliotheek-ids (alleen ids, geen tekst). */
+  sourceSelection: Record<string, string[]>;
 }
 
 export interface LearningLineSnapshot {
@@ -220,13 +222,22 @@ export async function linkModuleTraining(db: Db, input: { learningLineId: string
 /** Voorlopig plan opslaan (append-only). Hetzelfde plan op dezelfde Blueprint-revision nogmaals: niets. */
 export async function saveModulePlanProposal(
   db: Db,
-  input: { learningLineId: string; moduleId: ModuleId; trainingId: string; blueprintRevisionId: string; promptVersion: string | null; modelVersion: string | null; payload: unknown },
+  input: {
+    learningLineId: string;
+    moduleId: ModuleId;
+    trainingId: string;
+    blueprintRevisionId: string;
+    promptVersion: string | null;
+    modelVersion: string | null;
+    payload: unknown;
+    sourceSelection: Record<string, string[]>;
+  },
 ): Promise<void> {
   await db.query(
-    `insert into learning_line_module_plan (learning_line_id, module_id, training_id, blueprint_revision_id, prompt_version, model_version, payload, content_hash)
-     values ($1, $2, $3, $4, $5, $6, $7::text::jsonb, $8)
+    `insert into learning_line_module_plan (learning_line_id, module_id, training_id, blueprint_revision_id, prompt_version, model_version, payload, content_hash, source_selection)
+     values ($1, $2, $3, $4, $5, $6, $7::text::jsonb, $8, $9::text::jsonb)
      on conflict (training_id, blueprint_revision_id) do nothing`,
-    [input.learningLineId, input.moduleId, input.trainingId, input.blueprintRevisionId, input.promptVersion, input.modelVersion, JSON.stringify(input.payload), contentHash(input.payload)],
+    [input.learningLineId, input.moduleId, input.trainingId, input.blueprintRevisionId, input.promptVersion, input.modelVersion, JSON.stringify(input.payload), contentHash(input.payload), JSON.stringify(input.sourceSelection)],
   );
 }
 
@@ -256,6 +267,7 @@ export async function loadLearningLineSnapshot(db: Db, lineId: string): Promise<
       modelVersion: (r.model_version as string | null) ?? null,
       payload: r.payload,
       contentHash: r.content_hash as string,
+      sourceSelection: (r.source_selection as Record<string, string[]> | null) ?? {},
     })),
   };
 }

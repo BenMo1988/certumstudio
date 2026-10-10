@@ -21,6 +21,7 @@ import { relevantContentIssue, SOURCE_KINDS, type CertumSource } from "@/modules
 import type { SourceNeedScope, TrainingBlueprintV2 } from "@/modules/training-blueprint/v2";
 import { AnalysisError } from "@/services/analysis/errors";
 import type { LearningLineArchitectService } from "@/services/learning-line/services";
+import { sanitizeSelection, type SourceSelectionRequest, type SourceSelectorService } from "@/services/learning-line/source-selector";
 import { contentHash } from "@/services/storage/canonical-json";
 import type { Db } from "@/services/storage/db";
 import {
@@ -83,6 +84,7 @@ import { addSource, validateSource } from "../../trainings/workflow/sources";
 export interface LearningLineDeps {
   db: Db;
   getArchitect: () => LearningLineArchitectService;
+  getSourceSelector: () => SourceSelectorService;
   provenance: { promptVersion: string | null; modelVersion: string | null };
   /** De bestaande Training Engine. */
   training: WorkflowDeps;
@@ -125,7 +127,7 @@ export type PrivacyFlag = { category: PreflightCategory; text: string };
 /** Een concreet probleem tijdens een automatische stap (alleen codes, nooit inhoud). */
 export interface ProductionIssue {
   moduleId: ModuleId;
-  step: "input" | "analysis" | "direction" | "blueprint" | "plan" | "block" | "frame";
+  step: "input" | "analysis" | "direction" | "blueprint" | "plan" | "sources" | "block" | "frame";
   plannedBlockId?: string;
   reason: string;
 }
@@ -148,6 +150,11 @@ export const LEARNING_LINE_STATUS_LABEL: Record<LearningLineStatus, string> = {
   gate2: "Gate 2 · eindcontrole",
   package_approved: "Eindpakket goedgekeurd",
 };
+
+/** Bibliotheek voor bronvoorstellen: geen synthetische testbronnen (die horen niet in een echte leerlijn). */
+export function proposalLibrary(library: LibrarySource[]): LibrarySource[] {
+  return library.filter((l) => !/synthetisch/i.test(l.fields.title));
+}
 
 export const GATE1_SOURCE_STATEMENT = "Ik heb de getoonde bronnen en passages gecontroleerd en wil ze gebruiken voor deze leerlijn.";
 
@@ -176,6 +183,8 @@ export interface ModuleGateView {
     bronRefs: string[];
   } | null;
   plan: { hash: string; approved: boolean; blocks: { sequence: number; certumPhase: string; catalogBlockId: string; purpose: string }[] } | null;
+  /** Vóór Gate 1: de door de bronselectie voorgestelde bibliotheek-ids (voorgeselecteerd; de opleider corrigeert). */
+  proposedSourceIds: string[];
   /** Na Gate 1: de gevalideerde bronnen van de training. */
   validatedSources: string[];
   content: { total: number; generated: number; approved: number; frame: boolean; complete: boolean } | null;
@@ -302,7 +311,7 @@ export function contentFingerprint(snap: LearningLineSnapshot, workspaces: Map<s
   return contentHash(parts);
 }
 
-function moduleView(snap: LearningLineSnapshot, design: LearningLineDesign, spec: ModuleSpec, ws: TrainingWorkspaceView | undefined, approved: boolean): ModuleGateView {
+function moduleView(snap: LearningLineSnapshot, design: LearningLineDesign, spec: ModuleSpec, ws: TrainingWorkspaceView | undefined, approved: boolean, library: LibrarySource[]): ModuleGateView {
   const link = currentLinks(snap).find((l) => l.moduleId === spec.id);
   let blocker: ModuleBlocker = null;
   let inputCheck: ModuleInputCheck | null = null;
@@ -348,6 +357,7 @@ function moduleView(snap: LearningLineSnapshot, design: LearningLineDesign, spec
           blocks: [...planPayload.plannedBlocks].sort((a, b) => a.sequence - b.sequence).map((b) => ({ sequence: b.sequence, certumPhase: b.certumPhase, catalogBlockId: b.catalogBlockId, purpose: b.purpose })),
         }
       : null,
+    proposedSourceIds: proposal && !approved ? [...new Set(Object.values(proposal.sourceSelection).flat())].filter((id) => library.some((l) => l.libraryId === id)) : [],
     validatedSources: (ws?.sources?.items ?? []).filter((i) => i.validated).map((i) => i.payload.title),
     content: content
       ? {
@@ -369,7 +379,7 @@ export function deriveLearningLineView(snap: LearningLineSnapshot, workspaces: M
   const links = currentLinks(snap);
   const modules = (revision?.payload.modules ?? []).map((spec) => {
     const link = links.find((l) => l.moduleId === spec.id);
-    return moduleView(snap, revision!.payload, spec, link ? workspaces.get(link.trainingId) : undefined, approved);
+    return moduleView(snap, revision!.payload, spec, link ? workspaces.get(link.trainingId) : undefined, approved, library ?? []);
   });
   const state = learningLineState(snap, workspaces);
   const certum = state ? buildCertumPackage(state) : null;
@@ -413,7 +423,7 @@ export async function loadLearningLineView(db: Db, lineId: string): Promise<Lear
   const all = await loadAll(db, lineId);
   if (!all) return null;
   const revision = currentDesign(all.snap);
-  const library = revision && !designApproved(all.snap, revision) ? await listValidatedSourceLibrary(db) : null;
+  const library = revision && !designApproved(all.snap, revision) ? proposalLibrary(await listValidatedSourceLibrary(db)) : null;
   return deriveLearningLineView(all.snap, all.workspaces, library);
 }
 
@@ -527,6 +537,7 @@ async function prepareModule(
   link: LearningLineModuleLink | undefined,
   plans: ModulePlanProposal[],
   acknowledged: string[],
+  library: LibrarySource[],
 ): Promise<ProductionIssue | null> {
   const issue = (step: ProductionIssue["step"], reason: string): ProductionIssue => ({ moduleId: spec.id, step, reason });
   let trainingId = link?.trainingId;
@@ -573,7 +584,21 @@ async function prepareModule(
   }
   if (!ws.blueprint || ws.blueprint.approved) return null;
   if (proposalFor({ plans } as LearningLineSnapshot, trainingId, ws.blueprint.revisionId)) return null;
-  const plan = await runProvisionalBlockPlanFlow(ws.blueprint.payload, { getService: deps.training.getBlockPlanService });
+  const bp = ws.blueprint.payload as TrainingBlueprintV2;
+  const request: SourceSelectionRequest = {
+    training: { title: bp.title, learningGoal: bp.learningGoal },
+    sourceNeeds: bp.sourceNeeds.map((n) => ({ id: n.id, question: n.question, whyNeeded: n.whyNeeded })),
+    library: library.map((l) => ({ libraryId: l.libraryId, title: l.fields.title, publisher: l.fields.publisher, relevantContent: l.fields.relevantContent })),
+  };
+  // Plan en bronselectie zijn onafhankelijk: tegelijk. Een mislukte selectie is geen blokkade (de opleider kiest dan zelf).
+  const [plan, selection] = await Promise.all([
+    runProvisionalBlockPlanFlow(ws.blueprint.payload, { getService: deps.training.getBlockPlanService }),
+    deps
+      .getSourceSelector()
+      .select(request)
+      .then((s) => sanitizeSelection(s, request))
+      .catch(() => null),
+  ]);
   if (plan.status !== "block_plan") return issue("plan", plan.reason);
   try {
     await saveModulePlanProposal(deps.db, {
@@ -583,11 +608,12 @@ async function prepareModule(
       blueprintRevisionId: ws.blueprint.revisionId,
       ...deps.training.provenance.blockPlan,
       payload: plan.blockPlan,
+      sourceSelection: selection ?? {},
     });
   } catch (error) {
     return issue("plan", storageReason(error));
   }
-  return null;
+  return selection ? null : issue("sources", "source_selection_failed");
 }
 
 /**
@@ -602,8 +628,9 @@ export async function prepareModules(deps: LearningLineDeps, lineId: string, ack
   if (!snap || !revision) return reject(deps, action, "not_found");
   if (designApproved(snap, revision)) return viewResult(deps, lineId);
   const links = currentLinks(snap);
+  const library = proposalLibrary(await listValidatedSourceLibrary(deps.db));
   const results = await mapWithConcurrency(revision.payload.modules, limitOf(deps), (spec) =>
-    prepareModule(deps, lineId, revision, spec, links.find((l) => l.moduleId === spec.id), snap.plans, acknowledgedFindings[spec.id] ?? []).catch(
+    prepareModule(deps, lineId, revision, spec, links.find((l) => l.moduleId === spec.id), snap.plans, acknowledgedFindings[spec.id] ?? [], library).catch(
       (): ProductionIssue => ({ moduleId: spec.id, step: "input", reason: "unexpected" }),
     ),
   );
@@ -659,7 +686,7 @@ export async function approveGate1(deps: LearningLineDeps, lineId: string, input
   if (revision.id !== input.revisionId) return reject(deps, action, "stale_revision");
   if (designApproved(all.snap, revision)) return viewResult(deps, lineId);
   if (input.syntheticDataAttested !== true || input.sourcesValidated !== true) return reject(deps, action, "input_gate");
-  const library = await listValidatedSourceLibrary(deps.db);
+  const library = proposalLibrary(await listValidatedSourceLibrary(deps.db));
   const links = currentLinks(all.snap);
 
   // 1. Controleren, zonder te schrijven.
@@ -690,7 +717,9 @@ export async function approveGate1(deps: LearningLineDeps, lineId: string, input
     for (const id of decision.librarySourceIds) {
       const entry = library.find((l) => l.libraryId === id);
       if (!entry) return reject(deps, action, "source_invalid", { moduleId: spec.id });
-      sources.push({ ...entry.fields, sourceNeedRefs: required });
+      // De sourceNeeds waarvoor de bronselectie deze passage voorstelde; handmatig gekozen: alle Bron-refs.
+      const selectedFor = Object.entries(proposal?.sourceSelection ?? {}).filter(([, ids]) => ids.includes(id)).map(([sn]) => sn).filter((sn) => required.includes(sn));
+      sources.push({ ...entry.fields, sourceNeedRefs: selectedFor.length > 0 ? selectedFor : required });
     }
     for (const extra of decision.extraSources) {
       const candidate = { ...extra, sourceNeedRefs: required };
